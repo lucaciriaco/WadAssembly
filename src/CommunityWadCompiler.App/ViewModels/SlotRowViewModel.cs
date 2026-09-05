@@ -49,8 +49,8 @@ public sealed class SlotRowViewModel : ObservableObject
     /// <summary>Last write time of the source WAD file (when the map was last updated).</summary>
     public string LastModified { get; }
 
-    /// <summary>Music lumps available to pick from (shared list maintained by the view model).</summary>
-    public IReadOnlyList<string>? MusicOptions { get; set; }
+    /// <summary>Music options available to pick from (shared list maintained by the view model).</summary>
+    public IReadOnlyList<MusicLumpInfo>? MusicOptions { get; set; }
 
     /// <summary>Final slot name (MAP01, MAP02, ...); usually auto-assigned by row position.</summary>
     public string SlotName
@@ -70,8 +70,15 @@ public sealed class SlotRowViewModel : ObservableObject
     public string MusicName
     {
         get => _musicName;
-        set => SetProperty(ref _musicName, value);
+        set
+        {
+            if (SetProperty(ref _musicName, value))
+                OnPropertyChanged(nameof(MusicDisplay));
+        }
     }
+
+    /// <summary>Text shown by the music picker button: the assigned lump, or "Ninguna".</summary>
+    public string MusicDisplay => string.IsNullOrWhiteSpace(MusicName) ? NoMusicOption : MusicName;
 
     /// <summary>Author of the map, written as a comment above the map block in the MAPINFO.</summary>
     public string Author

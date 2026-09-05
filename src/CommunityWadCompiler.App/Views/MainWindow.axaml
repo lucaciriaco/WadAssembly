@@ -123,11 +123,9 @@
                               MaxDropDownHeight="220"/>
                     <TextBlock Grid.Column="5" Text="{Binding LastModified}"
                                VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <ComboBox Grid.Column="6"
-                              ItemsSource="{Binding MusicOptions}"
-                              SelectedItem="{Binding MusicName, Mode=TwoWay}"
-                              VerticalAlignment="Center" MinWidth="120"
-                              MaxDropDownHeight="220" PlaceholderText="Ninguna"/>
+                    <Button Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
+                        Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        Click="OnPickMusic"/>
                     <TextBox Grid.Column="7" Text="{Binding Author, Mode=TwoWay}"
                              MinWidth="120" VerticalContentAlignment="Center"/>
                   </Grid>

@@ -115,8 +115,8 @@ public partial class MainWindow : Window
     {
         if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
             return;
-        // Do not start a drag from text/selection inputs.
-        if (e.Source is TextBox or ComboBox)
+        // Do not start a drag from text/selection inputs or the music picker button.
+        if (e.Source is TextBox or ComboBox or Button)
             return;
 
         if (sender is Control { DataContext: SlotRowViewModel row })
@@ -157,6 +157,20 @@ public partial class MainWindow : Window
         if (index < 0)
             return;
         _viewModel.ClearSlot(index);
+    }
+
+    /// <summary>Opens the music picker for the slot whose row button was clicked.</summary>
+    private async void OnPickMusic(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.DataContext is not SlotRowViewModel row)
+            return;
+        if (row.MusicOptions is not { Count: > 0 } options)
+            return;
+
+        var picker = new MusicPickerWindow(options, row.MusicName ?? "");
+        await picker.ShowDialog(this);
+        if (picker.Accepted)
+            row.MusicName = picker.SelectedName;
     }
 
     private void OnSlotDragOver(object? sender, DragEventArgs e)

@@ -46,7 +46,7 @@ private int _slotCount = 32;
         /// <summary>Slot rows of the plan sheet: one row per slot (empty slots included).</summary>
         public ObservableCollection<SlotRowViewModel> SlotRows { get; } = new();
 
-        public ObservableCollection<string> AvailableMusicLumps { get; } = new();
+        public ObservableCollection<MusicLumpInfo> AvailableMusicLumps { get; } = new();
 
         /// <summary>Project collaborators (map authors), kept as project metadata only.</summary>
         public ObservableCollection<CollaboratorEntryViewModel> Collaborators { get; } = new();
@@ -432,7 +432,7 @@ private int _slotCount = 32;
                 }
             }
 
-            var wanted = new List<string>();
+            var wanted = new List<MusicLumpInfo>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
             var renames = new List<string>();
             foreach (var c in MusicLumpDetector.CollectAcrossWads(opened))
@@ -440,15 +440,15 @@ private int _slotCount = 32;
                 if (!string.Equals(c.FinalName, c.OriginalName, StringComparison.Ordinal))
                     renames.Add($"'{c.OriginalName}' de '{Path.GetFileName(c.WadPath)}' → '{c.FinalName}'");
                 if (seen.Add(c.FinalName))
-                    wanted.Add(c.FinalName);
+                    wanted.Add(new MusicLumpInfo(c.FinalName, c.WadPath));
             }
 
             AvailableMusicLumps.Clear();
-            foreach (string name in wanted)
-                AvailableMusicLumps.Add(name);
+            foreach (var info in wanted)
+                AvailableMusicLumps.Add(info);
 
             // "No music" is always available as the last option.
-            AvailableMusicLumps.Add(SlotRowViewModel.NoMusicOption);
+            AvailableMusicLumps.Add(new MusicLumpInfo(SlotRowViewModel.NoMusicOption, ""));
 
             if (renames.Count > 0)
                 AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
