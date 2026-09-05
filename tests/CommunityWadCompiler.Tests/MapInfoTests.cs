@@ -265,6 +265,77 @@ var request = new MergeRequest
         Assert.DoesNotContain("D_RUNNIN", renamed);
     }
 
+    [Fact]
+    public void MergeWithAuthor_WritesCommentBeforeMap()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Hangar", null, "John Doe"),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("// Autor: John Doe", text);
+            Assert.True(
+                text.IndexOf("// Autor: John Doe", StringComparison.Ordinal)
+                < text.IndexOf("map MAP01", StringComparison.Ordinal),
+                "El comentario debe ir antes del bloque del mapa");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeWithAuthorOnly_WritesCommentAndMapBlock()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", null, null, "Solo Autor"),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("// Autor: Solo Autor", text);
+            Assert.Contains("map MAP01 \"\"", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     // ------------------------------------------------------------------
     // Builders
     // ------------------------------------------------------------------

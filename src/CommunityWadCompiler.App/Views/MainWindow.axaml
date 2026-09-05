@@ -80,20 +80,21 @@
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
         <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)"
                    FontWeight="Bold" Margin="0,0,0,4"/>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="150,110,80,110,220,150" Margin="0,0,0,2">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="150,110,80,110,200,140,150" Margin="0,0,0,2">
           <TextBlock Grid.Column="0" Text="WAD" FontWeight="Bold"/>
           <TextBlock Grid.Column="1" Text="Mapa original" FontWeight="Bold"/>
           <TextBlock Grid.Column="2" Text="Formato" FontWeight="Bold"/>
           <TextBlock Grid.Column="3" Text="Slot final" FontWeight="Bold"/>
           <TextBlock Grid.Column="4" Text="Nombre del mapa" FontWeight="Bold"/>
           <TextBlock Grid.Column="5" Text="Música" FontWeight="Bold"/>
+          <TextBlock Grid.Column="6" Text="Autor" FontWeight="Bold"/>
         </Grid>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Maps}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="150,110,80,110,220,150" Margin="2,3">
+                  <Grid ColumnDefinitions="150,110,80,110,200,140,150" Margin="2,3">
                     <TextBlock Grid.Column="0" Text="{Binding WadFileName}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
                     <TextBlock Grid.Column="1" Text="{Binding OriginalName}"
@@ -103,12 +104,14 @@
                     <TextBox Grid.Column="3" Text="{Binding FinalName, Mode=TwoWay}"
                              MinWidth="60" VerticalContentAlignment="Center"/>
                     <TextBox Grid.Column="4" Text="{Binding LevelName, Mode=TwoWay}"
-                             MinWidth="120" VerticalContentAlignment="Center"/>
+                             MinWidth="110" VerticalContentAlignment="Center"/>
                     <ComboBox Grid.Column="5"
                               ItemsSource="{Binding MusicOptions}"
                               SelectedItem="{Binding MusicName, Mode=TwoWay}"
-                              VerticalAlignment="Center" MinWidth="140"
+                              VerticalAlignment="Center" MinWidth="130"
                               MaxDropDownHeight="220" PlaceholderText="Ninguna"/>
+                    <TextBox Grid.Column="6" Text="{Binding Author, Mode=TwoWay}"
+                             MinWidth="120" VerticalContentAlignment="Center"/>
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

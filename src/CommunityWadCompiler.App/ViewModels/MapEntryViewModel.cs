@@ -1,11 +1,12 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
-/// <summary>One map with its editable final slot, level name and music.</summary>
+/// <summary>One map with its editable final slot, level name, author and music.</summary>
 public sealed class MapEntryViewModel : ObservableObject
 {
     private string _finalName;
     private string _levelName = "";
     private string _musicName = "";
+    private string _author = "";
 
     public MapEntryViewModel(
         string wadPath,
@@ -53,5 +54,12 @@ public sealed class MapEntryViewModel : ObservableObject
     {
         get => _musicName;
         set => SetProperty(ref _musicName, value);
+    }
+
+    /// <summary>Author of the map, written as a comment above the map block in the MAPINFO.</summary>
+    public string Author
+    {
+        get => _author;
+        set => SetProperty(ref _author, value);
     }
 }

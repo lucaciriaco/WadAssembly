@@ -165,7 +165,7 @@ public sealed class WadMerger
     // Map assignments
     // ------------------------------------------------------------------
 
-    private static IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName)> BuildAssignments(
+    private static IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName, string? Author)> BuildAssignments(
         List<WadFile> inputs,
         MergeRequest request,
         Action<string> warn)
@@ -173,7 +173,7 @@ public sealed class WadMerger
         var explicitMap = request.MapAssignments
             .ToDictionary(a => (a.WadPath, a.OriginalMapName), DefaultComparer.Instance);
 
-        var result = new List<(DetectedMap, string, string?, string?)>();
+        var result = new List<(DetectedMap, string, string?, string?, string?)>();
         var seenFinals = new HashSet<string>(StringComparer.Ordinal);
         int autoCounter = 1;
 
@@ -185,12 +185,14 @@ public sealed class WadMerger
                 string? final = null;
                 string? levelName = null;
                 string? musicName = null;
+                string? author = null;
                 string? wadPath = wad.SourcePath;
                 if (wadPath is not null && explicitMap.TryGetValue((wadPath, map.OriginalName), out MapAssignment? assignment))
                 {
                     final = assignment.FinalMapName;
                     levelName = assignment.LevelName;
                     musicName = assignment.MusicName;
+                    author = assignment.Author;
                 }
                 else if (request.Options.AutoAssignMaps)
                     final = $"MAP{autoCounter++:D2}";
@@ -206,7 +208,7 @@ public sealed class WadMerger
                     throw new InvalidOperationException($"Dos mapas se asignaron al slot '{final}'. Revisá las asignaciones.");
                 }
 
-                result.Add((map, final, levelName, musicName));
+                result.Add((map, final, levelName, musicName, author));
             }
         }
 
@@ -223,10 +225,10 @@ public sealed class WadMerger
     }
 
     /// <summary>Unions the wall texture and flat usage of every merged map.</summary>
-    private static UsedTextures AnalyzeUsage(IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName)> assignments)
+    private static UsedTextures AnalyzeUsage(IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName, string? Author)> assignments)
     {
         var used = new UsedTextures();
-        foreach (var (map, _, _, _) in assignments)
+        foreach (var (map, _, _, _, _) in assignments)
             used.UnionWith(MapTextureAnalyzer.Analyze(map));
         return used;
     }
@@ -258,7 +260,7 @@ public sealed class WadMerger
         MergeRequest request,
         List<WadFile> inputs,
         List<WadFile> resources,
-        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName)> assignments,
+        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName, string? Author)> assignments,
         TextureMerger textures,
         UsedTextures? usage,
         Dictionary<string, (string WadPath, string OriginalName)> musicByName,
@@ -314,7 +316,7 @@ public sealed class WadMerger
             warn("Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.");
 
         // 3. Maps in slot order.
-        foreach (var (map, finalName, _, _) in assignments)
+        foreach (var (map, finalName, _, _, _) in assignments)
         {
             report($"  Copiando {map.OriginalName} -> {finalName}");
             var lumps = map.Wad.Lumps;
@@ -333,7 +335,7 @@ public sealed class WadMerger
                 wadsByPath[wad.SourcePath] = wad;
 
         var warnedMusic = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (_, _, _, musicName) in assignments)
+        foreach (var (_, _, _, musicName, _) in assignments)
         {
             string m = (musicName ?? "").Trim();
             if (m.Length == 0 || outputNames.Contains(m))
@@ -517,20 +519,23 @@ public sealed class WadMerger
     /// `=`/quotes (`music D_RUNNIN`) — accepted by the classic and namespaced parsers
     /// of GZDoom/SLADE (verified against a known-good classic MAPINFO).</summary>
     private static (string? Text, int Count) BuildMapInfo(
-        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName)> assignments)
+        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName, string? MusicName, string? Author)> assignments)
     {
         var sb = new StringBuilder();
         sb.AppendLine("// MAPINFO generado automáticamente por Community Wad Compiler");
 
         int count = 0;
-        foreach (var (_, finalName, levelName, musicName) in assignments)
+        foreach (var (_, finalName, levelName, musicName, author) in assignments)
         {
             string name = (levelName ?? "").Trim();
             string music = (musicName ?? "").Trim();
-            if (name.Length == 0 && music.Length == 0)
+            string authorComment = (author ?? "").Trim();
+            if (name.Length == 0 && music.Length == 0 && authorComment.Length == 0)
                 continue;
 
             count++;
+            if (authorComment.Length > 0)
+                sb.AppendLine($"// Autor: {SanitizeMapInfoString(authorComment)}");
             sb.AppendLine($"map {finalName} \"{SanitizeMapInfoString(name)}\"");
             if (music.Length > 0)
                 sb.AppendLine($"music {SanitizeMapInfoString(music).Replace(" ", "")}");

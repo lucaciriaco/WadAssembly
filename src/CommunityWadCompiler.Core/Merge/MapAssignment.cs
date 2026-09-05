@@ -8,4 +8,5 @@ public sealed record MapAssignment(
     string OriginalMapName,
     string FinalMapName,
     string? LevelName = null,
-    string? MusicName = null);
+    string? MusicName = null,
+    string? Author = null);

@@ -212,7 +212,7 @@ public sealed class MainWindowViewModel : ObservableObject
         // Preserve existing final names for maps that were not touched by the user.
         var existing = Maps.ToDictionary(
             m => (m.WadPath, m.OriginalName),
-            m => (m.FinalName, m.LevelName, m.MusicName));
+            m => (m.FinalName, m.LevelName, m.MusicName, m.Author));
 
         RefreshMusicOptions();
         Maps.Clear();
@@ -251,6 +251,7 @@ public sealed class MainWindowViewModel : ObservableObject
                         MusicOptions = AvailableMusicLumps,
                         LevelName = prior.LevelName ?? "",
                         MusicName = prior.MusicName ?? "",
+                        Author = prior.Author ?? "",
                     };
                     entry.PropertyChanged += OnMapPropertyChanged;
                     Maps.Add(entry);
@@ -345,6 +346,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     IsUdmf = m.IsUdmf,
                     LevelName = m.LevelName,
                     MusicName = m.MusicName,
+                    Author = m.Author,
                 })
                 .ToList(),
         };
@@ -384,6 +386,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 LevelName = m.LevelName ?? "",
                 MusicName = m.MusicName ?? "",
+                Author = m.Author ?? "",
                 MusicOptions = AvailableMusicLumps,
             })
             .ToList();
@@ -473,7 +476,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 map.FinalName = final;
 
             string? music = string.IsNullOrWhiteSpace(map.MusicName) ? null : map.MusicName.Trim();
-            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music));
+            string? author = string.IsNullOrWhiteSpace(map.Author) ? null : map.Author.Trim();
+            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music, author));
         }
 
         var request = new MergeRequest
