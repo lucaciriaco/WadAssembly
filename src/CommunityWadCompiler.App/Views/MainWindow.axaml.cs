@@ -12,11 +12,14 @@ namespace CommunityWadCompiler.App.Views;
 public partial class MainWindow : Window
 {
     private const string SlotRowFormat = "SlotRowSource";
+    private const string MapSourceFormat = "MapSource";
 
     private readonly MainWindowViewModel _viewModel = new();
 
     private SlotRowViewModel? _dragCandidate;
     private Point _dragPressPoint;
+    private WadEntryViewModel? _wadDragCandidate;
+    private Point _wadDragPressPoint;
 
     public MainWindow()
     {
@@ -146,22 +149,86 @@ public partial class MainWindow : Window
     private void OnSlotPointerReleased(object? sender, PointerReleasedEventArgs e)
         => _dragCandidate = null;
 
+    private void OnClearSlotFields(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.DataContext is not SlotRowViewModel row)
+            return;
+        int index = _viewModel.SlotRows.IndexOf(row);
+        if (index < 0)
+            return;
+        _viewModel.ClearSlot(index);
+    }
+
     private void OnSlotDragOver(object? sender, DragEventArgs e)
-        => e.DragEffects = e.Data.Contains(SlotRowFormat) ? DragDropEffects.Move : DragDropEffects.None;
+    {
+        bool valid = e.Data.Contains(SlotRowFormat) || e.Data.Contains(MapSourceFormat);
+        e.DragEffects = valid ? DragDropEffects.Move : DragDropEffects.None;
+
+        if (!valid || sender is not ItemsControl items)
+        {
+            _viewModel.SetDropTargetIndex(null);
+            return;
+        }
+
+        int dropIndex = ComputeDropIndex(items, e.GetPosition(items));
+        if (e.Data.Contains(MapSourceFormat))
+        {
+            // A map lands on the row under the pointer.
+            _viewModel.SetDropTargetIndex(Math.Clamp(dropIndex, 0, _viewModel.SlotRows.Count - 1));
+        }
+        else
+        {
+            // Reordering a row: the row that will host the insertion.
+            _viewModel.SetDropTargetIndex(Math.Min(dropIndex, Math.Max(0, _viewModel.SlotRows.Count - 1)));
+        }
+    }
+
+    private void OnSlotDragLeave(object? sender, DragEventArgs e)
+        => _viewModel.SetDropTargetIndex(null);
 
     private void OnSlotDrop(object? sender, DragEventArgs e)
     {
-        if (e.Data.Get(SlotRowFormat) is not SlotRowViewModel dragged)
-            return;
+        _viewModel.SetDropTargetIndex(null);
         if (sender is not ItemsControl items)
             return;
-
         var point = e.GetPosition(items);
+
+        // A map dragged from an input WAD fills (or replaces) the slot under the pointer.
+        if (e.Data.Get(MapSourceFormat) is (string wadPath, string mapName))
+        {
+            var wadEntry = _viewModel.InputWads
+                .FirstOrDefault(w => string.Equals(w.Path, wadPath, StringComparison.OrdinalIgnoreCase));
+            var map = wadEntry?.Maps.FirstOrDefault(m => m.OriginalName == mapName);
+            if (wadEntry is null || map is null)
+                return;
+
+            int slot = Math.Clamp(ComputeDropIndex(items, point), 0, _viewModel.SlotRows.Count - 1);
+            _viewModel.AssignMapToSlot(slot, wadEntry, map);
+            e.DragEffects = DragDropEffects.Move;
+            return;
+        }
+
+        // A slot row dragged within the sheet reorders the plan.
+        if (e.Data.Get(SlotRowFormat) is not SlotRowViewModel dragged)
+            return;
+
         int current = _viewModel.SlotRows.IndexOf(dragged);
         if (current < 0)
             return;
 
-        // Find the insertion index: the first row whose center is below the pointer.
+        int target = ComputeDropIndex(items, point);
+        if (current < target)
+            target--;
+        if (current != target)
+        {
+            _viewModel.SlotRows.Move(current, target);
+            _viewModel.RenumberSlotsByPosition();
+        }
+    }
+
+    /// <summary>Insertion index for a drop: the first row whose center is below the pointer.</summary>
+    private int ComputeDropIndex(ItemsControl items, Point point)
+    {
         int target = _viewModel.SlotRows.Count;
         for (int i = 0; i < _viewModel.SlotRows.Count; i++)
         {
@@ -175,15 +242,58 @@ public partial class MainWindow : Window
                 break;
             }
         }
+        return target;
+    }
 
-        if (current < target)
-            target--;
-        if (current != target)
+#pragma warning restore CS0618
+
+    // ------------------------------------------------------------------
+    // Input WAD map drag (drag a map from the WADs list into a slot)
+    // ------------------------------------------------------------------
+
+#pragma warning disable CS0618 // see above
+
+    private void OnWadPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+            return;
+        // Do not start a drag from the map picker dropdown.
+        if (e.Source is ComboBox)
+            return;
+
+        if (sender is Control { DataContext: WadEntryViewModel wad } && wad.Maps.Count > 0)
         {
-            _viewModel.SlotRows.Move(current, target);
-            _viewModel.RenumberSlotsByPosition();
+            _wadDragPressPoint = e.GetPosition((Visual)sender!);
+            _wadDragCandidate = wad;
         }
     }
+
+    private async void OnWadPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_wadDragCandidate is null)
+            return;
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+        {
+            _wadDragCandidate = null;
+            return;
+        }
+
+        var delta = e.GetPosition((Visual)sender!) - _wadDragPressPoint;
+        if (delta.X * delta.X + delta.Y * delta.Y < 16)
+            return;
+
+        string mapName = _wadDragCandidate.Maps.Count == 1
+            ? _wadDragCandidate.Maps[0].OriginalName
+            : _wadDragCandidate.SelectedMapName ?? _wadDragCandidate.Maps[0].OriginalName;
+
+        var data = new DataObject();
+        data.Set(MapSourceFormat, (_wadDragCandidate.Path, mapName));
+        _wadDragCandidate = null;
+        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+    }
+
+    private void OnWadPointerReleased(object? sender, PointerReleasedEventArgs e)
+        => _wadDragCandidate = null;
 
 #pragma warning restore CS0618
 

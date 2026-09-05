@@ -12,35 +12,44 @@ using CommunityWadCompiler.Core.WadFormat;
 namespace CommunityWadCompiler.App.ViewModels;
 
 /// <summary>
-/// View model for the main window: holds the list of input WADs, the detected maps
-/// with final slots, output settings and the compile pipeline.
-/// </summary>
-public sealed class MainWindowViewModel : ObservableObject
-{
-    private string? _baseWadPath;
-    private string? _outputPath;
-    private string _logText = "";
-    private bool _isBusy;
-    private bool _autoAssignMaps = true;
-    private bool _filterResourcesToUsed = true;
-    private WadEntryViewModel? _selectedWad;
-    private WadEntryViewModel? _selectedResourceWad;
-    private string _projectName = "";
-    private string _versionPrefix = "";
-    private int _slotCount = 32;
+    /// View model for the main window: holds the list of input WADs, the detected maps
+    /// with final slots, output settings and the compile pipeline.
+    /// </summary>
+    public sealed class MainWindowViewModel : ObservableObject
+    {
+        private string? _baseWadPath;
+        private string? _outputPath;
+        private string _logText = "";
+        private bool _isBusy;
+        private bool _autoAssignMaps = true;
+        private bool _filterResourcesToUsed = true;
+        private WadEntryViewModel? _selectedWad;
+        private WadEntryViewModel? _selectedResourceWad;
+        private string _projectName = "";
+        private string _versionPrefix = "";
+private int _slotCount = 32;
     private string? _currentProjectPath;
+    private int? _dropTargetIndex;
 
-    public ObservableCollection<WadEntryViewModel> InputWads { get; } = new();
+        public MainWindowViewModel()
+        {
+            // Start with placeholder rows so the sheet is visible before any WAD is loaded.
+            for (int i = 0; i < _slotCount; i++)
+                SlotRows.Add(new(null, null, false));
+            RenumberSlotsByPosition();
+        }
 
-    public ObservableCollection<WadEntryViewModel> ResourceWads { get; } = new();
+        public ObservableCollection<WadEntryViewModel> InputWads { get; } = new();
 
-    /// <summary>Slot rows of the plan sheet: one row per slot (empty slots included).</summary>
-    public ObservableCollection<SlotRowViewModel> SlotRows { get; } = new();
+        public ObservableCollection<WadEntryViewModel> ResourceWads { get; } = new();
 
-    public ObservableCollection<string> AvailableMusicLumps { get; } = new();
+        /// <summary>Slot rows of the plan sheet: one row per slot (empty slots included).</summary>
+        public ObservableCollection<SlotRowViewModel> SlotRows { get; } = new();
 
-    /// <summary>Project collaborators (map authors), kept as project metadata only.</summary>
-    public ObservableCollection<CollaboratorEntryViewModel> Collaborators { get; } = new();
+        public ObservableCollection<string> AvailableMusicLumps { get; } = new();
+
+        /// <summary>Project collaborators (map authors), kept as project metadata only.</summary>
+        public ObservableCollection<CollaboratorEntryViewModel> Collaborators { get; } = new();
 
     public string? BaseWadPath
     {
@@ -105,17 +114,47 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Total number of slots the PWAD will have (planning value shown in the sheet).</summary>
+    /// <summary>Total number of slots the PWAD will have (planning value shown in the sheet).
+    /// When increased, the sheet is padded with empty placeholders; decreasing it never
+    /// removes occupied rows so user data is never lost.</summary>
     public int SlotCount
     {
         get => _slotCount;
-        set { if (SetProperty(ref _slotCount, value)) OnPropertyChanged(nameof(MapsHeader)); }
+        set
+        {
+            if (!SetProperty(ref _slotCount, value)) return;
+            OnPropertyChanged(nameof(MapsHeader));
+            EnsureSlotPlaceholders();
+        }
     }
 
     public bool IsBusy
     {
         get => _isBusy;
         private set => SetProperty(ref _isBusy, value);
+    }
+
+    /// <summary>Index of the sheet row currently highlighted as the drag-and-drop target, or
+    /// null when no drag is in progress. Drives the blue highlight of the destination slot.</summary>
+    public int? DropTargetIndex
+    {
+        get => _dropTargetIndex;
+        private set
+        {
+            if (SetProperty(ref _dropTargetIndex, value))
+                UpdateDropTargetFlags();
+        }
+    }
+
+    /// <summary>Sets the row highlighted as the drop target during a drag (null to clear).</summary>
+    public void SetDropTargetIndex(int? index) => DropTargetIndex = index is { } i
+        ? Math.Clamp(i, 0, Math.Max(0, SlotRows.Count - 1))
+        : null;
+
+    private void UpdateDropTargetFlags()
+    {
+        for (int i = 0; i < SlotRows.Count; i++)
+            SlotRows[i].IsDropTarget = i == _dropTargetIndex;
     }
 
     public string LogText
@@ -155,12 +194,12 @@ public sealed class MainWindowViewModel : ObservableObject
             try
             {
                 using var wad = WadFile.Open(path);
-                int maps = MapDetector.DetectMaps(wad).Count;
+                var maps = MapDetector.DetectMaps(wad).Select(m => new MapOption(m.OriginalName, m.IsUdmf)).ToList();
                 InputWads.Add(new WadEntryViewModel
                 {
                     Path = path,
                     WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
-                    MapCount = maps,
+                    Maps = maps,
                 });
             }
             catch (WadException ex)
@@ -169,16 +208,25 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
 
-        RebuildSlots();
+        RefreshMusicOptions();
     }
 
     public void RemoveSelectedWad()
     {
         if (SelectedWad is null)
             return;
+        string removedPath = SelectedWad.Path;
         InputWads.Remove(SelectedWad);
         SelectedWad = null;
-        RebuildSlots();
+
+        // Free the slots that were fed by maps of the removed WAD.
+        for (int i = SlotRows.Count - 1; i >= 0; i--)
+        {
+            if (!SlotRows[i].IsEmpty && string.Equals(SlotRows[i].WadPath, removedPath, StringComparison.OrdinalIgnoreCase))
+                SlotRows[i] = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
+        }
+        RenumberSlotsByPosition();
+        RefreshMusicOptions();
     }
 
     public void MoveSelectedWad(int delta)
@@ -191,7 +239,6 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
 
         InputWads.Move(index, target);
-        RebuildSlots();
     }
 
     // ------------------------------------------------------------------
@@ -288,79 +335,74 @@ public sealed class MainWindowViewModel : ObservableObject
             Collaborators.Add(new CollaboratorEntryViewModel(name));
     }
 
+    /// <summary>Pads the sheet with empty placeholder rows until it has <see cref="SlotCount"/> rows.</summary>
+    private void EnsureSlotPlaceholders()
+    {
+        while (SlotRows.Count < SlotCount)
+        {
+            var placeholder = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
+            SlotRows.Add(placeholder);
+        }
+        RenumberSlotsByPosition();
+    }
+
     /// <summary>
-    /// Regenerates the slot rows from the inputs: one row per slot (empty slots are kept as
-    /// placeholders). Maps that were already in a slot keep their row/fields; new maps fill
-    /// the first free slots in order. Empty slot names are auto-assigned by position (MAP01...).
+    /// Rebuilds the sheet as a plan of <see cref="SlotCount"/> slots: maps are no longer
+    /// auto-assigned (they must be dragged from the input WADs into a slot). Rows referencing
+    /// WADs that were removed are cleared, the sheet is padded with empty slots and all slot
+    /// names are renumbered by position (MAP01...).
     /// </summary>
     public void RebuildSlots()
     {
-        // Keep rows of previously assigned maps (identity = source WAD + lump) so their
-        // edited slot names, level names, authors, etc. survive reordering.
-        var existing = new Dictionary<(string, string), SlotRowViewModel>();
-        foreach (var row in SlotRows)
-            if (!row.IsEmpty)
-                existing[(row.WadPath!, row.OriginalName!)] = row;
-
-        var maps = new List<(string Path, string Original, bool IsUdmf)>();
-        foreach (var wadEntry in InputWads)
-        {
-            try
-            {
-                using var wad = WadFile.Open(wadEntry.Path);
-                foreach (var map in MapDetector.DetectMaps(wad))
-                    maps.Add((wadEntry.Path, map.OriginalName, map.IsUdmf));
-            }
-            catch (WadException ex)
-            {
-                AppendLog($"[ERROR] {ex.Message}");
-            }
-        }
-
-        // Preserve the manual order of the sheet: maps currently in a row stay in the
-        // order the user left them (drag & drop); newly added maps are appended.
-        var order = new List<(string, string)>();
-        foreach (var row in SlotRows)
-            if (!row.IsEmpty)
-                order.Add((row.WadPath!, row.OriginalName!));
-
-        var byKey = maps.ToDictionary(m => (m.Path, m.Original), m => m);
-        var ordered = new List<(string Path, string Original, bool IsUdmf)>();
-        var placed = new HashSet<(string, string)>();
-        foreach (var key in order)
-            if (byKey.TryGetValue(key, out var m))
-            {
-                ordered.Add(m);
-                placed.Add(key);
-            }
-        foreach (var m in maps)
-            if (placed.Add((m.Path, m.Original)))
-                ordered.Add(m);
-
         RefreshMusicOptions();
-        SlotRows.Clear();
-        int count = Math.Max(SlotCount, ordered.Count);
 
-        for (int i = 0; i < count; i++)
+        // Clear slots fed by WADs that are no longer in the inputs list.
+        var validPaths = new HashSet<string>(InputWads.Select(w => w.Path), StringComparer.OrdinalIgnoreCase);
+        for (int i = SlotRows.Count - 1; i >= 0; i--)
         {
-            SlotRowViewModel row;
-            if (i < ordered.Count)
-            {
-                var m = ordered[i];
-                row = existing.TryGetValue((m.Path, m.Original), out var prior)
-                    ? prior
-                    : new SlotRowViewModel(m.Path, m.Original, m.IsUdmf);
-            }
-            else
-            {
-                row = new SlotRowViewModel(null, null, false);
-            }
-
-            if (AutoAssignMaps && string.IsNullOrWhiteSpace(row.SlotName))
-                row.SlotName = $"MAP{i + 1:D2}";
-            row.MusicOptions = AvailableMusicLumps;
-            SlotRows.Add(row);
+            if (!SlotRows[i].IsEmpty && !validPaths.Contains(SlotRows[i].WadPath!))
+                SlotRows[i] = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
         }
+
+        // Pad with empty placeholder slots up to the configured slot count.
+        while (SlotRows.Count < SlotCount)
+            SlotRows.Add(new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps });
+
+        RenumberSlotsByPosition();
+    }
+
+    /// <summary>Clears every field of the slot at <paramref name="index"/>, returning it to
+    /// an empty placeholder (no map assigned, no name/música/autor/estado). Used by the
+    /// row context-menu "Borrar todos los campos".</summary>
+    public void ClearSlot(int index)
+    {
+        if (index < 0 || index >= SlotRows.Count)
+            return;
+
+        bool hadMap = !SlotRows[index].IsEmpty;
+        SlotRows[index] = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
+        RenumberSlotsByPosition();
+        if (hadMap)
+            AppendLog($"[INFO] Slot {SlotRows[index].SlotName} borrado.");
+    }
+
+    /// <summary>Assigns a map (from an input WAD) to the slot at <paramref name="index"/>.
+    /// Used when a map is dragged and dropped onto a slot row of the sheet.</summary>
+    public void AssignMapToSlot(int index, WadEntryViewModel source, MapOption map)
+    {
+        if (index < 0 || index >= SlotRows.Count)
+            return;
+
+        bool replaced = !SlotRows[index].IsEmpty;
+        SlotRows[index] = new SlotRowViewModel(source.Path, map.OriginalName, map.IsUdmf)
+        {
+            MusicOptions = AvailableMusicLumps,
+        };
+        RenumberSlotsByPosition();
+        string slot = SlotRows[index].SlotName;
+        AppendLog(replaced
+            ? $"[INFO] '{map.OriginalName}' de '{source.FileName}' reemplazó el mapa de slot {slot}"
+            : $"[INFO] '{map.OriginalName}' de '{source.FileName}' → slot {slot}");
     }
 
     /// <summary>Renumbers every slot name by its row position (MAP01, MAP02, ...).
@@ -536,11 +578,12 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             using var wad = WadFile.Open(path);
+            var maps = MapDetector.DetectMaps(wad).Select(m => new MapOption(m.OriginalName, m.IsUdmf)).ToList();
             InputWads.Add(new WadEntryViewModel
             {
                 Path = path,
                 WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
-                MapCount = MapDetector.DetectMaps(wad).Count,
+                Maps = maps,
             });
         }
         catch (WadException ex)

@@ -44,7 +44,9 @@
 
       <!-- Left: input WADs -->
       <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-        <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,2"/>
+        <TextBlock DockPanel.Dock="Top" Text="Elegí un mapa (dropdown si hay varios) y arrastralo a un slot de la planilla."
+                   Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
           <Button Content="Agregar WADs..." Click="OnAddWads"/>
           <Button Content="Quitar" Click="OnRemoveWad"/>
@@ -56,7 +58,17 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding Display}"/>
+              <StackPanel Orientation="Horizontal" Spacing="4" Background="Transparent" Cursor="Hand"
+                          PointerPressed="OnWadPointerPressed"
+                          PointerMoved="OnWadPointerMoved"
+                          PointerReleased="OnWadPointerReleased">
+                <TextBlock Text="{Binding Display}" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding MapNames}"
+                          SelectedItem="{Binding SelectedMapName, Mode=TwoWay}"
+                          IsVisible="{Binding HasMultipleMaps}"
+                          MinWidth="90" MaxDropDownHeight="220"
+                          VerticalAlignment="Center"/>
+              </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
@@ -82,14 +94,20 @@
             <ItemsControl ItemsSource="{Binding SlotRows}"
                       input:DragDrop.AllowDrop="True"
                       input:DragDrop.DragOver="OnSlotDragOver"
+                      input:DragDrop.DragLeave="OnSlotDragLeave"
                       input:DragDrop.Drop="OnSlotDrop">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
-                        Background="Transparent" Cursor="Hand"
+<Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
+                        Background="{Binding RowBackground}" Cursor="Hand"
                         PointerPressed="OnSlotPointerPressed"
                         PointerMoved="OnSlotPointerMoved"
                         PointerReleased="OnSlotPointerReleased">
+                    <Grid.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Borrar todos los campos" Click="OnClearSlotFields"/>
+                      </ContextMenu>
+                    </Grid.ContextMenu>
                     <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
                              MinWidth="60" VerticalContentAlignment="Center"/>
                     <TextBlock Grid.Column="1" Text="{Binding WadFileName}"

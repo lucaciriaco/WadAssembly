@@ -1,5 +1,7 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
+using Avalonia.Media;
+
 /// <summary>One slot row of the plan sheet. A row is either occupied (a map WAD is assigned
 /// to the slot) or empty (free slot placeholder). Empty rows are skipped when compiling.</summary>
 public sealed class SlotRowViewModel : ObservableObject
@@ -10,11 +12,15 @@ public sealed class SlotRowViewModel : ObservableObject
     /// <summary>Status options shown in the per-slot status dropdown.</summary>
     public static readonly string[] StatusOptions = { "TODO", "WIP", "DONE", "FIX" };
 
+    private static readonly IBrush NormalBackground = Brushes.Transparent;
+    private static readonly IBrush DropHighlightBackground = new SolidColorBrush(Color.FromArgb(0x66, 0x1E, 0x90, 0xFF));
+
     private string _slotName = "";
     private string _levelName = "";
     private string _musicName = "";
     private string _author = "";
     private string _status = "";
+    private bool _isDropTarget;
 
     /// <summary>Creates a slot row. Pass <paramref name="wadPath"/> = null for an empty slot.</summary>
     public SlotRowViewModel(string? wadPath, string? originalName, bool isUdmf)
@@ -80,4 +86,20 @@ public sealed class SlotRowViewModel : ObservableObject
         get => _status;
         set => SetProperty(ref _status, value);
     }
+
+    /// <summary>True while this row is the highlighted drop target of a drag operation
+    /// (managed by the view model's <c>DropTargetIndex</c>).</summary>
+    public bool IsDropTarget
+    {
+        get => _isDropTarget;
+        set
+        {
+            if (SetProperty(ref _isDropTarget, value))
+                OnPropertyChanged(nameof(RowBackground));
+        }
+    }
+
+    /// <summary>Background brush of the row: transparent normally, blue while this row is
+    /// the highlighted drop target of a drag.</summary>
+    public IBrush RowBackground => IsDropTarget ? DropHighlightBackground : NormalBackground;
 }
