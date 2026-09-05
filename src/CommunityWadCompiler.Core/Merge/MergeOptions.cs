@@ -25,4 +25,10 @@ public sealed class MergeOptions
 
     /// <summary>Output WAD type. Community builds are PWADs.</summary>
     public WadFormat.WadType OutputType { get; set; } = WadFormat.WadType.PWad;
+
+    /// <summary>
+    /// When <c>true</c> and resource WADs are provided, only the textures and flats
+    /// actually referenced by the merged maps are implemented in the output.
+    /// </summary>
+    public bool FilterToUsedResources { get; set; } = true;
 }

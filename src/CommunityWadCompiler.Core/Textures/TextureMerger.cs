@@ -129,6 +129,75 @@ public sealed class TextureMerger
         }
     }
 
+    /// <summary>
+    /// Removes every texture whose name is not in <paramref name="usedTextureNames"/>, then
+    /// rebuilds the patch table so only patches referenced by the remaining textures survive.
+    /// </summary>
+    /// <returns>The number of textures removed.</returns>
+    public int ApplyUsageFilter(IReadOnlySet<string> usedTextureNames)
+    {
+        var kept = new List<TextureDef>(_textures.Count);
+        int removed = 0;
+        foreach (var def in _textures)
+        {
+            if (usedTextureNames.Contains(def.Name))
+                kept.Add(def);
+            else
+                removed++;
+        }
+
+        var referenced = new bool[_patchNames.Count];
+        foreach (var def in kept)
+        {
+            foreach (var patch in def.Patches)
+            {
+                if (patch.PatchIndex >= 0 && patch.PatchIndex < referenced.Length)
+                    referenced[patch.PatchIndex] = true;
+            }
+        }
+
+        var newPatchNames = new List<string>();
+        var remap = new int[_patchNames.Count];
+        for (int i = 0; i < _patchNames.Count; i++)
+        {
+            if (referenced[i])
+            {
+                remap[i] = newPatchNames.Count;
+                newPatchNames.Add(_patchNames[i]);
+            }
+            else
+            {
+                remap[i] = -1;
+            }
+        }
+
+        // Rewrite patch indices before publishing the new tables.
+        for (int i = 0; i < kept.Count; i++)
+        {
+            var def = kept[i];
+            for (int p = 0; p < def.Patches.Count; p++)
+            {
+                var patch = def.Patches[p];
+                if (patch.PatchIndex >= 0 && patch.PatchIndex < remap.Length && remap[patch.PatchIndex] >= 0)
+                    def.Patches[p] = new PatchRef(patch.OriginX, patch.OriginY, remap[patch.PatchIndex]);
+            }
+        }
+
+        _patchNames.Clear();
+        _patchNames.AddRange(newPatchNames);
+        _patchIndex.Clear();
+        for (int i = 0; i < newPatchNames.Count; i++)
+            _patchIndex[newPatchNames[i]] = i;
+
+        _textures.Clear();
+        _textures.AddRange(kept);
+        _textureIndex.Clear();
+        for (int i = 0; i < kept.Count; i++)
+            _textureIndex[kept[i].Name] = i;
+
+        return removed;
+    }
+
     /// <summary>Builds the final merged PNAMES lump bytes.</summary>
     public byte[] BuildPnames()
     {

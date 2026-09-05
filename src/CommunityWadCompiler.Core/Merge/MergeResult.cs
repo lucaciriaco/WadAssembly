@@ -27,6 +27,10 @@ public sealed class MergeResult
 
     public int TexturesDuplicated { get; set; }
 
+    public int TexturesExcluded { get; set; }
+
+    public int FlatsCopied { get; set; }
+
     public long OutputBytes { get; set; }
 
     public TimeSpan Elapsed { get; set; }
@@ -40,6 +44,10 @@ public sealed class MergeResult
         sb.AppendLine($"  Mapas: {MapsAdded}");
         sb.AppendLine($"  Lumps copiados: {LumpsCopied} | Duplicados omitidos: {DuplicatesSkipped}");
         sb.AppendLine($"  Parches: {PatchesMerged} | Texturas: {TexturesMerged} | Texturas duplicadas omitidas: {TexturesDuplicated}");
+        if (TexturesExcluded > 0)
+            sb.AppendLine($"  Texturas sin uso excluidas: {TexturesExcluded}");
+        if (FlatsCopied > 0)
+            sb.AppendLine($"  Flats copiados del WAD de recursos: {FlatsCopied}");
         foreach (string e in Errors)
             sb.AppendLine($"  [ERROR] {e}");
         foreach (string w in Warnings)

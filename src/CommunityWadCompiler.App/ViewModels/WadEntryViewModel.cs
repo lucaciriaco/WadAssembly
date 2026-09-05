@@ -1,6 +1,6 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
-/// <summary>One loaded input WAD shown in the inputs list.</summary>
+/// <summary>One loaded WAD file shown in the inputs or resources list.</summary>
 public sealed class WadEntryViewModel : ObservableObject
 {
     private string _status = "Cargado";
@@ -13,12 +13,21 @@ public sealed class WadEntryViewModel : ObservableObject
 
     public int MapCount { get; init; }
 
+    /// <summary>Human-readable role of the WAD (aportado / recursos).</summary>
+    public string Kind { get; init; } = "aportado";
+
     public string Status
     {
         get => _status;
         set => SetProperty(ref _status, value);
     }
 
-    public string Display =>
-        $"{FileName}   [{WadTypeLabel}]   {MapCount} mapa(s)";
+    public string Display
+    {
+        get
+        {
+            string detail = MapCount > 0 ? $" | {MapCount} mapa(s)" : "";
+            return $"{FileName}   [{WadTypeLabel} | {Kind}]{detail}";
+        }
+    }
 }

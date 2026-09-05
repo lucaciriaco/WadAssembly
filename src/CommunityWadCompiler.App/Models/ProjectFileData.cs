@@ -11,9 +11,13 @@ public sealed class ProjectFileData
 
     public List<string> WadPaths { get; set; } = new();
 
+    public List<string> ResourceWadPaths { get; set; } = new();
+
     public List<MapEntryData> Maps { get; set; } = new();
 
     public bool AutoAssignMaps { get; set; } = true;
+
+    public bool FilterResourcesToUsed { get; set; } = true;
 }
 
 public sealed class MapEntryData

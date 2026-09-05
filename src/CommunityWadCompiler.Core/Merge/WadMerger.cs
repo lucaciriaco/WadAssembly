@@ -12,6 +12,7 @@ namespace CommunityWadCompiler.Core.Merge;
 /// Current capabilities:
 ///   - map detection + slot assignment (explicit or automatic)
 ///   - PNAMES/TEXTURE1/TEXTURE2 merging (classic Doom format)
+///   - optional resource WADs (texture/flat packs) with filter-to-used support
 ///   - generic lump deduplication (first occurrence wins)
 ///   - base WAD (IWAD) resource skipping
 ///
@@ -44,6 +45,31 @@ public sealed class WadMerger
     };
 
     /// <summary>
+    /// Non-texture lumps always implemented from a resource WAD even when filtering to
+    /// used resources, because they are shared graphics state (palette / animation tables).
+    /// </summary>
+    private static readonly HashSet<string> AlwaysCopyResourceLumps = new(StringComparer.Ordinal)
+    {
+        "PLAYPAL", "COLORMAP", "ANIMATED",
+    };
+
+    /// <summary>
+    /// Marker group pairings used to delimit graphics sections in a WAD. The markers are
+    /// implemented only when at least one lump of the group passes the resource filter, so
+    /// vanilla-style engines and editors (Slade/GZDB) keep recognizing the grouped graphics
+    /// as flats/patches.
+    /// </summary>
+    private static readonly Dictionary<string, string> MarkerEnds = new(StringComparer.Ordinal)
+    {
+        ["F_START"] = "F_END",
+        ["FF_START"] = "F_END",
+        ["P_START"] = "P_END",
+        ["PP_START"] = "PP_END",
+        ["T_START"] = "T_END",
+        ["S_START"] = "S_END",
+    };
+
+    /// <summary>
     /// Runs the full merge. Blocks; callers should run it on a worker thread and feed
     /// <paramref name="progress"/> to surface status to a UI.
     /// </summary>
@@ -66,14 +92,39 @@ public sealed class WadMerger
             foreach (string path in request.InputWadPaths)
                 inputs.Add(WadFile.Open(path));
 
+            Report("Abriendo WADs de recursos...");
+            var resources = new List<WadFile>(request.ResourceWadPaths.Count);
+            foreach (string path in request.ResourceWadPaths)
+                resources.Add(WadFile.Open(path));
+            if (resources.Count == 0)
+                Report("  (sin WAD de recursos)");
+
             Report("Detectando mapas...");
             var assignments = BuildAssignments(inputs, request, Warn);
 
+            // Which textures/flats do the merged maps need? Needed only when resource
+            // WADs are in play and the user asked to filter to used resources.
+            UsedTextures? usage = null;
+            if (resources.Count > 0 && request.Options.FilterToUsedResources)
+            {
+                Report("Analizando texturas/flats usados por los mapas...");
+                usage = AnalyzeUsage(assignments);
+                Report($"  - {usage.Walls.Count} texturas de pared y {usage.Flats.Count} flats detectados.");
+            }
+
             Report("Fusionando texturas (PNAMES/TEXTURE1/TEXTURE2)...");
-            var textures = MergeTextures(baseWad, inputs, request.Options);
+            IReadOnlyList<WadFile> textureSources = resources.Count > 0 ? resources : inputs;
+            var textures = MergeTextures(baseWad, textureSources, request.Options);
+            if (usage is not null)
+            {
+                int excluded = textures.ApplyUsageFilter(usage.Walls);
+                _result.TexturesExcluded = excluded;
+                Report($"  {excluded} textura(s) excluidas por no usarse.");
+            }
 
             Report("Ensamblando WAD de salida...");
-            string outputPath = BuildOutput(request, inputs, assignments, textures, baseWad, Report, Warn);
+            string outputPath = BuildOutput(
+                request, inputs, resources, assignments, textures, usage, baseWad, Report, Warn);
 
             _result.OutputPath = outputPath;
             _result.OutputBytes = new FileInfo(outputPath).Length;
@@ -157,18 +208,27 @@ public sealed class WadMerger
         public int GetHashCode((string, string) obj) => HashCode.Combine(obj.Item1.ToLowerInvariant(), obj.Item2);
     }
 
+    /// <summary>Unions the wall texture and flat usage of every merged map.</summary>
+    private static UsedTextures AnalyzeUsage(IReadOnlyList<(DetectedMap Map, string FinalName)> assignments)
+    {
+        var used = new UsedTextures();
+        foreach (var (map, _) in assignments)
+            used.UnionWith(MapTextureAnalyzer.Analyze(map));
+        return used;
+    }
+
     // ------------------------------------------------------------------
     // Texture merging
     // ------------------------------------------------------------------
 
-    private TextureMerger MergeTextures(WadFile? baseWad, List<WadFile> inputs, MergeOptions options)
+    private TextureMerger MergeTextures(WadFile? baseWad, IReadOnlyList<WadFile> textureSources, MergeOptions options)
     {
         var merger = new TextureMerger();
 
         if (baseWad is not null && options.IncludeBaseWadTextures)
             merger.MergeSource(baseWad);
 
-        foreach (var wad in inputs)
+        foreach (var wad in textureSources)
             merger.MergeSource(wad);
         // TODO(avanzado): ZDoom "TEXTURES" (text) lump fusion. Today those lumps are
         // dropped from the output with a warning in BuildOutput.
@@ -183,8 +243,10 @@ public sealed class WadMerger
     private string BuildOutput(
         MergeRequest request,
         List<WadFile> inputs,
+        List<WadFile> resources,
         IReadOnlyList<(DetectedMap Map, string FinalName)> assignments,
         TextureMerger textures,
+        UsedTextures? usage,
         WadFile? baseWad,
         Action<string> report,
         Action<string> warn)
@@ -211,42 +273,10 @@ public sealed class WadMerger
         bool zdoomTexturesSeen = false;
 
         foreach (var wad in inputs)
-        {
-            // Lump indices consumed by the maps of this wad.
-            var mapRanges = MapDetector.DetectMaps(wad)
-                .Select(m => (m.StartIndex, m.EndIndex))
-                .ToList();
+            CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures, ref zdoomTexturesSeen, warn);
 
-            for (int i = 0; i < wad.Lumps.Count; i++)
-            {
-                var lump = wad.Lumps[i];
-                if (mapRanges.Any(r => i >= r.Item1 && i < r.Item2))
-                    continue;
-
-                if (TextureLumpNames.Contains(lump.Name))
-                {
-                    if (lump.Name == "TEXTURES")
-                        zdoomTexturesSeen = true;
-                    continue;
-                }
-
-                if (skipFromBase.Contains(lump.Name))
-                    continue;
-
-                if (SingleWinningLumps.Contains(lump.Name) && outputNames.Contains(lump.Name))
-                    continue; // first source wins (TODO: real merge for these)
-
-                if (outputNames.Contains(lump.Name))
-                {
-                    _result.DuplicatesSkipped++;
-                    continue;
-                }
-
-                builder.AddLump(lump.Name, lump.ReadAll());
-                outputNames.Add(lump.Name);
-                _result.LumpsCopied++;
-            }
-        }
+        foreach (var wad in resources)
+            CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures, ref zdoomTexturesSeen, warn);
 
         if (zdoomTexturesSeen)
             warn("Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.");
@@ -280,5 +310,134 @@ public sealed class WadMerger
             if (!TextureLumpNames.Contains(lump.Name))
                 set.Add(lump.Name);
         return set;
+    }
+
+    /// <summary>
+    /// Copies non-map lumps of one WAD into the output, deduplicating by name
+    /// (first occurrence wins). When <paramref name="usage"/> is provided the WAD is a
+    /// resource WAD filtered to used resources: only flats/patches the maps need
+    /// (plus palette-graphical lumps) are implemented.
+    /// </summary>
+    private void CopyGenericLumps(
+        WadFile wad,
+        WadBuilder builder,
+        HashSet<string> outputNames,
+        HashSet<string> skipFromBase,
+        UsedTextures? usage,
+        TextureMerger textures,
+        ref bool zdoomTexturesSeen,
+        Action<string> warn)
+    {
+        var mapRanges = MapDetector.DetectMaps(wad)
+            .Select(m => (m.StartIndex, m.EndIndex))
+            .ToList();
+
+        var neededPatches = usage is null
+            ? null
+            : new HashSet<string>(textures.PatchNames, StringComparer.OrdinalIgnoreCase);
+
+        // Marker-group buffering. While a group (F_START..F_END, P_START..P_END, ...) is
+        // open and at least one lump of it passes the filter, the markers are implemented
+        // together with the graphics so editors/engines classify them as flats/patches.
+        // Without filtering (usage null) the markers are copied as plain lumps as before.
+        string? groupStart = null;
+        var groupBuffer = new List<(string Name, byte[] Data)>();
+
+        void FlushGroup()
+        {
+            if (groupStart is null)
+                return;
+
+            bool any = false;
+            foreach (var (name, data) in groupBuffer)
+                any |= !outputNames.Contains(name);
+
+            if (any)
+            {
+                if (outputNames.Add(groupStart))
+                    builder.AddLump(groupStart, Array.Empty<byte>());
+                foreach (var (name, data) in groupBuffer)
+                {
+                    if (!outputNames.Add(name))
+                        continue;
+                    builder.AddLump(name, data);
+                    if (usage is not null && usage.Flats.Contains(name))
+                        _result.FlatsCopied++;
+                    _result.LumpsCopied++;
+                }
+                string end = MarkerEnds[groupStart];
+                if (outputNames.Add(end))
+                    builder.AddLump(end, Array.Empty<byte>());
+            }
+
+            groupStart = null;
+            groupBuffer.Clear();
+        }
+
+        for (int i = 0; i < wad.Lumps.Count; i++)
+        {
+            var lump = wad.Lumps[i];
+            if (mapRanges.Any(r => i >= r.Item1 && i < r.Item2))
+                continue;
+
+            if (TextureLumpNames.Contains(lump.Name))
+            {
+                if (lump.Name == "TEXTURES")
+                    zdoomTexturesSeen = true;
+                continue;
+            }
+
+            if (skipFromBase.Contains(lump.Name))
+                continue;
+
+            // Start/end marker handling when filtering.
+            if (usage is not null)
+            {
+                if (MarkerEnds.TryGetValue(lump.Name, out _))
+                {
+                    FlushGroup();
+                    groupStart = lump.Name;
+                    continue;
+                }
+                if (groupStart is not null && lump.Name == MarkerEnds[groupStart])
+                {
+                    FlushGroup();
+                    continue;
+                }
+            }
+
+            // Filtered resource WAD: keep only graphics the maps reference.
+            bool included = usage is null
+                || AlwaysCopyResourceLumps.Contains(lump.Name)
+                || usage.Flats.Contains(lump.Name)
+                || (neededPatches is not null && neededPatches.Contains(lump.Name));
+
+            if (!included)
+                continue;
+
+            if (groupStart is not null && usage is not null)
+            {
+                if (!outputNames.Contains(lump.Name))
+                    groupBuffer.Add((lump.Name, lump.ReadAll()));
+                continue;
+            }
+
+            if (SingleWinningLumps.Contains(lump.Name) && outputNames.Contains(lump.Name))
+                continue;
+
+            if (outputNames.Contains(lump.Name))
+            {
+                _result.DuplicatesSkipped++;
+                continue;
+            }
+
+            builder.AddLump(lump.Name, lump.ReadAll());
+            outputNames.Add(lump.Name);
+            if (usage is not null && usage.Flats.Contains(lump.Name))
+                _result.FlatsCopied++;
+            _result.LumpsCopied++;
+        }
+
+        FlushGroup(); // the WAD may lack the closing marker
     }
 }

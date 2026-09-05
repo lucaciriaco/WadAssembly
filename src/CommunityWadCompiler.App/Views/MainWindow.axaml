@@ -31,24 +31,50 @@
 
     <Grid Margin="8" RowDefinitions="*,Auto,Auto,*" ColumnDefinitions="*,2*">
 
-      <!-- Left: input WADs -->
-      <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-        <TextBlock DockPanel.Dock="Top" Text="WADs aportados" FontWeight="Bold" Margin="0,0,0,4"/>
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
-          <Button Content="Agregar WADs..." Click="OnAddWads"/>
-          <Button Content="Quitar" Click="OnRemoveWad"/>
-          <Button Content="Subir" Click="OnMoveUp"/>
-          <Button Content="Bajar" Click="OnMoveDown"/>
-        </StackPanel>
-        <ListBox ItemsSource="{Binding InputWads}"
-                 SelectedItem="{Binding SelectedWad, Mode=TwoWay}">
-          <ListBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Display}"/>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </DockPanel>
+      <!-- Left: input WADs + resource WADs -->
+      <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="*,*" Margin="0,0,8,8">
+
+        <DockPanel Grid.Row="0">
+          <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,4"/>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+            <Button Content="Agregar WADs..." Click="OnAddWads"/>
+            <Button Content="Quitar" Click="OnRemoveWad"/>
+            <Button Content="Subir" Click="OnMoveUp"/>
+            <Button Content="Bajar" Click="OnMoveDown"/>
+          </StackPanel>
+          <ListBox ItemsSource="{Binding InputWads}"
+                   SelectedItem="{Binding SelectedWad, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Display}"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,8,0,0">
+          <TextBlock DockPanel.Dock="Top" Text="WAD de recursos (texturas / flats)" FontWeight="Bold" Margin="0,0,0,4"/>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="4" Margin="0,6,0,0">
+            <CheckBox Content="Solo incluir texturas/flats usados por los mapas"
+                      IsChecked="{Binding FilterResourcesToUsed}"/>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button Content="Agregar recursos..." Click="OnAddResources"/>
+              <Button Content="Quitar" Click="OnRemoveResource"/>
+              <Button Content="Subir" Click="OnMoveResourceUp"/>
+              <Button Content="Bajar" Click="OnMoveResourceDown"/>
+            </StackPanel>
+          </StackPanel>
+          <ListBox ItemsSource="{Binding ResourceWads}"
+                   SelectedItem="{Binding SelectedResourceWad, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Display}"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+
+      </Grid>
 
       <!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">

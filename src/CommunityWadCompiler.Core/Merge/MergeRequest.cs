@@ -14,6 +14,12 @@ public sealed class MergeRequest
     /// <summary>Add-on WADs contributed by community members, in merge order.</summary>
     public IReadOnlyList<string> InputWadPaths { get; init; } = Array.Empty<string>();
 
+    /// <summary>
+    /// Optional resource WADs (texture/flat packs). When provided, the merged
+    /// PNAMES/TEXTURE1/TEXTURE2 and the flat/patch lumps come from these WADs.
+    /// </summary>
+    public IReadOnlyList<string> ResourceWadPaths { get; init; } = Array.Empty<string>();
+
     /// <summary>Output WAD path.</summary>
     public string? OutputPath { get; init; }
 

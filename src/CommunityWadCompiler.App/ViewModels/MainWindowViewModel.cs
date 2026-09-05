@@ -22,9 +22,13 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _logText = "";
     private bool _isBusy;
     private bool _autoAssignMaps = true;
+    private bool _filterResourcesToUsed = true;
     private WadEntryViewModel? _selectedWad;
+    private WadEntryViewModel? _selectedResourceWad;
 
     public ObservableCollection<WadEntryViewModel> InputWads { get; } = new();
+
+    public ObservableCollection<WadEntryViewModel> ResourceWads { get; } = new();
 
     public ObservableCollection<MapEntryViewModel> Maps { get; } = new();
 
@@ -46,6 +50,12 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _autoAssignMaps, value);
     }
 
+    public bool FilterResourcesToUsed
+    {
+        get => _filterResourcesToUsed;
+        set => SetProperty(ref _filterResourcesToUsed, value);
+    }
+
     public bool IsBusy
     {
         get => _isBusy;
@@ -64,7 +74,15 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _selectedWad, value);
     }
 
+    public WadEntryViewModel? SelectedResourceWad
+    {
+        get => _selectedResourceWad;
+        set => SetProperty(ref _selectedResourceWad, value);
+    }
+
     public IReadOnlyList<string> InputWadPaths => InputWads.Select(w => w.Path).ToList();
+
+    public IReadOnlyList<string> ResourceWadPaths => ResourceWads.Select(w => w.Path).ToList();
 
     // ------------------------------------------------------------------
     // Input WAD management
@@ -120,14 +138,64 @@ public sealed class MainWindowViewModel : ObservableObject
         RebuildMaps();
     }
 
+    // ------------------------------------------------------------------
+    // Resource WAD (texture/flat packs) management
+    // ------------------------------------------------------------------
+
+    /// <summary>Loads resource WADs (texture/flat packs) into the resources list.</summary>
+    public void AddResourceWads(IEnumerable<string> paths)
+    {
+        foreach (string path in paths)
+        {
+            if (ResourceWads.Any(w => string.Equals(w.Path, path, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            try
+            {
+                using var wad = WadFile.Open(path);
+                ResourceWads.Add(new WadEntryViewModel
+                {
+                    Path = path,
+                    WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
+                    Kind = "recursos",
+                });
+            }
+            catch (WadException ex)
+            {
+                AppendLog($"[ERROR] {ex.Message}");
+            }
+        }
+    }
+
+    public void RemoveSelectedResourceWad()
+    {
+        if (SelectedResourceWad is null)
+            return;
+        ResourceWads.Remove(SelectedResourceWad);
+        SelectedResourceWad = null;
+    }
+
+    public void MoveSelectedResourceWad(int delta)
+    {
+        if (SelectedResourceWad is null)
+            return;
+        int index = ResourceWads.IndexOf(SelectedResourceWad);
+        int target = index + delta;
+        if (index < 0 || target < 0 || target >= ResourceWads.Count)
+            return;
+        ResourceWads.Move(index, target);
+    }
+
     public void Clear()
     {
         InputWads.Clear();
+        ResourceWads.Clear();
         Maps.Clear();
         _userEditedSlots.Clear();
         BaseWadPath = null;
         OutputPath = null;
         AutoAssignMaps = true;
+        FilterResourcesToUsed = true;
         LogText = "";
     }
 
@@ -212,7 +280,9 @@ public sealed class MainWindowViewModel : ObservableObject
             BaseWadPath = BaseWadPath,
             OutputPath = OutputPath,
             WadPaths = InputWads.Select(w => w.Path).ToList(),
+            ResourceWadPaths = ResourceWads.Select(w => w.Path).ToList(),
             AutoAssignMaps = AutoAssignMaps,
+            FilterResourcesToUsed = FilterResourcesToUsed,
             Maps = Maps
                 .Select(m => new MapEntryData
                 {
@@ -243,9 +313,13 @@ public sealed class MainWindowViewModel : ObservableObject
         BaseWadPath = data.BaseWadPath;
         OutputPath = data.OutputPath;
         AutoAssignMaps = data.AutoAssignMaps;
+        FilterResourcesToUsed = data.FilterResourcesToUsed;
 
         foreach (string wadPath in data.WadPaths)
             AddWadsPathOnly(wadPath);
+
+        foreach (string wadPath in data.ResourceWadPaths)
+            AddResourceWadsPathOnly(wadPath);
 
         // Restore map slots.
         var loaded = data.Maps
@@ -274,6 +348,27 @@ public sealed class MainWindowViewModel : ObservableObject
                 Path = path,
                 WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
                 MapCount = MapDetector.DetectMaps(wad).Count,
+            });
+        }
+        catch (WadException ex)
+        {
+            AppendLog($"[ERROR] {ex.Message}");
+        }
+    }
+
+    private void AddResourceWadsPathOnly(string path)
+    {
+        if (!File.Exists(path) || ResourceWads.Any(w => string.Equals(w.Path, path, StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        try
+        {
+            using var wad = WadFile.Open(path);
+            ResourceWads.Add(new WadEntryViewModel
+            {
+                Path = path,
+                WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
+                Kind = "recursos",
             });
         }
         catch (WadException ex)
@@ -321,9 +416,14 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             BaseWadPath = BaseWadPath,
             InputWadPaths = InputWadPaths,
+            ResourceWadPaths = ResourceWadPaths,
             OutputPath = OutputPath,
             MapAssignments = assignments,
-            Options = new MergeOptions { AutoAssignMaps = false },
+            Options = new MergeOptions
+            {
+                AutoAssignMaps = false,
+                FilterToUsedResources = FilterResourcesToUsed,
+            },
         };
 
         IsBusy = true;

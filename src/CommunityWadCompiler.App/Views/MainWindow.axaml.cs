@@ -100,6 +100,18 @@ public partial class MainWindow : Window
 
     private void OnMoveDown(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedWad(+1);
 
+    private async void OnAddResources(object? sender, RoutedEventArgs e)
+    {
+        if (await PickWadsAsync() is { Length: > 0 } paths)
+            _viewModel.AddResourceWads(paths);
+    }
+
+    private void OnRemoveResource(object? sender, RoutedEventArgs e) => _viewModel.RemoveSelectedResourceWad();
+
+    private void OnMoveResourceUp(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedResourceWad(-1);
+
+    private void OnMoveResourceDown(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedResourceWad(+1);
+
     // ------------------------------------------------------------------
     // Base / output
     // ------------------------------------------------------------------
