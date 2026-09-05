@@ -3,10 +3,17 @@ namespace CommunityWadCompiler.App.ViewModels;
 /// <summary>One map with its editable final slot, level name, author and music.</summary>
 public sealed class MapEntryViewModel : ObservableObject
 {
+    /// <summary>Sentinel shown as the last entry of the music dropdown meaning "no music".</summary>
+    public const string NoMusicOption = "Ninguna";
+
+    /// <summary>Status options shown in the per-map status dropdown.</summary>
+    public static readonly string[] StatusOptions = { "TODO", "WIP", "DONE", "FIX" };
+
     private string _finalName;
     private string _levelName = "";
     private string _musicName = "";
     private string _author = "";
+    private string _status = "";
 
     public MapEntryViewModel(
         string wadPath,
@@ -18,11 +25,17 @@ public sealed class MapEntryViewModel : ObservableObject
         OriginalName = originalName;
         _finalName = finalName;
         IsUdmf = isUdmf;
+        LastModified = File.Exists(wadPath)
+            ? File.GetLastWriteTime(wadPath).ToString("dd/MM/yyyy HH:mm")
+            : "";
     }
 
     public string WadPath { get; }
 
     public string WadFileName => System.IO.Path.GetFileNameWithoutExtension(WadPath);
+
+    /// <summary>Last write time of the source WAD file (when the map was last updated).</summary>
+    public string LastModified { get; }
 
     public string OriginalName { get; }
 
@@ -61,5 +74,12 @@ public sealed class MapEntryViewModel : ObservableObject
     {
         get => _author;
         set => SetProperty(ref _author, value);
+    }
+
+    /// <summary>Progress status of the map (TODO/WIP/DONE/FIX), written as a comment in the MAPINFO.</summary>
+    public string Status
+    {
+        get => _status;
+        set => SetProperty(ref _status, value);
     }
 }

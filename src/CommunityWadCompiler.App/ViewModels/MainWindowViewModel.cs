@@ -212,7 +212,7 @@ public sealed class MainWindowViewModel : ObservableObject
         // Preserve existing final names for maps that were not touched by the user.
         var existing = Maps.ToDictionary(
             m => (m.WadPath, m.OriginalName),
-            m => (m.FinalName, m.LevelName, m.MusicName, m.Author));
+            m => (m.FinalName, m.LevelName, m.MusicName, m.Author, m.Status));
 
         RefreshMusicOptions();
         Maps.Clear();
@@ -252,6 +252,7 @@ public sealed class MainWindowViewModel : ObservableObject
                         LevelName = prior.LevelName ?? "",
                         MusicName = prior.MusicName ?? "",
                         Author = prior.Author ?? "",
+                        Status = prior.Status ?? "",
                     };
                     entry.PropertyChanged += OnMapPropertyChanged;
                     Maps.Add(entry);
@@ -298,6 +299,9 @@ public sealed class MainWindowViewModel : ObservableObject
             foreach (string name in wanted)
                 AvailableMusicLumps.Add(name);
 
+            // "No music" is always available as the last option.
+            AvailableMusicLumps.Add(MapEntryViewModel.NoMusicOption);
+
             if (renames.Count > 0)
                 AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
         }
@@ -306,6 +310,14 @@ public sealed class MainWindowViewModel : ObservableObject
             foreach (var w in opened)
                 w.Dispose();
         }
+    }
+
+    /// <summary>Maps the selected music value to a lump name; the "no music" sentinel
+    /// (or an empty value) becomes <c>null</c>.</summary>
+    private static string? NormalizeMusic(string? value)
+    {
+        string v = value?.Trim() ?? "";
+        return v.Length == 0 || v == MapEntryViewModel.NoMusicOption ? null : v;
     }
 
     private void OnMapPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -347,6 +359,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     LevelName = m.LevelName,
                     MusicName = m.MusicName,
                     Author = m.Author,
+                    Status = m.Status,
                 })
                 .ToList(),
         };
@@ -387,6 +400,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 LevelName = m.LevelName ?? "",
                 MusicName = m.MusicName ?? "",
                 Author = m.Author ?? "",
+                Status = m.Status ?? "",
                 MusicOptions = AvailableMusicLumps,
             })
             .ToList();
@@ -475,9 +489,11 @@ public sealed class MainWindowViewModel : ObservableObject
             if (!string.Equals(final, map.FinalName, StringComparison.OrdinalIgnoreCase))
                 map.FinalName = final;
 
-            string? music = string.IsNullOrWhiteSpace(map.MusicName) ? null : map.MusicName.Trim();
+            string? music = NormalizeMusic(map.MusicName);
             string? author = string.IsNullOrWhiteSpace(map.Author) ? null : map.Author.Trim();
-            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music, author));
+            string? status = string.IsNullOrWhiteSpace(map.Status) ? null : map.Status.Trim();
+            string? lastModified = string.IsNullOrWhiteSpace(map.LastModified) ? null : map.LastModified.Trim();
+            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music, author, status, lastModified));
         }
 
         var request = new MergeRequest

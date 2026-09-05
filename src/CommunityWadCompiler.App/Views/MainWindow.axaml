@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CommunityWadCompiler.App.ViewModels"
         x:Class="CommunityWadCompiler.App.Views.MainWindow"
         Title="Community Wad Compiler"
         Width="1180" Height="760"
@@ -80,37 +81,43 @@
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
         <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)"
                    FontWeight="Bold" Margin="0,0,0,4"/>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="150,110,80,110,200,140,150" Margin="0,0,0,2">
-          <TextBlock Grid.Column="0" Text="WAD" FontWeight="Bold"/>
-          <TextBlock Grid.Column="1" Text="Mapa original" FontWeight="Bold"/>
-          <TextBlock Grid.Column="2" Text="Formato" FontWeight="Bold"/>
-          <TextBlock Grid.Column="3" Text="Slot final" FontWeight="Bold"/>
-          <TextBlock Grid.Column="4" Text="Nombre del mapa" FontWeight="Bold"/>
-          <TextBlock Grid.Column="5" Text="Música" FontWeight="Bold"/>
-          <TextBlock Grid.Column="6" Text="Autor" FontWeight="Bold"/>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="0,0,0,2">
+          <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
+          <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
+          <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
+          <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
+          <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
+          <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
+          <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold"/>
         </Grid>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Maps}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="150,110,80,110,200,140,150" Margin="2,3">
-                    <TextBlock Grid.Column="0" Text="{Binding WadFileName}"
-                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="1" Text="{Binding OriginalName}"
-                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="2" Text="{Binding FormatLabel}"
-                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBox Grid.Column="3" Text="{Binding FinalName, Mode=TwoWay}"
+                  <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3">
+                    <TextBox Grid.Column="0" Text="{Binding FinalName, Mode=TwoWay}"
                              MinWidth="60" VerticalContentAlignment="Center"/>
-                    <TextBox Grid.Column="4" Text="{Binding LevelName, Mode=TwoWay}"
+                    <TextBlock Grid.Column="1" Text="{Binding WadFileName}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding OriginalName}"
+                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
                              MinWidth="110" VerticalContentAlignment="Center"/>
-                    <ComboBox Grid.Column="5"
+                    <ComboBox Grid.Column="4"
+                              ItemsSource="{x:Static vm:MapEntryViewModel.StatusOptions}"
+                              SelectedItem="{Binding Status, Mode=TwoWay}"
+                              VerticalAlignment="Center" MinWidth="80"
+                              MaxDropDownHeight="220"/>
+                    <TextBlock Grid.Column="5" Text="{Binding LastModified}"
+                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <ComboBox Grid.Column="6"
                               ItemsSource="{Binding MusicOptions}"
                               SelectedItem="{Binding MusicName, Mode=TwoWay}"
-                              VerticalAlignment="Center" MinWidth="130"
+                              VerticalAlignment="Center" MinWidth="120"
                               MaxDropDownHeight="220" PlaceholderText="Ninguna"/>
-                    <TextBox Grid.Column="6" Text="{Binding Author, Mode=TwoWay}"
+                    <TextBox Grid.Column="7" Text="{Binding Author, Mode=TwoWay}"
                              MinWidth="120" VerticalContentAlignment="Center"/>
                   </Grid>
                 </DataTemplate>

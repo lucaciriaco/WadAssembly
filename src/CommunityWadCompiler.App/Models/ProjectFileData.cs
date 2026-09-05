@@ -38,4 +38,7 @@ public sealed class MapEntryData
 
     /// <summary>Author of the map, written as a comment in the generated MAPINFO.</summary>
     public string? Author { get; set; }
+
+    /// <summary>Progress status of the map (TODO/WIP/DONE/FIX), written as a comment in the MAPINFO.</summary>
+    public string? Status { get; set; }
 }
