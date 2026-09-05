@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CommunityWadCompiler.App.ViewModels"
+        xmlns:input="using:Avalonia.Input"
         x:Class="CommunityWadCompiler.App.Views.MainWindow"
         Title="Community Wad Compiler"
         Width="1180" Height="760"
@@ -78,10 +79,17 @@
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding SlotRows}">
+            <ItemsControl ItemsSource="{Binding SlotRows}"
+                      input:DragDrop.AllowDrop="True"
+                      input:DragDrop.DragOver="OnSlotDragOver"
+                      input:DragDrop.Drop="OnSlotDrop">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3">
+                  <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
+                        Background="Transparent" Cursor="Hand"
+                        PointerPressed="OnSlotPointerPressed"
+                        PointerMoved="OnSlotPointerMoved"
+                        PointerReleased="OnSlotPointerReleased">
                     <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
                              MinWidth="60" VerticalContentAlignment="Center"/>
                     <TextBlock Grid.Column="1" Text="{Binding WadFileName}"

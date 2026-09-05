@@ -317,16 +317,36 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
 
+        // Preserve the manual order of the sheet: maps currently in a row stay in the
+        // order the user left them (drag & drop); newly added maps are appended.
+        var order = new List<(string, string)>();
+        foreach (var row in SlotRows)
+            if (!row.IsEmpty)
+                order.Add((row.WadPath!, row.OriginalName!));
+
+        var byKey = maps.ToDictionary(m => (m.Path, m.Original), m => m);
+        var ordered = new List<(string Path, string Original, bool IsUdmf)>();
+        var placed = new HashSet<(string, string)>();
+        foreach (var key in order)
+            if (byKey.TryGetValue(key, out var m))
+            {
+                ordered.Add(m);
+                placed.Add(key);
+            }
+        foreach (var m in maps)
+            if (placed.Add((m.Path, m.Original)))
+                ordered.Add(m);
+
         RefreshMusicOptions();
         SlotRows.Clear();
-        int count = Math.Max(SlotCount, maps.Count);
+        int count = Math.Max(SlotCount, ordered.Count);
 
         for (int i = 0; i < count; i++)
         {
             SlotRowViewModel row;
-            if (i < maps.Count)
+            if (i < ordered.Count)
             {
-                var m = maps[i];
+                var m = ordered[i];
                 row = existing.TryGetValue((m.Path, m.Original), out var prior)
                     ? prior
                     : new SlotRowViewModel(m.Path, m.Original, m.IsUdmf);
@@ -341,6 +361,14 @@ public sealed class MainWindowViewModel : ObservableObject
             row.MusicOptions = AvailableMusicLumps;
             SlotRows.Add(row);
         }
+    }
+
+    /// <summary>Renumbers every slot name by its row position (MAP01, MAP02, ...).
+    /// Used after a drag & drop so the dropped row takes the slot of its new position.</summary>
+    public void RenumberSlotsByPosition()
+    {
+        for (int i = 0; i < SlotRows.Count; i++)
+            SlotRows[i].SlotName = $"MAP{i + 1:D2}";
     }
 
     /// <summary>Re-scans all input/resource WADs for music lumps (MUS/MIDI signatures),

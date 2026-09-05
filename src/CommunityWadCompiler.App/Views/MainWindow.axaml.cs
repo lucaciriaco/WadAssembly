@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
@@ -10,7 +11,12 @@ namespace CommunityWadCompiler.App.Views;
 
 public partial class MainWindow : Window
 {
+    private const string SlotRowFormat = "SlotRowSource";
+
     private readonly MainWindowViewModel _viewModel = new();
+
+    private SlotRowViewModel? _dragCandidate;
+    private Point _dragPressPoint;
 
     public MainWindow()
     {
@@ -95,6 +101,91 @@ public partial class MainWindow : Window
 
     private async void OnBrowseOutput(object? sender, RoutedEventArgs e)
         => _viewModel.OutputPath = await PickOutputPathAsync() ?? _viewModel.OutputPath;
+
+    // ------------------------------------------------------------------
+    // Slot rows drag & drop (reorder the plan sheet)
+    // ------------------------------------------------------------------
+
+#pragma warning disable CS0618 // Avalonia's new async drag API adds complexity with no benefit here.
+
+    private void OnSlotPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+            return;
+        // Do not start a drag from text/selection inputs.
+        if (e.Source is TextBox or ComboBox)
+            return;
+
+        if (sender is Control { DataContext: SlotRowViewModel row })
+        {
+            _dragPressPoint = e.GetPosition((Visual)sender!);
+            _dragCandidate = row;
+        }
+    }
+
+    private async void OnSlotPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_dragCandidate is null)
+            return;
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+        {
+            _dragCandidate = null;
+            return;
+        }
+
+        var delta = e.GetPosition((Visual)sender!) - _dragPressPoint;
+        if (delta.X * delta.X + delta.Y * delta.Y < 16)
+            return;
+
+        var data = new DataObject();
+        data.Set(SlotRowFormat, _dragCandidate);
+        _dragCandidate = null;
+        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+    }
+
+    private void OnSlotPointerReleased(object? sender, PointerReleasedEventArgs e)
+        => _dragCandidate = null;
+
+    private void OnSlotDragOver(object? sender, DragEventArgs e)
+        => e.DragEffects = e.Data.Contains(SlotRowFormat) ? DragDropEffects.Move : DragDropEffects.None;
+
+    private void OnSlotDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Get(SlotRowFormat) is not SlotRowViewModel dragged)
+            return;
+        if (sender is not ItemsControl items)
+            return;
+
+        var point = e.GetPosition(items);
+        int current = _viewModel.SlotRows.IndexOf(dragged);
+        if (current < 0)
+            return;
+
+        // Find the insertion index: the first row whose center is below the pointer.
+        int target = _viewModel.SlotRows.Count;
+        for (int i = 0; i < _viewModel.SlotRows.Count; i++)
+        {
+            var container = items.ContainerFromIndex(i);
+            if (container is null)
+                continue;
+            var rel = container.TranslatePoint(new Point(0, 0), items);
+            if (rel is { } r && point.Y < r.Y + container.Bounds.Height / 2)
+            {
+                target = i;
+                break;
+            }
+        }
+
+        if (current < target)
+            target--;
+        if (current != target)
+        {
+            _viewModel.SlotRows.Move(current, target);
+            _viewModel.RenumberSlotsByPosition();
+        }
+    }
+
+#pragma warning restore CS0618
 
     // ------------------------------------------------------------------
     // Compile
