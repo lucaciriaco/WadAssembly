@@ -26,5 +26,12 @@ public sealed class MergeRequest
     /// <summary>Explicit map slot assignments (empty means assign automatically).</summary>
     public IReadOnlyList<MapAssignment> MapAssignments { get; init; } = Array.Empty<MapAssignment>();
 
+    /// <summary>Optional project name, written as a comment in the generated MAPINFO.</summary>
+    public string? ProjectName { get; init; }
+
+    /// <summary>Optional editable version prefix (e.g. "1.2.3") stamped into the MAPINFO
+    /// before the automatic compile timestamp.</summary>
+    public string? VersionPrefix { get; init; }
+
     public MergeOptions Options { get; init; } = new();
 }

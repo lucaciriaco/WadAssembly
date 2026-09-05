@@ -5,6 +5,19 @@ public sealed class ProjectFileData
 {
     public int Version { get; set; } = 1;
 
+    /// <summary>Name of the project, stored as a comment in the generated MAPINFO.</summary>
+    public string? ProjectName { get; set; }
+
+    /// <summary>Editable version prefix (e.g. "1.2.3"), stored as a comment (prefixed to the
+    /// automatic compile timestamp).</summary>
+    public string? VersionPrefix { get; set; }
+
+    /// <summary>Total number of slots of the PWAD, shown in the maps/slots sheet.</summary>
+    public int MapSlots { get; set; } = 32;
+
+    /// <summary>Project collaborators (map authors), kept as project metadata only.</summary>
+    public List<string> Collaborators { get; set; } = new();
+
     public string? BaseWadPath { get; set; }
 
     public string? OutputPath { get; set; }

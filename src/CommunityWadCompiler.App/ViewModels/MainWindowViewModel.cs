@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using CommunityWadCompiler.App.Models;
+using CommunityWadCompiler.Core;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Merge;
 using CommunityWadCompiler.Core.Music;
@@ -16,8 +17,6 @@ namespace CommunityWadCompiler.App.ViewModels;
 /// </summary>
 public sealed class MainWindowViewModel : ObservableObject
 {
-    private readonly HashSet<(string Wad, string Original)> _userEditedSlots = new();
-
     private string? _baseWadPath;
     private string? _outputPath;
     private string _logText = "";
@@ -26,19 +25,49 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _filterResourcesToUsed = true;
     private WadEntryViewModel? _selectedWad;
     private WadEntryViewModel? _selectedResourceWad;
+    private string _projectName = "";
+    private string _versionPrefix = "";
+    private int _slotCount = 32;
+    private string? _currentProjectPath;
 
     public ObservableCollection<WadEntryViewModel> InputWads { get; } = new();
 
     public ObservableCollection<WadEntryViewModel> ResourceWads { get; } = new();
 
-    public ObservableCollection<MapEntryViewModel> Maps { get; } = new();
+    /// <summary>Slot rows of the plan sheet: one row per slot (empty slots included).</summary>
+    public ObservableCollection<SlotRowViewModel> SlotRows { get; } = new();
 
     public ObservableCollection<string> AvailableMusicLumps { get; } = new();
+
+    /// <summary>Project collaborators (map authors), kept as project metadata only.</summary>
+    public ObservableCollection<CollaboratorEntryViewModel> Collaborators { get; } = new();
 
     public string? BaseWadPath
     {
         get => _baseWadPath;
         set => SetProperty(ref _baseWadPath, value);
+    }
+
+    public string ProjectName
+    {
+        get => _projectName;
+        set { if (SetProperty(ref _projectName, value)) OnPropertyChanged(nameof(MapsHeader)); }
+    }
+
+    /// <summary>Editable version prefix (e.g. "1.2.3"), shown in the table header and
+    /// stamped (prefixed to the compile timestamp) into the MAPINFO.</summary>
+    public string VersionPrefix
+    {
+        get => _versionPrefix;
+        set { if (SetProperty(ref _versionPrefix, value)) OnPropertyChanged(nameof(MapsHeader)); }
+    }
+
+    /// <summary>Path of the currently loaded/saved project file; null when untitled.
+    /// Enables "Guardar proyecto" (overwrite) without opening a dialog.</summary>
+    public string? CurrentProjectPath
+    {
+        get => _currentProjectPath;
+        set => SetProperty(ref _currentProjectPath, value);
     }
 
     public string? OutputPath
@@ -57,6 +86,30 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         get => _filterResourcesToUsed;
         set => SetProperty(ref _filterResourcesToUsed, value);
+    }
+
+    /// <summary>Header shown above the maps/slots table reflecting the project name,
+    /// version and total slot count.</summary>
+    public string MapsHeader
+    {
+        get
+        {
+            string name = ProjectName.Trim();
+            string v = VersionPrefix.Trim();
+            string slots = SlotCount > 0 ? $" · {SlotCount} slots" : "";
+            if (name.Length == 0 && v.Length == 0 && slots.Length == 0)
+                return "Mapas y slots finales (editable)";
+            string suffix = v.Length > 0 ? $"{v}.xxxxxx" : $"v{CompilerInfo.Version}.xxxxxx";
+            string body = name.Length > 0 ? $"{name} — {suffix}" : suffix;
+            return $"{body}{slots} (editable)";
+        }
+    }
+
+    /// <summary>Total number of slots the PWAD will have (planning value shown in the sheet).</summary>
+    public int SlotCount
+    {
+        get => _slotCount;
+        set { if (SetProperty(ref _slotCount, value)) OnPropertyChanged(nameof(MapsHeader)); }
     }
 
     public bool IsBusy
@@ -116,7 +169,7 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
 
-        RebuildMaps();
+        RebuildSlots();
     }
 
     public void RemoveSelectedWad()
@@ -125,7 +178,7 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         InputWads.Remove(SelectedWad);
         SelectedWad = null;
-        RebuildMaps();
+        RebuildSlots();
     }
 
     public void MoveSelectedWad(int delta)
@@ -138,7 +191,7 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
 
         InputWads.Move(index, target);
-        RebuildMaps();
+        RebuildSlots();
     }
 
     // ------------------------------------------------------------------
@@ -193,75 +246,100 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         InputWads.Clear();
         ResourceWads.Clear();
-        Maps.Clear();
+        SlotRows.Clear();
         AvailableMusicLumps.Clear();
-        _userEditedSlots.Clear();
+        Collaborators.Clear();
         BaseWadPath = null;
         OutputPath = null;
         AutoAssignMaps = true;
         FilterResourcesToUsed = true;
+        ProjectName = "";
+        VersionPrefix = "";
+        SlotCount = 32;
+        CurrentProjectPath = null;
         LogText = "";
+        RebuildSlots();
+    }
+
+    /// <summary>Rebuilds the collaborators list from the unique authors of the occupied slots,
+    /// keeping any manually-added collaborator that is not among the authors.</summary>
+    public void SyncCollaboratorsFromAuthors()
+    {
+        var authors = new List<string>();
+        var seenAuthors = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in SlotRows)
+        {
+            if (row.IsEmpty)
+                continue;
+            string name = row.Author.Trim();
+            if (name.Length > 0 && seenAuthors.Add(name))
+                authors.Add(name);
+        }
+
+        var extra = Collaborators
+            .Select(c => c.Name.Trim())
+            .Where(n => n.Length > 0 && !seenAuthors.Contains(n))
+            .ToList();
+
+        Collaborators.Clear();
+        foreach (string name in authors)
+            Collaborators.Add(new CollaboratorEntryViewModel(name));
+        foreach (string name in extra)
+            Collaborators.Add(new CollaboratorEntryViewModel(name));
     }
 
     /// <summary>
-    /// Regenerates the map list from the inputs, preserving slots the user edited and
-    /// auto-assigning fresh sequential slots to everything else.
+    /// Regenerates the slot rows from the inputs: one row per slot (empty slots are kept as
+    /// placeholders). Maps that were already in a slot keep their row/fields; new maps fill
+    /// the first free slots in order. Empty slot names are auto-assigned by position (MAP01...).
     /// </summary>
-    public void RebuildMaps()
+    public void RebuildSlots()
     {
-        // Preserve existing final names for maps that were not touched by the user.
-        var existing = Maps.ToDictionary(
-            m => (m.WadPath, m.OriginalName),
-            m => (m.FinalName, m.LevelName, m.MusicName, m.Author, m.Status));
+        // Keep rows of previously assigned maps (identity = source WAD + lump) so their
+        // edited slot names, level names, authors, etc. survive reordering.
+        var existing = new Dictionary<(string, string), SlotRowViewModel>();
+        foreach (var row in SlotRows)
+            if (!row.IsEmpty)
+                existing[(row.WadPath!, row.OriginalName!)] = row;
 
-        RefreshMusicOptions();
-        Maps.Clear();
-        int autoCounter = 1;
-        string currentPrefix = AutoAssignMaps ? "MAP" : "";
-
+        var maps = new List<(string Path, string Original, bool IsUdmf)>();
         foreach (var wadEntry in InputWads)
         {
             try
             {
                 using var wad = WadFile.Open(wadEntry.Path);
                 foreach (var map in MapDetector.DetectMaps(wad))
-                {
-                    string finalName;
-                    string? autoName = null;
-                    var key = (wadEntry.Path, map.OriginalName);
-
-                    if (_userEditedSlots.Contains(key) && existing.TryGetValue(key, out var kept))
-                    {
-                        finalName = kept.FinalName;
-                    }
-                    else if (AutoAssignMaps)
-                    {
-                        finalName = $"{currentPrefix}{autoCounter++:D2}";
-                        autoName = finalName;
-                    }
-                    else
-                    {
-                        finalName = "";
-                    }
-
-                    existing.TryGetValue(key, out var prior);
-                    var entry = new MapEntryViewModel(wadEntry.Path, map.OriginalName, finalName, map.IsUdmf)
-                    {
-                        AutoAssignedName = autoName,
-                        MusicOptions = AvailableMusicLumps,
-                        LevelName = prior.LevelName ?? "",
-                        MusicName = prior.MusicName ?? "",
-                        Author = prior.Author ?? "",
-                        Status = prior.Status ?? "",
-                    };
-                    entry.PropertyChanged += OnMapPropertyChanged;
-                    Maps.Add(entry);
-                }
+                    maps.Add((wadEntry.Path, map.OriginalName, map.IsUdmf));
             }
             catch (WadException ex)
             {
                 AppendLog($"[ERROR] {ex.Message}");
             }
+        }
+
+        RefreshMusicOptions();
+        SlotRows.Clear();
+        int count = Math.Max(SlotCount, maps.Count);
+
+        for (int i = 0; i < count; i++)
+        {
+            SlotRowViewModel row;
+            if (i < maps.Count)
+            {
+                var m = maps[i];
+                row = existing.TryGetValue((m.Path, m.Original), out var prior)
+                    ? prior
+                    : new SlotRowViewModel(m.Path, m.Original, m.IsUdmf);
+            }
+            else
+            {
+                row = new SlotRowViewModel(null, null, false);
+            }
+
+            if (AutoAssignMaps && string.IsNullOrWhiteSpace(row.SlotName))
+                row.SlotName = $"MAP{i + 1:D2}";
+            row.MusicOptions = AvailableMusicLumps;
+            SlotRows.Add(row);
         }
     }
 
@@ -300,7 +378,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 AvailableMusicLumps.Add(name);
 
             // "No music" is always available as the last option.
-            AvailableMusicLumps.Add(MapEntryViewModel.NoMusicOption);
+            AvailableMusicLumps.Add(SlotRowViewModel.NoMusicOption);
 
             if (renames.Count > 0)
                 AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
@@ -317,22 +395,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private static string? NormalizeMusic(string? value)
     {
         string v = value?.Trim() ?? "";
-        return v.Length == 0 || v == MapEntryViewModel.NoMusicOption ? null : v;
-    }
-
-    private void OnMapPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is not nameof(MapEntryViewModel.FinalName) || sender is not MapEntryViewModel map)
-            return;
-
-        var key = (map.WadPath, map.OriginalName);
-        bool matchesAuto = map.AutoAssignedName is not null
-            && string.Equals(map.FinalName.Trim(), map.AutoAssignedName, StringComparison.OrdinalIgnoreCase);
-
-        if (matchesAuto)
-            _userEditedSlots.Remove(key);
-        else
-            _userEditedSlots.Add(key);
+        return v.Length == 0 || v == SlotRowViewModel.NoMusicOption ? null : v;
     }
 
     // ------------------------------------------------------------------
@@ -343,29 +406,35 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         var data = new ProjectFileData
         {
+            ProjectName = ProjectName,
+            VersionPrefix = VersionPrefix,
+            MapSlots = Math.Max(1, SlotCount),
+            Collaborators = Collaborators.Select(c => c.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList(),
             BaseWadPath = BaseWadPath,
             OutputPath = OutputPath,
             WadPaths = InputWads.Select(w => w.Path).ToList(),
             ResourceWadPaths = ResourceWads.Select(w => w.Path).ToList(),
             AutoAssignMaps = AutoAssignMaps,
             FilterResourcesToUsed = FilterResourcesToUsed,
-            Maps = Maps
-                .Select(m => new MapEntryData
+            Maps = SlotRows
+                .Where(r => !r.IsEmpty)
+                .Select(r => new MapEntryData
                 {
-                    WadPath = m.WadPath,
-                    OriginalName = m.OriginalName,
-                    FinalName = m.FinalName,
-                    IsUdmf = m.IsUdmf,
-                    LevelName = m.LevelName,
-                    MusicName = m.MusicName,
-                    Author = m.Author,
-                    Status = m.Status,
+                    WadPath = r.WadPath!,
+                    OriginalName = r.OriginalName!,
+                    FinalName = r.SlotName,
+                    IsUdmf = r.IsUdmf,
+                    LevelName = r.LevelName,
+                    MusicName = r.MusicName,
+                    Author = r.Author,
+                    Status = r.Status,
                 })
                 .ToList(),
         };
 
         string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(path, json);
+        CurrentProjectPath = path;
         AppendLog($"[INFO] Proyecto guardado en {path}");
     }
 
@@ -380,6 +449,12 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         Clear();
+        ProjectName = data.ProjectName ?? "";
+        VersionPrefix = data.VersionPrefix ?? "";
+        SlotCount = Math.Max(1, data.MapSlots);
+        foreach (string name in data.Collaborators)
+            if (!string.IsNullOrWhiteSpace(name))
+                Collaborators.Add(new CollaboratorEntryViewModel(name));
         BaseWadPath = data.BaseWadPath;
         OutputPath = data.OutputPath;
         AutoAssignMaps = data.AutoAssignMaps;
@@ -393,25 +468,36 @@ public sealed class MainWindowViewModel : ObservableObject
 
         RefreshMusicOptions();
 
-        // Restore map slots.
-        var loaded = data.Maps
-            .Select(m => new MapEntryViewModel(m.WadPath, m.OriginalName, m.FinalName, m.IsUdmf)
+        // Place the persisted slot rows at their positions, then pad with empty
+        // placeholder rows up to the project slot count; RebuildSlots re-fits any
+        // maps that map identity now assigns differently.
+        SlotRows.Clear();
+        foreach (var m in data.Maps)
+        {
+            SlotRows.Add(new SlotRowViewModel(m.WadPath, m.OriginalName, m.IsUdmf)
             {
+                SlotName = m.FinalName,
                 LevelName = m.LevelName ?? "",
                 MusicName = m.MusicName ?? "",
                 Author = m.Author ?? "",
                 Status = m.Status ?? "",
                 MusicOptions = AvailableMusicLumps,
-            })
-            .ToList();
-        Maps.Clear();
-        foreach (var m in loaded)
-        {
-            Maps.Add(m);
-            _userEditedSlots.Add((m.WadPath, m.OriginalName));
+            });
         }
 
+        for (int i = data.Maps.Count; i < SlotCount; i++)
+        {
+            SlotRows.Add(new SlotRowViewModel(null, null, false)
+            {
+                SlotName = AutoAssignMaps ? $"MAP{i + 1:D2}" : "",
+                MusicOptions = AvailableMusicLumps,
+            });
+        }
+
+        RebuildSlots();
+
         AppendLog($"[INFO] Proyecto cargado desde {path}");
+        CurrentProjectPath = path;
     }
 
     private void AddWadsPathOnly(string path)
@@ -477,27 +563,32 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var assignments = new List<MapAssignment>(Maps.Count);
-        foreach (var map in Maps)
+        var assignments = new List<MapAssignment>(SlotRows.Count);
+        foreach (var row in SlotRows)
         {
-            string final = map.FinalName.Trim().ToUpperInvariant();
+            if (row.IsEmpty)
+                continue;
+
+            string final = row.SlotName.Trim().ToUpperInvariant();
             if (string.IsNullOrEmpty(final))
             {
-                AppendLog($"[ERROR] El mapa '{map.OriginalName}' de '{map.WadPath}' no tiene slot final.");
+                AppendLog($"[ERROR] El mapa '{row.OriginalName}' de '{row.WadPath}' no tiene slot final.");
                 return;
             }
-            if (!string.Equals(final, map.FinalName, StringComparison.OrdinalIgnoreCase))
-                map.FinalName = final;
+            if (!string.Equals(final, row.SlotName, StringComparison.OrdinalIgnoreCase))
+                row.SlotName = final;
 
-            string? music = NormalizeMusic(map.MusicName);
-            string? author = string.IsNullOrWhiteSpace(map.Author) ? null : map.Author.Trim();
-            string? status = string.IsNullOrWhiteSpace(map.Status) ? null : map.Status.Trim();
-            string? lastModified = string.IsNullOrWhiteSpace(map.LastModified) ? null : map.LastModified.Trim();
-            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music, author, status, lastModified));
+            string? music = NormalizeMusic(row.MusicName);
+            string? author = string.IsNullOrWhiteSpace(row.Author) ? null : row.Author.Trim();
+            string? status = string.IsNullOrWhiteSpace(row.Status) ? null : row.Status.Trim();
+            string? lastModified = string.IsNullOrWhiteSpace(row.LastModified) ? null : row.LastModified.Trim();
+            assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName, music, author, status, lastModified));
         }
 
         var request = new MergeRequest
         {
+            ProjectName = string.IsNullOrWhiteSpace(ProjectName) ? null : ProjectName.Trim(),
+            VersionPrefix = string.IsNullOrWhiteSpace(VersionPrefix) ? null : VersionPrefix.Trim(),
             BaseWadPath = BaseWadPath,
             InputWadPaths = InputWadPaths,
             ResourceWadPaths = ResourceWadPaths,

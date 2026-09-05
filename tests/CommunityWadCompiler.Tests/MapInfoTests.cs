@@ -288,9 +288,43 @@ var request = new MergeRequest
 
             using var wad = WadFile.Open(output);
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.DoesNotContain("// Proyecto:", text);
             Assert.Contains($"// Versión: {CompilerInfo.Version}.", text);
             Assert.Matches(@"// Versión: 1\.0\.0\.\d{6}", text);
             Assert.Matches(@"// Compilado: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ProjectNameAndEditableVersionPrefix_WrittenToMapInfo()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                ProjectName = "La Hermandad de la Arena",
+                VersionPrefix = "2.7",
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[] { new MapAssignment(map1, "MAP01", "MAP01", "Hangar") },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("// Proyecto: La Hermandad de la Arena", text);
+            Assert.Matches(@"// Versión: 2\.7\.\d{6}", text);
         }
         finally
         {

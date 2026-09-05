@@ -14,7 +14,10 @@
         <MenuItem Header="Nuevo proyecto" Click="OnNewProject"/>
         <Separator/>
         <MenuItem Header="Abrir proyecto..." Click="OnOpenProject"/>
+        <MenuItem Header="Guardar proyecto" Click="OnSaveProject"/>
         <MenuItem Header="Guardar proyecto como..." Click="OnSaveProjectAs"/>
+        <Separator/>
+        <MenuItem Header="Configuración del proyecto..." Click="OnProjectSettings"/>
         <Separator/>
         <MenuItem Header="Salir" Click="OnExit"/>
       </MenuItem>
@@ -30,7 +33,7 @@
               IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0"/>
     </Grid>
 
-    <Grid Margin="8" RowDefinitions="*,Auto,Auto,*" ColumnDefinitions="*,2*">
+    <Grid Margin="8" RowDefinitions="*,Auto,*" ColumnDefinitions="*,2*">
 
       <!-- Left: input WADs + resource WADs -->
       <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="*,*" Margin="0,0,8,8">
@@ -54,19 +57,9 @@
         </DockPanel>
 
         <DockPanel Grid.Row="1" Margin="0,8,0,0">
-          <TextBlock DockPanel.Dock="Top" Text="WAD de recursos (texturas / flats)" FontWeight="Bold" Margin="0,0,0,4"/>
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="4" Margin="0,6,0,0">
-            <CheckBox Content="Solo incluir texturas/flats usados por los mapas"
-                      IsChecked="{Binding FilterResourcesToUsed}"/>
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <Button Content="Agregar recursos..." Click="OnAddResources"/>
-              <Button Content="Quitar" Click="OnRemoveResource"/>
-              <Button Content="Subir" Click="OnMoveResourceUp"/>
-              <Button Content="Bajar" Click="OnMoveResourceDown"/>
-            </StackPanel>
-          </StackPanel>
-          <ListBox ItemsSource="{Binding ResourceWads}"
-                   SelectedItem="{Binding SelectedResourceWad, Mode=TwoWay}">
+          <TextBlock DockPanel.Dock="Top" Text="Recursos de texturas / flats (configuración de proyecto)" FontWeight="Bold" Margin="0,0,0,4"/>
+          <TextBlock DockPanel.Dock="Top" Text="Administrados en Archivo → Configuración del proyecto..." Foreground="Gray" Margin="0,0,0,4"/>
+          <ListBox ItemsSource="{Binding ResourceWads}">
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Display}"/>
@@ -79,7 +72,7 @@
 
       <!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
-        <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)"
+        <TextBlock DockPanel.Dock="Top" Text="{Binding MapsHeader}"
                    FontWeight="Bold" Margin="0,0,0,4"/>
         <Grid DockPanel.Dock="Top" ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="0,0,0,2">
           <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
@@ -93,11 +86,11 @@
         </Grid>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Maps}">
+            <ItemsControl ItemsSource="{Binding SlotRows}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3">
-                    <TextBox Grid.Column="0" Text="{Binding FinalName, Mode=TwoWay}"
+                    <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
                              MinWidth="60" VerticalContentAlignment="Center"/>
                     <TextBlock Grid.Column="1" Text="{Binding WadFileName}"
                                TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
@@ -106,7 +99,7 @@
                     <TextBox Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
                              MinWidth="110" VerticalContentAlignment="Center"/>
                     <ComboBox Grid.Column="4"
-                              ItemsSource="{x:Static vm:MapEntryViewModel.StatusOptions}"
+                              ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
                               SelectedItem="{Binding Status, Mode=TwoWay}"
                               VerticalAlignment="Center" MinWidth="80"
                               MaxDropDownHeight="220"/>
@@ -127,23 +120,15 @@
         </Border>
       </DockPanel>
 
-      <!-- Base WAD -->
-      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,8">
-        <TextBlock Grid.Column="0" Text="WAD base (IWAD):" VerticalAlignment="Center" Margin="0,0,8,0"/>
-        <TextBox Grid.Column="1" Text="{Binding BaseWadPath, Mode=TwoWay}" Watermark="Opcional. DOOM2.WAD como semilla para TEXTURE1/PNAMES."/>
-        <Button Grid.Column="2" Content="..." Click="OnBrowseBaseWad" Margin="4,0,0,0"/>
-        <Button Grid.Column="3" Content="Limpiar" Click="OnClearBaseWad" Margin="4,0,0,0"/>
-      </Grid>
-
       <!-- Output -->
-      <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
         <TextBlock Grid.Column="0" Text="Salida:" VerticalAlignment="Center" Margin="0,0,8,0"/>
         <TextBox Grid.Column="1" Text="{Binding OutputPath, Mode=TwoWay}" Watermark="Ruta del .wad compilado (ej. megawad.wad)"/>
         <Button Grid.Column="2" Content="..." Click="OnBrowseOutput" Margin="4,0,0,0"/>
       </Grid>
 
       <!-- Log -->
-      <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
+      <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
         <TextBlock Text="Registro" FontWeight="Bold" Margin="0,4,0,4"/>
         <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
                  IsReadOnly="True" TextWrapping="Wrap"

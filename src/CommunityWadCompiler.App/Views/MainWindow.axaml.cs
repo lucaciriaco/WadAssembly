@@ -37,17 +37,6 @@ public partial class MainWindow : Window
         return files.Select(f => f.TryGetLocalPath()).Where(p => p is not null).Cast<string>().ToArray();
     }
 
-    private async Task<string?> PickBaseWadAsync()
-    {
-        var files = await Storage.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Seleccionar WAD base (IWAD)",
-            AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("WAD files") { Patterns = new[] { "*.wad" } } },
-        });
-        return files.FirstOrDefault()?.TryGetLocalPath();
-    }
-
     private async Task<string?> PickOutputPathAsync()
     {
         var file = await Storage.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -100,26 +89,9 @@ public partial class MainWindow : Window
 
     private void OnMoveDown(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedWad(+1);
 
-    private async void OnAddResources(object? sender, RoutedEventArgs e)
-    {
-        if (await PickWadsAsync() is { Length: > 0 } paths)
-            _viewModel.AddResourceWads(paths);
-    }
-
-    private void OnRemoveResource(object? sender, RoutedEventArgs e) => _viewModel.RemoveSelectedResourceWad();
-
-    private void OnMoveResourceUp(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedResourceWad(-1);
-
-    private void OnMoveResourceDown(object? sender, RoutedEventArgs e) => _viewModel.MoveSelectedResourceWad(+1);
-
     // ------------------------------------------------------------------
-    // Base / output
+    // Output
     // ------------------------------------------------------------------
-
-    private async void OnBrowseBaseWad(object? sender, RoutedEventArgs e)
-        => _viewModel.BaseWadPath = await PickBaseWadAsync() ?? _viewModel.BaseWadPath;
-
-    private void OnClearBaseWad(object? sender, RoutedEventArgs e) => _viewModel.BaseWadPath = null;
 
     private async void OnBrowseOutput(object? sender, RoutedEventArgs e)
         => _viewModel.OutputPath = await PickOutputPathAsync() ?? _viewModel.OutputPath;
@@ -142,10 +114,28 @@ public partial class MainWindow : Window
             _viewModel.LoadProject(path);
     }
 
+    private async void OnSaveProject(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel.CurrentProjectPath is not null)
+        {
+            _viewModel.SaveProject(_viewModel.CurrentProjectPath);
+        }
+        else if (await PickProjectFileAsync(open: false) is { } path)
+        {
+            _viewModel.SaveProject(path);
+        }
+    }
+
     private async void OnSaveProjectAs(object? sender, RoutedEventArgs e)
     {
         if (await PickProjectFileAsync(open: false) is { } path)
             _viewModel.SaveProject(path);
+    }
+
+    private void OnProjectSettings(object? sender, RoutedEventArgs e)
+    {
+        var settings = new ProjectSettingsWindow(_viewModel);
+        settings.ShowDialog(this);
     }
 
     private void OnExit(object? sender, RoutedEventArgs e) => Close();

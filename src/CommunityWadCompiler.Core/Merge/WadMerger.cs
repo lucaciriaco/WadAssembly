@@ -286,7 +286,7 @@ public sealed class WadMerger
 
         // 0. Generated MAPINFO (level names) comes first.
         (string? mapInfoText, int mapInfoCount) = request.Options.GenerateMapInfo
-            ? BuildMapInfo(assignments)
+            ? BuildMapInfo(request, assignments)
             : (null, 0);
         bool mapInfoSeen = false;
         if (mapInfoText is not null)
@@ -532,11 +532,20 @@ public sealed class WadMerger
     /// `=`/quotes (`music D_RUNNIN`) — accepted by the classic and namespaced parsers
     /// of GZDoom/SLADE (verified against a known-good classic MAPINFO).</summary>
     private static (string? Text, int Count) BuildMapInfo(
+        MergeRequest request,
         IReadOnlyList<AssignmentInfo> assignments)
     {
         var sb = new StringBuilder();
         sb.AppendLine("// MAPINFO generado automáticamente por Community Wad Compiler");
-        sb.AppendLine($"// Versión: {CompilerInfo.Version}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}");
+
+        string project = (request.ProjectName ?? "").Trim();
+        string versionPrefix = (request.VersionPrefix ?? "").Trim();
+        if (project.Length > 0)
+            sb.AppendLine($"// Proyecto: {SanitizeMapInfoString(project)}");
+        string fullVersion = versionPrefix.Length > 0
+            ? $"{versionPrefix}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}"
+            : $"{CompilerInfo.Version}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}";
+        sb.AppendLine($"// Versión: {SanitizeMapInfoString(fullVersion)}");
         sb.AppendLine($"// Compilado: {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}");
 
         int count = 0;
