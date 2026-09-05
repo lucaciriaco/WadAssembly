@@ -14,7 +14,8 @@
       <Button Content="Cancelar" MinWidth="96" Click="OnCancel"/>
     </StackPanel>
 
-    <StackPanel Spacing="12">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
 
       <StackPanel Spacing="4">
         <TextBlock Text="Nombre del proyecto" FontWeight="Bold"/>
@@ -85,5 +86,6 @@
       </StackPanel>
 
     </StackPanel>
+    </ScrollViewer>
   </DockPanel>
 </Window>

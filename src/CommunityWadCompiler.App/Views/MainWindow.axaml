@@ -26,49 +26,40 @@
       </MenuItem>
     </Menu>
 
-    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*" Margin="8,4,8,8">
-      <ProgressBar Grid.Column="0" Width="260" Height="18" IsIndeterminate="True"
-                   IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/>
-      <Button Grid.Column="1" HorizontalAlignment="Right" Content="Compilar"
+    <!-- Bottom bar: output path (browse button at the bottom-left corner), progress, compile -->
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="8,4,8,8">
+      <Button Grid.Column="0" Content="..." Click="OnBrowseOutput" MinWidth="36"
+              VerticalAlignment="Center"/>
+      <TextBlock Grid.Column="1" Text="Salida:" VerticalAlignment="Center" Margin="6,0,6,0"/>
+      <TextBox Grid.Column="2" Text="{Binding OutputPath, Mode=TwoWay}"
+               Watermark="Ruta del .wad compilado (ej. megawad.wad)" VerticalAlignment="Center"/>
+      <ProgressBar Grid.Column="3" Width="220" Height="18" IsIndeterminate="True"
+                   IsVisible="{Binding IsBusy}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+      <Button Grid.Column="4" HorizontalAlignment="Right" Content="Compilar"
               IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0"/>
     </Grid>
 
-    <Grid Margin="8" RowDefinitions="*,Auto,*" ColumnDefinitions="*,2*">
+    <Grid Margin="8" RowDefinitions="3*,*" ColumnDefinitions="*,2*">
 
-      <!-- Left: input WADs + resource WADs -->
-      <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="*,*" Margin="0,0,8,8">
-
-        <DockPanel Grid.Row="0">
-          <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,4"/>
-          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
-            <Button Content="Agregar WADs..." Click="OnAddWads"/>
-            <Button Content="Quitar" Click="OnRemoveWad"/>
-            <Button Content="Subir" Click="OnMoveUp"/>
-            <Button Content="Bajar" Click="OnMoveDown"/>
-          </StackPanel>
-          <ListBox ItemsSource="{Binding InputWads}"
-                   SelectedItem="{Binding SelectedWad, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Display}"/>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </DockPanel>
-
-        <DockPanel Grid.Row="1" Margin="0,8,0,0">
-          <TextBlock DockPanel.Dock="Top" Text="Recursos de texturas / flats (configuración de proyecto)" FontWeight="Bold" Margin="0,0,0,4"/>
-          <TextBlock DockPanel.Dock="Top" Text="Administrados en Archivo → Configuración del proyecto..." Foreground="Gray" Margin="0,0,0,4"/>
-          <ListBox ItemsSource="{Binding ResourceWads}">
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Display}"/>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </DockPanel>
-
-      </Grid>
+      <!-- Left: input WADs -->
+      <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+        <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,4"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+          <Button Content="Agregar WADs..." Click="OnAddWads"/>
+          <Button Content="Quitar" Click="OnRemoveWad"/>
+          <Button Content="Subir" Click="OnMoveUp"/>
+          <Button Content="Bajar" Click="OnMoveDown"/>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding InputWads}"
+                 SelectedItem="{Binding SelectedWad, Mode=TwoWay}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Display}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
 
       <!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
@@ -85,7 +76,8 @@
           <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold"/>
         </Grid>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
-          <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
+          <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding SlotRows}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -120,15 +112,8 @@
         </Border>
       </DockPanel>
 
-      <!-- Output -->
-      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
-        <TextBlock Grid.Column="0" Text="Salida:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-        <TextBox Grid.Column="1" Text="{Binding OutputPath, Mode=TwoWay}" Watermark="Ruta del .wad compilado (ej. megawad.wad)"/>
-        <Button Grid.Column="2" Content="..." Click="OnBrowseOutput" Margin="4,0,0,0"/>
-      </Grid>
-
       <!-- Log -->
-      <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
+      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
         <TextBlock Text="Registro" FontWeight="Bold" Margin="0,4,0,4"/>
         <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
                  IsReadOnly="True" TextWrapping="Wrap"
