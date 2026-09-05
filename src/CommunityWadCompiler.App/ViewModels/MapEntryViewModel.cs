@@ -1,9 +1,10 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
-/// <summary>One map with its editable final slot.</summary>
+/// <summary>One map with its editable final slot and level name.</summary>
 public sealed class MapEntryViewModel : ObservableObject
 {
     private string _finalName;
+    private string _levelName = "";
 
     public MapEntryViewModel(
         string wadPath,
@@ -34,5 +35,12 @@ public sealed class MapEntryViewModel : ObservableObject
     {
         get => _finalName;
         set => SetProperty(ref _finalName, value);
+    }
+
+    /// <summary>Readable level name shown on the automap; used by the generated MAPINFO.</summary>
+    public string LevelName
+    {
+        get => _levelName;
+        set => SetProperty(ref _levelName, value);
     }
 }

@@ -290,6 +290,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     OriginalName = m.OriginalName,
                     FinalName = m.FinalName,
                     IsUdmf = m.IsUdmf,
+                    LevelName = m.LevelName,
                 })
                 .ToList(),
         };
@@ -323,7 +324,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
         // Restore map slots.
         var loaded = data.Maps
-            .Select(m => new MapEntryViewModel(m.WadPath, m.OriginalName, m.FinalName, m.IsUdmf))
+            .Select(m => new MapEntryViewModel(m.WadPath, m.OriginalName, m.FinalName, m.IsUdmf)
+            {
+                LevelName = m.LevelName ?? "",
+            })
             .ToList();
         Maps.Clear();
         foreach (var m in loaded)
@@ -409,7 +413,7 @@ public sealed class MainWindowViewModel : ObservableObject
             }
             if (!string.Equals(final, map.FinalName, StringComparison.OrdinalIgnoreCase))
                 map.FinalName = final;
-            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final));
+            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName));
         }
 
         var request = new MergeRequest

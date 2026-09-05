@@ -78,19 +78,37 @@
 
       <!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
-        <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)" FontWeight="Bold" Margin="0,0,0,4"/>
-        <DataGrid ItemsSource="{Binding Maps}"
-                  AutoGenerateColumns="False"
-                  CanUserReorderColumns="False"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="WAD" Binding="{Binding WadFileName}" IsReadOnly="True" Width="150"/>
-            <DataGridTextColumn Header="Mapa original" Binding="{Binding OriginalName}" IsReadOnly="True" Width="110"/>
-            <DataGridTextColumn Header="Formato" Binding="{Binding FormatLabel}" IsReadOnly="True" Width="80"/>
-            <DataGridTextColumn Header="Slot final" Binding="{Binding FinalName, Mode=TwoWay}" Width="110"/>
-          </DataGrid.Columns>
-        </DataGrid>
+        <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)"
+                   FontWeight="Bold" Margin="0,0,0,4"/>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="150,110,80,110,220" Margin="0,0,0,2">
+          <TextBlock Grid.Column="0" Text="WAD" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="Mapa original" FontWeight="Bold"/>
+          <TextBlock Grid.Column="2" Text="Formato" FontWeight="Bold"/>
+          <TextBlock Grid.Column="3" Text="Slot final" FontWeight="Bold"/>
+          <TextBlock Grid.Column="4" Text="Nombre del mapa" FontWeight="Bold"/>
+        </Grid>
+        <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
+          <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Maps}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="150,110,80,110,220" Margin="2,3">
+                    <TextBlock Grid.Column="0" Text="{Binding WadFileName}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="1" Text="{Binding OriginalName}"
+                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding FormatLabel}"
+                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="3" Text="{Binding FinalName, Mode=TwoWay}"
+                             MinWidth="60" VerticalContentAlignment="Center"/>
+                    <TextBox Grid.Column="4" Text="{Binding LevelName, Mode=TwoWay}"
+                             MinWidth="120" VerticalContentAlignment="Center"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
       </DockPanel>
 
       <!-- Base WAD -->

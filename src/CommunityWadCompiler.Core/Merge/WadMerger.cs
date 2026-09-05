@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Textures;
 using CommunityWadCompiler.Core.WadFormat;
@@ -157,15 +158,15 @@ public sealed class WadMerger
     // Map assignments
     // ------------------------------------------------------------------
 
-    private static IReadOnlyList<(DetectedMap Map, string FinalName)> BuildAssignments(
+    private static IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName)> BuildAssignments(
         List<WadFile> inputs,
         MergeRequest request,
         Action<string> warn)
     {
         var explicitMap = request.MapAssignments
-            .ToDictionary(a => (a.WadPath, a.OriginalMapName), a => a.FinalMapName, DefaultComparer.Instance);
+            .ToDictionary(a => (a.WadPath, a.OriginalMapName), DefaultComparer.Instance);
 
-        var result = new List<(DetectedMap, string)>();
+        var result = new List<(DetectedMap, string, string?)>();
         var seenFinals = new HashSet<string>(StringComparer.Ordinal);
         int autoCounter = 1;
 
@@ -175,9 +176,13 @@ public sealed class WadMerger
             foreach (var map in MapDetector.DetectMaps(wad))
             {
                 string? final = null;
+                string? levelName = null;
                 string? wadPath = wad.SourcePath;
-                if (wadPath is not null && explicitMap.TryGetValue((wadPath, map.OriginalName), out string? assigned))
-                    final = assigned;
+                if (wadPath is not null && explicitMap.TryGetValue((wadPath, map.OriginalName), out MapAssignment? assignment))
+                {
+                    final = assignment.FinalMapName;
+                    levelName = assignment.LevelName;
+                }
                 else if (request.Options.AutoAssignMaps)
                     final = $"MAP{autoCounter++:D2}";
 
@@ -192,7 +197,7 @@ public sealed class WadMerger
                     throw new InvalidOperationException($"Dos mapas se asignaron al slot '{final}'. Revisá las asignaciones.");
                 }
 
-                result.Add((map, final));
+                result.Add((map, final, levelName));
             }
         }
 
@@ -209,10 +214,10 @@ public sealed class WadMerger
     }
 
     /// <summary>Unions the wall texture and flat usage of every merged map.</summary>
-    private static UsedTextures AnalyzeUsage(IReadOnlyList<(DetectedMap Map, string FinalName)> assignments)
+    private static UsedTextures AnalyzeUsage(IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName)> assignments)
     {
         var used = new UsedTextures();
-        foreach (var (map, _) in assignments)
+        foreach (var (map, _, _) in assignments)
             used.UnionWith(MapTextureAnalyzer.Analyze(map));
         return used;
     }
@@ -244,7 +249,7 @@ public sealed class WadMerger
         MergeRequest request,
         List<WadFile> inputs,
         List<WadFile> resources,
-        IReadOnlyList<(DetectedMap Map, string FinalName)> assignments,
+        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName)> assignments,
         TextureMerger textures,
         UsedTextures? usage,
         WadFile? baseWad,
@@ -253,6 +258,18 @@ public sealed class WadMerger
     {
         var builder = new WadBuilder();
         var outputNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // 0. Generated MAPINFO (level names) comes first.
+        (string? mapInfoText, int mapInfoCount) = request.Options.GenerateMapInfo
+            ? BuildMapInfo(assignments)
+            : (null, 0);
+        bool mapInfoSeen = false;
+        if (mapInfoText is not null)
+        {
+            builder.AddLump("MAPINFO", Encoding.UTF8.GetBytes(mapInfoText));
+            outputNames.Add("MAPINFO");
+            _result.Info.Add($"MAPINFO generado para {mapInfoCount} mapa(s).");
+        }
 
         // 1. Merged texture scaffold.
         if (textures.HasContent)
@@ -273,16 +290,21 @@ public sealed class WadMerger
         bool zdoomTexturesSeen = false;
 
         foreach (var wad in inputs)
-            CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures, ref zdoomTexturesSeen, warn);
+            CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures,
+                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn);
 
         foreach (var wad in resources)
-            CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures, ref zdoomTexturesSeen, warn);
+            CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
+                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn);
+
+        if (mapInfoText is not null && mapInfoSeen)
+            warn("Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.");
 
         if (zdoomTexturesSeen)
             warn("Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.");
 
         // 3. Maps in slot order.
-        foreach (var (map, finalName) in assignments)
+        foreach (var (map, finalName, _) in assignments)
         {
             report($"  Copiando {map.OriginalName} -> {finalName}");
             var lumps = map.Wad.Lumps;
@@ -326,6 +348,8 @@ public sealed class WadMerger
         UsedTextures? usage,
         TextureMerger textures,
         ref bool zdoomTexturesSeen,
+        bool skipMapInfo,
+        ref bool mapInfoSeen,
         Action<string> warn)
     {
         var mapRanges = MapDetector.DetectMaps(wad)
@@ -387,6 +411,12 @@ public sealed class WadMerger
                 continue;
             }
 
+            if (skipMapInfo && (lump.Name == "MAPINFO" || lump.Name == "ZMAPINFO"))
+            {
+                mapInfoSeen = true;
+                continue;
+            }
+
             if (skipFromBase.Contains(lump.Name))
                 continue;
 
@@ -440,4 +470,30 @@ public sealed class WadMerger
 
         FlushGroup(); // the WAD may lack the closing marker
     }
+
+    /// <summary>Builds a ZDoom MAPINFO text with a level name per assigned map.
+    /// Uses the classic form `map MAP01 "Name"` (level name as second token) which is
+    /// accepted by both the classic and the namespaced ("new") MAPINFO parsers.</summary>
+    private static (string? Text, int Count) BuildMapInfo(
+        IReadOnlyList<(DetectedMap Map, string FinalName, string? LevelName)> assignments)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("// MAPINFO generado automáticamente por Community Wad Compiler");
+
+        int named = 0;
+        foreach (var (_, finalName, levelName) in assignments)
+        {
+            string name = (levelName ?? "").Trim();
+            if (name.Length == 0)
+                continue;
+
+            named++;
+            sb.AppendLine($"map {finalName} \"{SanitizeMapInfoString(name)}\"");
+        }
+
+        return named == 0 ? (null, 0) : (sb.ToString(), named);
+    }
+
+    private static string SanitizeMapInfoString(string value)
+        => value.Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");
 }

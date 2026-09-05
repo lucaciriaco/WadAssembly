@@ -31,4 +31,11 @@ public sealed class MergeOptions
     /// actually referenced by the merged maps are implemented in the output.
     /// </summary>
     public bool FilterToUsedResources { get; set; } = true;
+
+    /// <summary>
+    /// When <c>true</c> (default), a MAPINFO lump (ZDoom new format) with the level
+    /// names of every assigned map is generated. Existing MAPINFO/ZMAPINFO lumps in the
+    /// input/resource WADs are then skipped with a warning.
+    /// </summary>
+    public bool GenerateMapInfo { get; set; } = true;
 }

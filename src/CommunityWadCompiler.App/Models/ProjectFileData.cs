@@ -29,4 +29,7 @@ public sealed class MapEntryData
     public string FinalName { get; set; } = "";
 
     public bool IsUdmf { get; set; }
+
+    /// <summary>Readable level name used to build the generated MAPINFO lump.</summary>
+    public string? LevelName { get; set; }
 }
