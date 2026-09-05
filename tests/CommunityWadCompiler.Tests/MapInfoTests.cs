@@ -1,5 +1,7 @@
 using System.Text;
 using CommunityWadCompiler.Core.Merge;
+using CommunityWadCompiler.Core.Music;
+using CommunityWadCompiler.Core.Textures;
 using CommunityWadCompiler.Core.WadFormat;
 using Xunit;
 
@@ -17,14 +19,14 @@ public class MapInfoTests
             string map2 = BuildClassicMapWad(dir, "m2.wad", "MAP07");
             string output = Path.Combine(dir, "out.wad");
 
-            var request = new MergeRequest
+var request = new MergeRequest
             {
                 InputWadPaths = new[] { map1, map2 },
                 OutputPath = output,
                 MapAssignments = new[]
                 {
-                    new MapAssignment(map1, "MAP01", "MAP01", "Hangar de la Arena"),
-                    new MapAssignment(map2, "MAP07", "MAP02", "Las Torres Gemelas"),
+                    new MapAssignment(map1, "MAP01", "MAP01", "Hangar de la Arena", "CITY1"),
+                    new MapAssignment(map2, "MAP07", "MAP02", "Las Torres Gemelas", "MUSW1"),
                 },
                 Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
             };
@@ -32,13 +34,15 @@ public class MapInfoTests
             var result = new WadMerger().Merge(request);
             Assert.True(result.Success, string.Join("; ", result.Errors));
 
-using var wad = WadFile.Open(output);
+            using var wad = WadFile.Open(output);
             Lump? mapinfo = wad.FindFirst("MAPINFO");
             Assert.NotNull(mapinfo);
             string text = Encoding.UTF8.GetString(mapinfo!.ReadAll());
 
             Assert.Contains("map MAP01 \"Hangar de la Arena\"", text);
+            Assert.Contains("music CITY1", text);
             Assert.Contains("map MAP02 \"Las Torres Gemelas\"", text);
+            Assert.Contains("music MUSW1", text);
         }
         finally
         {
@@ -111,11 +115,161 @@ using var wad = WadFile.Open(output);
         }
     }
 
+    [Fact]
+    public void MergeWithMusicLumpInInputWad_CopiesItAndWritesMapInfo()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01", musicLumpName: "CITY1");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[] { new MapAssignment(map1, "MAP01", "MAP01", null, "CITY1") },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            Assert.NotNull(wad.FindFirst("CITY1"));
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("map MAP01 \"\"", text);
+            Assert.Contains("music CITY1", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeWithMusicInFilteredResourceWad_CopiesLumpExplicitly()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string res = BuildResourceWad(dir, "res.wad", musicLumpName: "RSCMUS");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                ResourceWadPaths = new[] { res },
+                OutputPath = output,
+                MapAssignments = new[] { new MapAssignment(map1, "MAP01", "MAP01", "El Nido", "RSCMUS") },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = true },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            Assert.NotNull(wad.FindFirst("RSCMUS")); // copied despite resource filtering
+            Assert.Equal(1, result.MusicCopied);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("map MAP01 \"El Nido\"", text);
+            Assert.Contains("music RSCMUS", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeWithMissingMusic_WarnsButReferencesIt()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[] { new MapAssignment(map1, "MAP01", "MAP01", null, "D_FAKE") },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+            Assert.Contains(result.Warnings, w => w.Contains("D_FAKE"));
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("music D_FAKE", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeWithDuplicateMusicNames_RenamesSecondWad()
+    {
+        string dir = TempDir();
+        try
+        {
+            // Both WADs carry a music lump with the same name "CITY1".
+            string map1 = BuildClassicMapWad(dir, "one.wad", "MAP01", musicLumpName: "CITY1");
+            string map2 = BuildClassicMapWad(dir, "two.wad", "MAP02", musicLumpName: "CITY1");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1, map2 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", null, "CITY1"),
+                    new MapAssignment(map2, "MAP02", "MAP02", null, "CITY_TWO"),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            Assert.NotNull(wad.FindFirst("CITY1"));      // first source keeps the base name
+            Assert.NotNull(wad.FindFirst("CITY_TWO"));   // second one renamed (8-char cap)
+            Assert.Equal(1, result.MusicCopied);
+            Assert.Contains(result.Info, i => i.Contains("CITY1") && i.Contains("CITY_TWO"));
+
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("music CITY1", text);
+            Assert.Contains("music CITY_TWO", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void RenameDuplicate_StaysWithinEightCharacters()
+    {
+        var used = new HashSet<string>(StringComparer.Ordinal) { "D_RUNNIN" };
+        string renamed = MusicLumpDetector.RenameDuplicate("D_RUNNIN", @"C:\wads\map04.wad", used);
+        Assert.True(renamed.Length <= 8, $"'{renamed}' supera los 8 caracteres");
+        Assert.DoesNotContain(renamed, used);
+        Assert.Contains("MAP0", renamed); // tag remains recognizable
+        Assert.DoesNotContain("D_RUNNIN", renamed);
+    }
+
     // ------------------------------------------------------------------
     // Builders
     // ------------------------------------------------------------------
 
-    private static string BuildClassicMapWad(string dir, string fileName, string header, byte[]? extraLump = null)
+    private static string BuildClassicMapWad(string dir, string fileName, string header, byte[]? extraLump = null, string? musicLumpName = null)
     {
         string path = Path.Combine(dir, fileName);
         var builder = new WadBuilder();
@@ -132,9 +286,26 @@ using var wad = WadFile.Open(output);
         builder.AddLump("BLOCKMAP", new byte[2]);
         if (extraLump is not null)
             builder.AddLump("MAPINFO", extraLump);
+        if (musicLumpName is not null)
+            builder.AddLump(musicLumpName, FakeMusData());
         builder.Write(path);
         return path;
     }
+
+    private static string BuildResourceWad(string dir, string fileName, string? musicLumpName = null)
+    {
+        string path = Path.Combine(dir, fileName);
+        var builder = new WadBuilder();
+        builder.AddLump("PNAMES", new PnamesList().Write());
+        builder.AddLump("TEXTURE1", new TextureSet().Write());
+        if (musicLumpName is not null)
+            builder.AddLump(musicLumpName, FakeMusData());
+        builder.Write(path);
+        return path;
+    }
+
+    private static byte[] FakeMusData() =>
+        new byte[] { (byte)'M', (byte)'U', (byte)'S', 0x1A, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     private static byte[] MakeSidedefs(params (string Top, string Bottom, string Middle)[] sides)
     {

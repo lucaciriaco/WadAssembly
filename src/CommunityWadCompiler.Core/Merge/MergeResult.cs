@@ -31,6 +31,8 @@ public sealed class MergeResult
 
     public int FlatsCopied { get; set; }
 
+    public int MusicCopied { get; set; }
+
     public long OutputBytes { get; set; }
 
     public TimeSpan Elapsed { get; set; }
@@ -48,6 +50,8 @@ public sealed class MergeResult
             sb.AppendLine($"  Texturas sin uso excluidas: {TexturesExcluded}");
         if (FlatsCopied > 0)
             sb.AppendLine($"  Flats copiados del WAD de recursos: {FlatsCopied}");
+        if (MusicCopied > 0)
+            sb.AppendLine($"  Lumps de música copiados: {MusicCopied}");
         foreach (string e in Errors)
             sb.AppendLine($"  [ERROR] {e}");
         foreach (string w in Warnings)

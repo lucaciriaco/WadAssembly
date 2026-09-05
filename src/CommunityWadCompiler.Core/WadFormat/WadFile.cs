@@ -101,6 +101,12 @@ public sealed class WadFile : IDisposable
         return result;
     }
 
+    /// <summary>Copies the first <paramref name="count"/> bytes of a lump into <paramref name="dest"/>.</summary>
+    internal void ReadLumpRange(Lump lump, int count, byte[] dest)
+    {
+        Array.Copy(_data, lump.DataOffset, dest, 0, count);
+    }
+
     /// <summary>Finds the first lump with the given name (case-insensitive) or <c>null</c>.</summary>
     public Lump? FindFirst(string name) => Find(name, last: false);
 

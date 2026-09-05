@@ -1,10 +1,11 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
-/// <summary>One map with its editable final slot and level name.</summary>
+/// <summary>One map with its editable final slot, level name and music.</summary>
 public sealed class MapEntryViewModel : ObservableObject
 {
     private string _finalName;
     private string _levelName = "";
+    private string _musicName = "";
 
     public MapEntryViewModel(
         string wadPath,
@@ -31,6 +32,9 @@ public sealed class MapEntryViewModel : ObservableObject
 
     public string FormatLabel => IsUdmf ? "UDMF" : "Clásico";
 
+    /// <summary>Music lumps available to pick from (shared list maintained by the view model).</summary>
+    public IReadOnlyList<string>? MusicOptions { get; set; }
+
     public string FinalName
     {
         get => _finalName;
@@ -42,5 +46,12 @@ public sealed class MapEntryViewModel : ObservableObject
     {
         get => _levelName;
         set => SetProperty(ref _levelName, value);
+    }
+
+    /// <summary>Music lump assigned to this map; used by the generated MAPINFO (`music =`).</summary>
+    public string MusicName
+    {
+        get => _musicName;
+        set => SetProperty(ref _musicName, value);
     }
 }

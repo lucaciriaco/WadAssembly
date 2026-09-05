@@ -32,4 +32,7 @@ public sealed class MapEntryData
 
     /// <summary>Readable level name used to build the generated MAPINFO lump.</summary>
     public string? LevelName { get; set; }
+
+    /// <summary>Music lump assigned to the map, referenced by the generated MAPINFO.</summary>
+    public string? MusicName { get; set; }
 }

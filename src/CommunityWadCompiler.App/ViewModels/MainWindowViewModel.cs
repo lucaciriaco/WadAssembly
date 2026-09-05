@@ -5,6 +5,7 @@ using System.Text.Json;
 using CommunityWadCompiler.App.Models;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Merge;
+using CommunityWadCompiler.Core.Music;
 using CommunityWadCompiler.Core.WadFormat;
 
 namespace CommunityWadCompiler.App.ViewModels;
@@ -31,6 +32,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<WadEntryViewModel> ResourceWads { get; } = new();
 
     public ObservableCollection<MapEntryViewModel> Maps { get; } = new();
+
+    public ObservableCollection<string> AvailableMusicLumps { get; } = new();
 
     public string? BaseWadPath
     {
@@ -191,6 +194,7 @@ public sealed class MainWindowViewModel : ObservableObject
         InputWads.Clear();
         ResourceWads.Clear();
         Maps.Clear();
+        AvailableMusicLumps.Clear();
         _userEditedSlots.Clear();
         BaseWadPath = null;
         OutputPath = null;
@@ -208,8 +212,9 @@ public sealed class MainWindowViewModel : ObservableObject
         // Preserve existing final names for maps that were not touched by the user.
         var existing = Maps.ToDictionary(
             m => (m.WadPath, m.OriginalName),
-            m => m.FinalName);
+            m => (m.FinalName, m.LevelName, m.MusicName));
 
+        RefreshMusicOptions();
         Maps.Clear();
         int autoCounter = 1;
         string currentPrefix = AutoAssignMaps ? "MAP" : "";
@@ -225,9 +230,9 @@ public sealed class MainWindowViewModel : ObservableObject
                     string? autoName = null;
                     var key = (wadEntry.Path, map.OriginalName);
 
-                    if (_userEditedSlots.Contains(key) && existing.TryGetValue(key, out string? kept))
+                    if (_userEditedSlots.Contains(key) && existing.TryGetValue(key, out var kept))
                     {
-                        finalName = kept;
+                        finalName = kept.FinalName;
                     }
                     else if (AutoAssignMaps)
                     {
@@ -239,9 +244,13 @@ public sealed class MainWindowViewModel : ObservableObject
                         finalName = "";
                     }
 
+                    existing.TryGetValue(key, out var prior);
                     var entry = new MapEntryViewModel(wadEntry.Path, map.OriginalName, finalName, map.IsUdmf)
                     {
                         AutoAssignedName = autoName,
+                        MusicOptions = AvailableMusicLumps,
+                        LevelName = prior.LevelName ?? "",
+                        MusicName = prior.MusicName ?? "",
                     };
                     entry.PropertyChanged += OnMapPropertyChanged;
                     Maps.Add(entry);
@@ -251,6 +260,50 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 AppendLog($"[ERROR] {ex.Message}");
             }
+        }
+    }
+
+    /// <summary>Re-scans all input/resource WADs for music lumps (MUS/MIDI signatures),
+    /// renaming duplicate names (same lump in two WADs) to <c>NOMBRE_WAD</c>.</summary>
+    private void RefreshMusicOptions()
+    {
+        var opened = new List<WadFile>();
+        try
+        {
+            foreach (string path in InputWads.Select(w => w.Path).Concat(ResourceWads.Select(w => w.Path)))
+            {
+                try
+                {
+                    opened.Add(WadFile.Open(path));
+                }
+                catch (WadException ex)
+                {
+                    AppendLog($"[ERROR] {ex.Message}");
+                }
+            }
+
+            var wanted = new List<string>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var renames = new List<string>();
+            foreach (var c in MusicLumpDetector.CollectAcrossWads(opened))
+            {
+                if (!string.Equals(c.FinalName, c.OriginalName, StringComparison.Ordinal))
+                    renames.Add($"'{c.OriginalName}' de '{Path.GetFileName(c.WadPath)}' → '{c.FinalName}'");
+                if (seen.Add(c.FinalName))
+                    wanted.Add(c.FinalName);
+            }
+
+            AvailableMusicLumps.Clear();
+            foreach (string name in wanted)
+                AvailableMusicLumps.Add(name);
+
+            if (renames.Count > 0)
+                AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
+        }
+        finally
+        {
+            foreach (var w in opened)
+                w.Dispose();
         }
     }
 
@@ -291,6 +344,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     FinalName = m.FinalName,
                     IsUdmf = m.IsUdmf,
                     LevelName = m.LevelName,
+                    MusicName = m.MusicName,
                 })
                 .ToList(),
         };
@@ -322,11 +376,15 @@ public sealed class MainWindowViewModel : ObservableObject
         foreach (string wadPath in data.ResourceWadPaths)
             AddResourceWadsPathOnly(wadPath);
 
+        RefreshMusicOptions();
+
         // Restore map slots.
         var loaded = data.Maps
             .Select(m => new MapEntryViewModel(m.WadPath, m.OriginalName, m.FinalName, m.IsUdmf)
             {
                 LevelName = m.LevelName ?? "",
+                MusicName = m.MusicName ?? "",
+                MusicOptions = AvailableMusicLumps,
             })
             .ToList();
         Maps.Clear();
@@ -413,7 +471,9 @@ public sealed class MainWindowViewModel : ObservableObject
             }
             if (!string.Equals(final, map.FinalName, StringComparison.OrdinalIgnoreCase))
                 map.FinalName = final;
-            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName));
+
+            string? music = string.IsNullOrWhiteSpace(map.MusicName) ? null : map.MusicName.Trim();
+            assignments.Add(new MapAssignment(map.WadPath, map.OriginalName, final, map.LevelName, music));
         }
 
         var request = new MergeRequest

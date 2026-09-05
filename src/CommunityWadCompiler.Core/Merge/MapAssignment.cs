@@ -7,4 +7,5 @@ public sealed record MapAssignment(
     string WadPath,
     string OriginalMapName,
     string FinalMapName,
-    string? LevelName = null);
+    string? LevelName = null,
+    string? MusicName = null);

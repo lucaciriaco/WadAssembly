@@ -27,5 +27,16 @@ public sealed class Lump
     /// <summary>Reads the full lump payload into memory.</summary>
     public byte[] ReadAll() => _owner.ReadLumpData(this);
 
+    /// <summary>Reads the first <paramref name="count"/> bytes of the lump payload.</summary>
+    public byte[] ReadPrefix(int count)
+    {
+        if (count <= 0 || Size == 0)
+            return Array.Empty<byte>();
+        int n = Math.Min(count, Size);
+        var result = new byte[n];
+        _owner.ReadLumpRange(this, n, result);
+        return result;
+    }
+
     public override string ToString() => $"{Name} ({Size} bytes)";
 }
