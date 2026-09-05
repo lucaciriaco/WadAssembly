@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CommunityWadCompiler.App.Views.MainWindow"
+        Title="Community Wad Compiler"
+        Width="1180" Height="760"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel>
+
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="Archivo">
+        <MenuItem Header="Nuevo proyecto" Click="OnNewProject"/>
+        <Separator/>
+        <MenuItem Header="Abrir proyecto..." Click="OnOpenProject"/>
+        <MenuItem Header="Guardar proyecto como..." Click="OnSaveProjectAs"/>
+        <Separator/>
+        <MenuItem Header="Salir" Click="OnExit"/>
+      </MenuItem>
+      <MenuItem Header="Ayuda">
+        <MenuItem Header="Acerca de..." Click="OnAbout"/>
+      </MenuItem>
+    </Menu>
+
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*" Margin="8,4,8,8">
+      <ProgressBar Grid.Column="0" Width="260" Height="18" IsIndeterminate="True"
+                   IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/>
+      <Button Grid.Column="1" HorizontalAlignment="Right" Content="Compilar"
+              IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0"/>
+    </Grid>
+
+    <Grid Margin="8" RowDefinitions="*,Auto,Auto,*" ColumnDefinitions="*,2*">
+
+      <!-- Left: input WADs -->
+      <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+        <TextBlock DockPanel.Dock="Top" Text="WADs aportados" FontWeight="Bold" Margin="0,0,0,4"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+          <Button Content="Agregar WADs..." Click="OnAddWads"/>
+          <Button Content="Quitar" Click="OnRemoveWad"/>
+          <Button Content="Subir" Click="OnMoveUp"/>
+          <Button Content="Bajar" Click="OnMoveDown"/>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding InputWads}"
+                 SelectedItem="{Binding SelectedWad, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Display}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <!-- Right: maps / slots -->
+      <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+        <TextBlock DockPanel.Dock="Top" Text="Mapas y slots finales (editable)" FontWeight="Bold" Margin="0,0,0,4"/>
+        <DataGrid ItemsSource="{Binding Maps}"
+                  AutoGenerateColumns="False"
+                  CanUserReorderColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="WAD" Binding="{Binding WadFileName}" IsReadOnly="True" Width="150"/>
+            <DataGridTextColumn Header="Mapa original" Binding="{Binding OriginalName}" IsReadOnly="True" Width="110"/>
+            <DataGridTextColumn Header="Formato" Binding="{Binding FormatLabel}" IsReadOnly="True" Width="80"/>
+            <DataGridTextColumn Header="Slot final" Binding="{Binding FinalName, Mode=TwoWay}" Width="110"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+
+      <!-- Base WAD -->
+      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,8">
+        <TextBlock Grid.Column="0" Text="WAD base (IWAD):" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <TextBox Grid.Column="1" Text="{Binding BaseWadPath, Mode=TwoWay}" Watermark="Opcional. DOOM2.WAD como semilla para TEXTURE1/PNAMES."/>
+        <Button Grid.Column="2" Content="..." Click="OnBrowseBaseWad" Margin="4,0,0,0"/>
+        <Button Grid.Column="3" Content="Limpiar" Click="OnClearBaseWad" Margin="4,0,0,0"/>
+      </Grid>
+
+      <!-- Output -->
+      <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+        <TextBlock Grid.Column="0" Text="Salida:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <TextBox Grid.Column="1" Text="{Binding OutputPath, Mode=TwoWay}" Watermark="Ruta del .wad compilado (ej. megawad.wad)"/>
+        <Button Grid.Column="2" Content="..." Click="OnBrowseOutput" Margin="4,0,0,0"/>
+      </Grid>
+
+      <!-- Log -->
+      <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
+        <TextBlock Text="Registro" FontWeight="Bold" Margin="0,4,0,4"/>
+        <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
+                 IsReadOnly="True" TextWrapping="Wrap"
+                 AcceptsReturn="True" FontFamily="Consolas, Courier New"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+      </Grid>
+
+    </Grid>
+  </DockPanel>
+</Window>

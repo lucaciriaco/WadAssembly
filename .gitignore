@@ -1,0 +1,22 @@
+# Build results
+bin/
+obj/
+artifacts/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Avalonia
+*.pdb
+
+# Test results
+TestResults/
+
+# Local output
+*.wad
+project.json
