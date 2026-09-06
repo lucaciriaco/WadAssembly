@@ -495,9 +495,9 @@ private int _slotCount = 32;
             AvailableMusicLumps.Clear();
             foreach (var info in wanted)
                 AvailableMusicLumps.Add(info);
-
-            // "No music" is always available as the last option.
+// "No music" is always available as the last option.
             AvailableMusicLumps.Add(new MusicLumpInfo(SlotRowViewModel.NoMusicOption, ""));
+
 
             if (renames.Count > 0)
                 AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
@@ -507,6 +507,60 @@ private int _slotCount = 32;
             foreach (var w in opened)
                 w.Dispose();
         }
+    }
+
+    /// <summary>Collects all texture names from resource WADs that could be used as sky.
+    /// Includes all patches and flats (both can be used as sky textures).</summary>
+    public List<string> GetSkyTextureNames()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var opened = new List<WadFile>();
+        try
+        {
+            foreach (string path in ResourceWads.Select(w => w.Path))
+            {
+                try
+                {
+                    opened.Add(WadFile.Open(path));
+                }
+                catch (WadException ex)
+                {
+                    AppendLog($"[ERROR] {ex.Message}");
+                }
+            }
+
+            // Texture lump names to exclude (same as in WadMerger)
+            var textureLumpNames = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "PNAMES", "TEXTURE1", "TEXTURE2", "TEXTURES",
+            };
+
+            foreach (var wad in opened)
+            {
+                foreach (var lump in wad.Lumps)
+                {
+                    // Add patch names (from PNAMES/TEXTURE1) and flat names
+                    // We include all non-map lumps that could be sky textures
+                    if (!textureLumpNames.Contains(lump.Name) &&
+                        !MapDetector.IsMapHeader(lump.Name) &&
+                        lump.Name.Length <= 8)
+                    {
+                        names.Add(lump.Name);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            foreach (var w in opened)
+                w.Dispose();
+        }
+
+        var result = names.OrderBy(n => n).ToList();
+        // Ensure sky1 is always present as default
+        if (!result.Contains("sky1", StringComparer.OrdinalIgnoreCase))
+            result.Insert(0, "sky1");
+        return result;
     }
 
     /// <summary>Maps the selected music value to a lump name; the "no music" sentinel

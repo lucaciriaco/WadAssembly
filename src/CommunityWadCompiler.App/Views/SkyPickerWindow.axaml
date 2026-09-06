@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CommunityWadCompiler.App.Views.SkyPickerWindow"
+        Title="Seleccionar Sky"
+        Width="480" Height="500"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+  <DockPanel Margin="12">
+
+    <TextBlock DockPanel.Dock="Top"
+               Text="Elegí la textura de sky para el mapa. Podés escribir un nombre manual o elegir de la lista de texturas del WAD de recursos."
+               TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8"/>
+
+    <!-- Manual entry -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="SKYNAME manual:" FontWeight="Bold"/>
+      <TextBox x:Name="ManualSkyBox" Watermark="Ej: SKY1, RSKY1, F_SKY1..." Text="{Binding ManualSkyName, Mode=TwoWay}"/>
+    </StackPanel>
+
+    <!-- Search filter -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="Filtrar texturas:" FontWeight="Bold"/>
+      <TextBox x:Name="SearchBox" Watermark="Buscar textura..." TextChanged="OnSearchChanged"/>
+    </StackPanel>
+
+    <!-- Texture list -->
+    <TextBlock DockPanel.Dock="Top" Text="Texturas disponibles en WADs de recursos:"
+               FontWeight="Bold" Margin="0,8,0,4"/>
+    <ListBox x:Name="TextureList"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             SelectionChanged="OnSelectionChanged">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- Buttons -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button Content="Aceptar" IsDefault="True" Click="OnAccept" MinWidth="90"/>
+      <Button Content="Cancelar" IsCancel="True" Click="OnCancel" MinWidth="90"/>
+    </StackPanel>
+
+  </DockPanel>
+</Window>

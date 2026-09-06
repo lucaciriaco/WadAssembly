@@ -173,6 +173,19 @@ public partial class MainWindow : Window
             row.MusicName = picker.SelectedName;
     }
 
+    /// <summary>Opens the sky picker for the slot whose row button was clicked.</summary>
+    private async void OnPickSky(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.DataContext is not SlotRowViewModel row)
+            return;
+
+        var textures = _viewModel.GetSkyTextureNames();
+        var picker = new SkyPickerWindow(textures, row.SkyName ?? "sky1");
+        await picker.ShowDialog(this);
+        if (picker.Accepted)
+            row.SkyName = picker.SelectedSkyName;
+    }
+
     private void OnSlotDragOver(object? sender, DragEventArgs e)
     {
         bool valid = e.Data.Contains(SlotRowFormat) || e.Data.Contains(MapSourceFormat);

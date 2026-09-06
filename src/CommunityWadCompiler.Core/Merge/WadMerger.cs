@@ -366,6 +366,15 @@ public sealed class WadMerger
         foreach (string t in textures.Warnings)
             warn(t);
 
+        // Collect sky texture names needed by assignments (from MAPINFO sky1)
+        var neededSkyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var a in assignments)
+        {
+            string sky = (a.SkyName ?? "sky1").Trim();
+            if (sky.Length > 0)
+                neededSkyNames.Add(sky);
+        }
+
         // 2. Non-map lumps from the inputs, deduplicated (first wins).
         var skipFromBase = BuildBaseSkipSet(baseWad, request.Options);
         var baseSpriteNames = CollectBaseSpriteNames(baseWad);
@@ -375,13 +384,13 @@ public sealed class WadMerger
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames);
+                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: false);
 
         foreach (var wad in resources)
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames);
+                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true);
 
         if (mapInfoText is not null && mapInfoSeen)
             warn("Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.");
@@ -433,6 +442,40 @@ public sealed class WadMerger
             }
         }
 
+        // 3.6. Sky textures: copy needed sky lumps from resources to output.
+        if (neededSkyNames.Count > 0)
+        {
+            var wadsByPath2 = new Dictionary<string, WadFile>(StringComparer.OrdinalIgnoreCase);
+            foreach (var wad in resources)
+                if (wad.SourcePath is not null)
+                    wadsByPath2[wad.SourcePath] = wad;
+
+            var warnedSky = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var skyName in neededSkyNames)
+            {
+                if (outputNames.Contains(skyName))
+                    continue;
+
+                bool copied = false;
+                foreach (var resWad in resources)
+                {
+                    var lump = resWad.FindFirst(skyName);
+                    if (lump is not null)
+                    {
+                        builder.AddLump(skyName, lump.ReadAll());
+                        outputNames.Add(skyName);
+                        _result.LumpsCopied++;
+                        copied = true;
+                        break;
+                    }
+                }
+                if (!copied && warnedSky.Add(skyName))
+                {
+                    warn($"Textura de sky '{skyName}' no se encontró en los WADs de recursos; el MAPINFO la referencia igualmente.");
+                }
+            }
+        }
+
         // 4. Write.
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(request.OutputPath!))!);
         builder.Write(request.OutputPath!, request.Options.OutputType);
@@ -470,7 +513,10 @@ public sealed class WadMerger
         Action<string> warn,
         bool includePaletteLumps,
         bool includeSpriteLumps,
-        HashSet<string> baseSpriteNames)
+        HashSet<string> baseSpriteNames,
+        bool copyMusic,
+        HashSet<string>? neededSkyNames,
+        bool isResourceWad)
     {
         var mapRanges = MapDetector.DetectMaps(wad)
             .Select(m => (m.StartIndex, m.EndIndex))
@@ -540,6 +586,18 @@ public sealed class WadMerger
             if (skipFromBase.Contains(lump.Name))
                 continue;
 
+            // Skip music lumps when copyMusic is false (they'll be copied in section 3.5 if assigned).
+            if (!copyMusic && IsMusicLump(lump))
+                continue;
+
+            // Skip sky textures that aren't needed (only copy needed sky from resources).
+            if (neededSkyNames is not null && !neededSkyNames.Contains(lump.Name))
+            {
+                // But still allow the lump if it passes other filters (flats, patches, etc.)
+                // Only skip if it's purely a sky texture not in our needed list.
+                // We'll let the normal filter logic handle this; just don't force-include sky.
+            }
+
             // Start/end marker handling when filtering.
             if (usage is not null)
             {
@@ -565,7 +623,7 @@ public sealed class WadMerger
             bool isMatchingBaseSprite = includeSpriteLumps
                 && baseSpriteNames.Contains(lump.Name);
 
-            bool included = usage is null
+bool included = usage is null
                 || isSpriteGroup
                 || isMatchingBaseSprite
                 || (includePaletteLumps && PaletteLumpNames.Contains(lump.Name))
@@ -573,6 +631,57 @@ public sealed class WadMerger
                 || AlwaysCopyResourceLumps.Contains(lump.Name)
                 || usage.Flats.Contains(lump.Name)
                 || (neededPatches is not null && neededPatches.Contains(lump.Name));
+
+            // Sky texture filtering:
+            // - For INPUT WADs (PWADs aportados): NEVER copy sky textures, regardless of neededSkyNames.
+            //   They should only come from resource WADs.
+            // - For RESOURCE WADs: only copy sky textures that are in neededSkyNames.
+            //   Other sky textures are skipped unless needed for other reasons (flat, patch, etc.).
+            if (neededSkyNames is not null)
+            {
+                bool isSkyTexture = IsSkyTextureName(lump.Name);
+                if (isSkyTexture)
+                {
+                    if (!isResourceWad)
+                    {
+                        // Input WAD: never copy sky textures
+                        included = false;
+                    }
+                    else
+                    {
+                        // Resource WAD: only copy if in neededSkyNames
+                        if (!neededSkyNames.Contains(lump.Name))
+                        {
+                            // Check if needed for other reasons (flat, patch, palette, sprite)
+                            bool neededForOtherReasons = false;
+                            if (usage is not null)
+                            {
+                                neededForOtherReasons = usage.Flats.Contains(lump.Name)
+                                    || (neededPatches is not null && neededPatches.Contains(lump.Name))
+                                    || (includePaletteLumps && PaletteLumpNames.Contains(lump.Name))
+                                    || (includeSpriteLumps && SpriteMarkerNames.Contains(lump.Name))
+                                    || isSpriteGroup
+                                    || isMatchingBaseSprite
+                                    || AlwaysCopyResourceLumps.Contains(lump.Name);
+                            }
+                            if (!neededForOtherReasons)
+                                included = false;
+                        }
+                    }
+                }
+            }
+
+            if (!included)
+                continue;
+
+            // Palette lump filtering:
+            // - For INPUT WADs (PWADs aportados): NEVER copy palette lumps (PLAYPAL, COLORMAP, etc.)
+            //   They should only come from resource WADs when includePaletteLumps is true.
+            // - For RESOURCE WADs: handled by includePaletteLumps flag in the initial included logic.
+            if (!isResourceWad && PaletteLumpNames.Contains(lump.Name))
+            {
+                included = false;
+            }
 
             if (!included)
                 continue;
@@ -656,4 +765,36 @@ public sealed class WadMerger
 
     private static string SanitizeMapInfoString(string value)
         => value.Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");
+
+    /// <summary>Detects if a lump contains MUS or MIDI music data by checking its header.</summary>
+    private static bool IsMusicLump(Lump lump)
+    {
+        const int SignatureBytes = 4;
+        var data = lump.ReadPrefix(SignatureBytes);
+        if (data.Length < SignatureBytes)
+            return false;
+        // MUS signature: 'M' 'U' 'S' 0x1A
+        bool isMus = data[0] == (byte)'M' && data[1] == (byte)'U' && data[2] == (byte)'S' && data[3] == 0x1A;
+        // MIDI signature: 'M' 'T' 'h' 'd'
+        bool isMidi = data[0] == (byte)'M' && data[1] == (byte)'T' && data[2] == (byte)'h' && data[3] == (byte)'d';
+        return isMus || isMidi;
+    }
+
+    /// <summary>Checks if a lump name looks like a sky texture by common naming patterns.
+    /// Common sky texture names in Doom: SKY1, SKY2, SKY3, RSKY1, RSKY2, RSKY3, F_SKY1, F_SKY2, etc.</summary>
+    private static bool IsSkyTextureName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return false;
+        // Common sky texture prefixes/suffixes (case-insensitive)
+        if (name.StartsWith("SKY", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (name.StartsWith("RSKY", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (name.Equals("SKY", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
 }

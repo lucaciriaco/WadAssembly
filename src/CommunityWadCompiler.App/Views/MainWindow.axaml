@@ -83,16 +83,17 @@
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
             <StackPanel>
               <!-- Header: scrolls horizontally WITH the rows -->
-              <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="0,0,0,2">
-                <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
-                <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
-                <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
-                <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
-                <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
-                <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
-                <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
-                <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold"/>
-              </Grid>
+<Grid ColumnDefinitions="90,140,100,170,100,160,130,100,150" Margin="0,0,0,2">
+          <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
+          <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
+          <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
+          <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
+          <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
+          <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
+          <TextBlock Grid.Column="7" Text="Sky" FontWeight="Bold"/>
+          <TextBlock Grid.Column="8" Text="Autor" FontWeight="Bold"/>
+        </Grid>
               <!-- Rows -->
               <ItemsControl ItemsSource="{Binding SlotRows}"
                         input:DragDrop.AllowDrop="True"
@@ -101,7 +102,7 @@
                         input:DragDrop.Drop="OnSlotDrop">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
+                    <Grid ColumnDefinitions="90,140,100,170,100,160,130,100,150" Margin="2,3"
                             Background="{Binding RowBackground}" Cursor="Hand"
                             PointerPressed="OnSlotPointerPressed"
                             PointerMoved="OnSlotPointerMoved"
@@ -129,7 +130,10 @@
                     <Button Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
                         Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                         Click="OnPickMusic"/>
-                    <TextBox Grid.Column="7" Text="{Binding Author, Mode=TwoWay}"
+                    <Button Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
+                        Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        Click="OnPickSky"/>
+                    <TextBox Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
                              MinWidth="120" VerticalContentAlignment="Center"/>
                   </Grid>
                 </DataTemplate>
