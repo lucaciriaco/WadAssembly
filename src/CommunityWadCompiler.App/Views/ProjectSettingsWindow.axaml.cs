@@ -65,8 +65,15 @@ public partial class ProjectSettingsWindow : Window
 
     private void OnRemoveCollaborator(object? sender, RoutedEventArgs e)
     {
-        if (CollaboratorList.SelectedItem is CollaboratorEntryViewModel selected)
+        var list = this.FindControl<ListBox>("CollaboratorList");
+        if (list?.SelectedItem is CollaboratorEntryViewModel selected)
+        {
+            string removedAuthor = selected.Name;
             _viewModel.Collaborators.Remove(selected);
+            
+            // Also remove maps authored by this collaborator from the slot rows.
+            _viewModel.RemoveMapsByAuthor(removedAuthor);
+        }
     }
 
     private async void OnBrowseBaseWad(object? sender, RoutedEventArgs e)

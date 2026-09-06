@@ -208,7 +208,14 @@ private int _slotCount = 32;
             try
             {
                 using var wad = WadFile.Open(path);
-                var maps = MapDetector.DetectMaps(wad).Select(m => new MapOption(m.OriginalName, m.IsUdmf)).ToList();
+                var mapInfoData = MapInfoParser.Parse(wad);
+                var maps = MapDetector.DetectMaps(wad)
+                    .Select(m => new MapOption(
+                        m.OriginalName, 
+                        m.IsUdmf, 
+                        mapInfoData.TryGetValue(m.OriginalName, out var info) ? info.LevelName : null,
+                        mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null))
+                    .ToList();
                 InputWads.Add(new WadEntryViewModel
                 {
                     Path = path,
@@ -411,6 +418,8 @@ private int _slotCount = 32;
         SlotRows[index] = new SlotRowViewModel(source.Path, map.OriginalName, map.IsUdmf)
         {
             MusicOptions = AvailableMusicLumps,
+            LevelName = map.LevelName ?? "",
+            MusicName = map.MusicName ?? "",
         };
         RenumberSlotsByPosition();
         string slot = SlotRows[index].SlotName;
@@ -425,6 +434,30 @@ private int _slotCount = 32;
     {
         for (int i = 0; i < SlotRows.Count; i++)
             SlotRows[i].SlotName = $"MAP{i + 1:D2}";
+    }
+
+    /// <summary>Clears all slot rows whose Author matches <paramref name="author"/>
+    /// (case-insensitive). Used when a collaborator is removed from the project.</summary>
+    public void RemoveMapsByAuthor(string author)
+    {
+        if (string.IsNullOrWhiteSpace(author))
+            return;
+
+        bool any = false;
+        for (int i = 0; i < SlotRows.Count; i++)
+        {
+            if (!SlotRows[i].IsEmpty &&
+                string.Equals(SlotRows[i].Author?.Trim(), author.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                SlotRows[i] = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
+                any = true;
+            }
+        }
+        if (any)
+        {
+            RenumberSlotsByPosition();
+            AppendLog($"[INFO] Mapas del autor '{author}' eliminados de la planilla.");
+        }
     }
 
     /// <summary>Re-scans all input/resource WADs for music lumps (MUS/MIDI signatures),
@@ -596,7 +629,14 @@ private int _slotCount = 32;
         try
         {
             using var wad = WadFile.Open(path);
-            var maps = MapDetector.DetectMaps(wad).Select(m => new MapOption(m.OriginalName, m.IsUdmf)).ToList();
+            var mapInfoData = MapInfoParser.Parse(wad);
+            var maps = MapDetector.DetectMaps(wad)
+                .Select(m => new MapOption(
+                    m.OriginalName, 
+                    m.IsUdmf, 
+                    mapInfoData.TryGetValue(m.OriginalName, out var info) ? info.LevelName : null,
+                    mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null))
+                .ToList();
             InputWads.Add(new WadEntryViewModel
             {
                 Path = path,

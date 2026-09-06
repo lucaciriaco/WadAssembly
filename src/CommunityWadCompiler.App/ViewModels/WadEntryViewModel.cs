@@ -1,7 +1,7 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
-/// <summary>One map lump inside an input WAD, with its format flag.</summary>
-public sealed record MapOption(string OriginalName, bool IsUdmf);
+/// <summary>One map lump inside an input WAD, with its format flag, level name and music from MAPINFO.</summary>
+public sealed record MapOption(string OriginalName, bool IsUdmf, string? LevelName = null, string? MusicName = null);
 
 /// <summary>One loaded WAD file shown in the inputs or resources list.</summary>
 public sealed class WadEntryViewModel : ObservableObject

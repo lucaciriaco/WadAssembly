@@ -74,35 +74,38 @@
         </ListBox>
       </DockPanel>
 
-      <!-- Right: maps / slots -->
+<!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
         <TextBlock DockPanel.Dock="Top" Text="{Binding MapsHeader}"
                    FontWeight="Bold" Margin="0,0,0,4"/>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="0,0,0,2">
-          <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
-          <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
-          <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
-          <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
-          <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
-          <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
-          <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
-          <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold"/>
-        </Grid>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding SlotRows}"
-                      input:DragDrop.AllowDrop="True"
-                      input:DragDrop.DragOver="OnSlotDragOver"
-                      input:DragDrop.DragLeave="OnSlotDragLeave"
-                      input:DragDrop.Drop="OnSlotDrop">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-<Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
-                        Background="{Binding RowBackground}" Cursor="Hand"
-                        PointerPressed="OnSlotPointerPressed"
-                        PointerMoved="OnSlotPointerMoved"
-                        PointerReleased="OnSlotPointerReleased">
+            <StackPanel>
+              <!-- Header: scrolls horizontally WITH the rows -->
+              <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="0,0,0,2">
+                <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
+                <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
+                <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
+                <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
+                <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
+                <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
+                <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
+                <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold"/>
+              </Grid>
+              <!-- Rows -->
+              <ItemsControl ItemsSource="{Binding SlotRows}"
+                        input:DragDrop.AllowDrop="True"
+                        input:DragDrop.DragOver="OnSlotDragOver"
+                        input:DragDrop.DragLeave="OnSlotDragLeave"
+                        input:DragDrop.Drop="OnSlotDrop">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="90,140,100,170,100,160,130,150" Margin="2,3"
+                            Background="{Binding RowBackground}" Cursor="Hand"
+                            PointerPressed="OnSlotPointerPressed"
+                            PointerMoved="OnSlotPointerMoved"
+                            PointerReleased="OnSlotPointerReleased">
                     <Grid.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="Borrar todos los campos" Click="OnClearSlotFields"/>
@@ -132,6 +135,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            </StackPanel>
           </ScrollViewer>
         </Border>
       </DockPanel>
