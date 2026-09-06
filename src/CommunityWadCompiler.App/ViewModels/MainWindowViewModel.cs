@@ -509,6 +509,35 @@ private int _slotCount = 32;
         }
     }
 
+    /// <summary>Attempts to find a texture lump by name in resource WADs and return its raw bytes.
+    /// Returns null if not found or if it's a composite texture (TEXTURE1/2).</summary>
+    public byte[]? TryGetTextureData(string name)
+    {
+        foreach (var wadEntry in ResourceWads)
+        {
+            try
+            {
+                using var wad = WadFile.Open(wadEntry.Path);
+                var lump = wad.FindFirst(name);
+                if (lump is not null)
+                {
+                    // Skip composite texture lumps
+                    if (lump.Name.Equals("TEXTURE1", StringComparison.OrdinalIgnoreCase) ||
+                        lump.Name.Equals("TEXTURE2", StringComparison.OrdinalIgnoreCase) ||
+                        lump.Name.Equals("TEXTURES", StringComparison.OrdinalIgnoreCase) ||
+                        lump.Name.Equals("PNAMES", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    return lump.ReadAll();
+                }
+            }
+            catch (WadException)
+            {
+                // Ignore and try next WAD
+            }
+        }
+        return null;
+    }
+
     /// <summary>Collects all texture names from resource WADs that could be used as sky.
     /// Includes all patches and flats (both can be used as sky textures).</summary>
     public List<string> GetSkyTextureNames()

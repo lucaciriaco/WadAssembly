@@ -181,6 +181,7 @@ public partial class MainWindow : Window
 
         var textures = _viewModel.GetSkyTextureNames();
         var picker = new SkyPickerWindow(textures, row.SkyName ?? "sky1");
+        picker.SetViewModel(_viewModel);
         await picker.ShowDialog(this);
         if (picker.Accepted)
             row.SkyName = picker.SelectedSkyName;

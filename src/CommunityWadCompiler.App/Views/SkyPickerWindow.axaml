@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CommunityWadCompiler.App.Views.SkyPickerWindow"
         Title="Seleccionar Sky"
-        Width="480" Height="500"
+        Width="680" Height="500"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
 
@@ -24,24 +24,47 @@
       <TextBox x:Name="SearchBox" Watermark="Buscar textura..." TextChanged="OnSearchChanged"/>
     </StackPanel>
 
-    <!-- Texture list -->
-    <TextBlock DockPanel.Dock="Top" Text="Texturas disponibles en WADs de recursos:"
-               FontWeight="Bold" Margin="0,8,0,4"/>
-    <Border DockPanel.Dock="Top" BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
-            VerticalAlignment="Stretch">
-      <ListBox x:Name="TextureList"
-               MaxWidth="440"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-               ScrollViewer.VerticalScrollBarVisibility="Auto"
-               SelectionChanged="OnSelectionChanged"
-               DoubleTapped="OnDoubleTapped">
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
-    </Border>
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200" Margin="0,8,0,0">
+      <!-- Texture list -->
+      <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
+              VerticalAlignment="Stretch">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Texturas disponibles en WADs de recursos:"
+                     FontWeight="Bold" Margin="4,4,4,0"/>
+          <ListBox x:Name="TextureList"
+                   MaxWidth="440"
+                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                   ScrollViewer.VerticalScrollBarVisibility="Auto"
+                   SelectionChanged="OnSelectionChanged"
+                   DoubleTapped="OnDoubleTapped">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- Preview -->
+      <Border Grid.Column="1" Margin="12,0,0,0" BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
+              Background="#1E1E1E" Padding="8">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Preview" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,4"/>
+          <Image x:Name="PreviewImage"
+                 Width="192" Height="192"
+                 Stretch="Uniform"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"/>
+          <TextBlock x:Name="PreviewInfo"
+                     DockPanel.Dock="Bottom"
+                     Text="Seleccioná una textura para ver preview"
+                     FontSize="11" Foreground="Gray"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     Margin="0,8,0,0"/>
+        </DockPanel>
+      </Border>
+    </Grid>
 
     <!-- Buttons -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"

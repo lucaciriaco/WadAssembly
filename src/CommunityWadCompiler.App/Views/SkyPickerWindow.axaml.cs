@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using CommunityWadCompiler.App.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +17,7 @@ public partial class SkyPickerWindow : Window
     public string SelectedSkyName { get; private set; } = "sky1";
 
     private readonly List<string> _allTextures;
+    private MainWindowViewModel? _viewModel;
 
     /// <summary>Required by the Avalonia runtime loader; use the parameterized constructor.</summary>
     public SkyPickerWindow()
@@ -43,7 +46,11 @@ public partial class SkyPickerWindow : Window
         var match = _allTextures.FirstOrDefault(t => string.Equals(t, currentSky, StringComparison.OrdinalIgnoreCase));
         if (match != null)
             textureList.SelectedItem = match;
+
+        UpdatePreview(currentSky);
     }
+
+    public void SetViewModel(MainWindowViewModel vm) => _viewModel = vm;
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
@@ -76,7 +83,40 @@ public partial class SkyPickerWindow : Window
         {
             manualSkyBox.Text = selected;
             SelectedSkyName = selected;
+            UpdatePreview(selected);
         }
+    }
+
+    private void UpdatePreview(string skyName)
+    {
+        var previewImage = this.FindControl<Image>("PreviewImage")!;
+        var previewInfo = this.FindControl<TextBlock>("PreviewInfo")!;
+
+        if (_viewModel is null)
+        {
+            previewInfo.Text = "Preview no disponible (VM no seteado)";
+            previewImage.Source = null;
+            return;
+        }
+
+        var data = _viewModel.TryGetTextureData(skyName);
+        if (data is null)
+        {
+            previewInfo.Text = $"No se encontró '{skyName}' en WADs de recursos";
+            previewImage.Source = null;
+            return;
+        }
+
+        var bitmap = TexturePreviewDecoder.Decode(data, skyName);
+        if (bitmap is null)
+        {
+            previewInfo.Text = $"Formato no soportado para preview: {skyName} ({data.Length} bytes)";
+            previewImage.Source = null;
+            return;
+        }
+
+        previewImage.Source = bitmap;
+        previewInfo.Text = $"{skyName} — {data.Length} bytes";
     }
 
     private void OnAccept(object? sender, RoutedEventArgs e)
