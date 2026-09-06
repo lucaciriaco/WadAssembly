@@ -27,16 +27,21 @@
     <!-- Texture list -->
     <TextBlock DockPanel.Dock="Top" Text="Texturas disponibles en WADs de recursos:"
                FontWeight="Bold" Margin="0,8,0,4"/>
-    <ListBox x:Name="TextureList"
-             ScrollViewer.HorizontalScrollBarVisibility="Auto"
-             ScrollViewer.VerticalScrollBarVisibility="Auto"
-             SelectionChanged="OnSelectionChanged">
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
+    <Border DockPanel.Dock="Top" BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
+            VerticalAlignment="Stretch">
+      <ListBox x:Name="TextureList"
+               MaxWidth="440"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto"
+               ScrollViewer.VerticalScrollBarVisibility="Auto"
+               SelectionChanged="OnSelectionChanged"
+               DoubleTapped="OnDoubleTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
 
     <!-- Buttons -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"

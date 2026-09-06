@@ -47,6 +47,14 @@ public partial class SkyPickerWindow : Window
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
+    private void OnDoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        Accepted = true;
+        var manualSkyBox = this.FindControl<TextBox>("ManualSkyBox")!;
+        SelectedSkyName = manualSkyBox.Text?.Trim() ?? "sky1";
+        Close();
+    }
+
     private void OnSearchChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
     {
         var searchBox = this.FindControl<TextBox>("SearchBox")!;

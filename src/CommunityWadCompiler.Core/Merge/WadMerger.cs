@@ -674,11 +674,10 @@ bool included = usage is null
             if (!included)
                 continue;
 
-            // Palette lump filtering:
-            // - For INPUT WADs (PWADs aportados): NEVER copy palette lumps (PLAYPAL, COLORMAP, etc.)
-            //   They should only come from resource WADs when includePaletteLumps is true.
-            // - For RESOURCE WADs: handled by includePaletteLumps flag in the initial included logic.
-            if (!isResourceWad && PaletteLumpNames.Contains(lump.Name))
+            // For INPUT WADs (PWADs aportados): NEVER copy any non-map lumps.
+            // They should ONLY provide map data (THINGS, LINEDEFS, etc.).
+            // All textures, flats, sky, palette, sprites, music, etc. come from resource WADs.
+            if (!isResourceWad)
             {
                 included = false;
             }
