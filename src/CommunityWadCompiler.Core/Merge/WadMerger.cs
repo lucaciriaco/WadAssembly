@@ -225,6 +225,7 @@ public sealed class WadMerger
         string FinalName,
         string? LevelName,
         string? MusicName,
+        string? SkyName,
         string? Author,
         string? Status,
         string? LastModified);
@@ -257,6 +258,7 @@ public sealed class WadMerger
                         assignment.FinalMapName,
                         assignment.LevelName,
                         assignment.MusicName,
+                        assignment.SkyName,
                         assignment.Author,
                         assignment.Status,
                         assignment.LastModified);
@@ -275,7 +277,7 @@ public sealed class WadMerger
                     throw new InvalidOperationException($"Dos mapas se asignaron al slot '{final}'. Revisá las asignaciones.");
                 }
 
-                result.Add(info ?? new AssignmentInfo(map, final, null, null, null, null, null));
+                result.Add(info ?? new AssignmentInfo(map, final, null, null, "sky1", null, null, null));
             }
         }
 
@@ -627,6 +629,7 @@ public sealed class WadMerger
         {
             string name = (a.LevelName ?? "").Trim();
             string music = (a.MusicName ?? "").Trim();
+            string sky = (a.SkyName ?? "sky1").Trim();
             string authorComment = (a.Author ?? "").Trim();
             string status = (a.Status ?? "").Trim();
             string modified = (a.LastModified ?? "").Trim();
@@ -644,6 +647,8 @@ public sealed class WadMerger
             sb.AppendLine($"map {a.FinalName} \"{SanitizeMapInfoString(name)}\"");
             if (music.Length > 0)
                 sb.AppendLine($"music {SanitizeMapInfoString(music).Replace(" ", "")}");
+            if (sky.Length > 0)
+                sb.AppendLine($"sky1 {SanitizeMapInfoString(sky).Replace(" ", "")}");
         }
 
         return count == 0 ? (null, 0) : (sb.ToString(), count);

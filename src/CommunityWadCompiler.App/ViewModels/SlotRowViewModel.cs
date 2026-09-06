@@ -18,6 +18,7 @@ public sealed class SlotRowViewModel : ObservableObject
     private string _slotName = "";
     private string _levelName = "";
     private string _musicName = "";
+    private string _skyName = "";
     private string _author = "";
     private string _status = "";
     private bool _isDropTarget;
@@ -75,6 +76,13 @@ public sealed class SlotRowViewModel : ObservableObject
             if (SetProperty(ref _musicName, value))
                 OnPropertyChanged(nameof(MusicDisplay));
         }
+    }
+
+    /// <summary>Sky texture name for this map (e.g., SKY1); used by the generated MAPINFO.</summary>
+    public string SkyName
+    {
+        get => _skyName;
+        set => SetProperty(ref _skyName, value);
     }
 
     /// <summary>Text shown by the music picker button: the assigned lump, or "Ninguna".</summary>

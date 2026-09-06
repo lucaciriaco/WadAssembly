@@ -9,6 +9,7 @@ public sealed record MapAssignment(
     string FinalMapName,
     string? LevelName = null,
     string? MusicName = null,
+    string? SkyName = null,
     string? Author = null,
     string? Status = null,
     string? LastModified = null);

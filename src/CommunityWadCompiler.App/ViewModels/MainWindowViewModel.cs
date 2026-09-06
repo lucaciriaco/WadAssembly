@@ -214,7 +214,8 @@ private int _slotCount = 32;
                         m.OriginalName, 
                         m.IsUdmf, 
                         mapInfoData.TryGetValue(m.OriginalName, out var info) ? info.LevelName : null,
-                        mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null))
+                        mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null,
+                        mapInfoData.TryGetValue(m.OriginalName, out info) ? info.SkyName : null))
                     .ToList();
                 InputWads.Add(new WadEntryViewModel
                 {
@@ -420,6 +421,7 @@ private int _slotCount = 32;
             MusicOptions = AvailableMusicLumps,
             LevelName = map.LevelName ?? "",
             MusicName = map.MusicName ?? "",
+            SkyName = map.SkyName ?? "sky1", // default sky1 if not specified
         };
         RenumberSlotsByPosition();
         string slot = SlotRows[index].SlotName;
@@ -545,6 +547,7 @@ private int _slotCount = 32;
                     IsUdmf = r.IsUdmf,
                     LevelName = r.LevelName,
                     MusicName = r.MusicName,
+                    SkyName = r.SkyName,
                     Author = r.Author,
                     Status = r.Status,
                 })
@@ -600,6 +603,7 @@ private int _slotCount = 32;
                 SlotName = m.FinalName,
                 LevelName = m.LevelName ?? "",
                 MusicName = m.MusicName ?? "",
+                SkyName = m.SkyName ?? "sky1",
                 Author = m.Author ?? "",
                 Status = m.Status ?? "",
                 MusicOptions = AvailableMusicLumps,
@@ -635,7 +639,8 @@ private int _slotCount = 32;
                     m.OriginalName, 
                     m.IsUdmf, 
                     mapInfoData.TryGetValue(m.OriginalName, out var info) ? info.LevelName : null,
-                    mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null))
+                    mapInfoData.TryGetValue(m.OriginalName, out info) ? info.MusicName : null,
+                    mapInfoData.TryGetValue(m.OriginalName, out info) ? info.SkyName : null))
                 .ToList();
             InputWads.Add(new WadEntryViewModel
             {
@@ -708,10 +713,11 @@ private int _slotCount = 32;
                 row.SlotName = final;
 
             string? music = NormalizeMusic(row.MusicName);
+            string? sky = string.IsNullOrWhiteSpace(row.SkyName) ? null : row.SkyName.Trim();
             string? author = string.IsNullOrWhiteSpace(row.Author) ? null : row.Author.Trim();
             string? status = string.IsNullOrWhiteSpace(row.Status) ? null : row.Status.Trim();
             string? lastModified = string.IsNullOrWhiteSpace(row.LastModified) ? null : row.LastModified.Trim();
-            assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName, music, author, status, lastModified));
+            assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName, music, sky, author, status, lastModified));
         }
 
         var request = new MergeRequest

@@ -58,4 +58,6 @@ public sealed class MapEntryData
 
     /// <summary>Progress status of the map (TODO/WIP/DONE/FIX), written as a comment in the MAPINFO.</summary>
     public string? Status { get; set; }
+
+    public string? SkyName { get; set; }
 }
