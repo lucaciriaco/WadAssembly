@@ -65,6 +65,10 @@
         </StackPanel>
         <CheckBox Content="Solo incluir texturas/flats usados por los mapas"
                   IsChecked="{Binding FilterResourcesToUsed}"/>
+        <CheckBox Content="Incluir lumps de paleta (PLAYPAL, COLORMAP, etc.)"
+                  IsChecked="{Binding IncludePaletteLumps}"/>
+        <CheckBox Content="Incluir sprites (S_START..S_END, SS_START..SS_END)"
+                  IsChecked="{Binding IncludeSpriteLumps}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">

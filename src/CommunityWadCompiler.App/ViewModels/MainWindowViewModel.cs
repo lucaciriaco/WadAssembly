@@ -97,6 +97,20 @@ private int _slotCount = 32;
         set => SetProperty(ref _filterResourcesToUsed, value);
     }
 
+    private bool _includePaletteLumps = true;
+    public bool IncludePaletteLumps
+    {
+        get => _includePaletteLumps;
+        set => SetProperty(ref _includePaletteLumps, value);
+    }
+
+    private bool _includeSpriteLumps;
+    public bool IncludeSpriteLumps
+    {
+        get => _includeSpriteLumps;
+        set => SetProperty(ref _includeSpriteLumps, value);
+    }
+
     /// <summary>Header shown above the maps/slots table reflecting the project name,
     /// version and total slot count.</summary>
     public string MapsHeader
@@ -486,6 +500,8 @@ private int _slotCount = 32;
             ResourceWadPaths = ResourceWads.Select(w => w.Path).ToList(),
             AutoAssignMaps = AutoAssignMaps,
             FilterResourcesToUsed = FilterResourcesToUsed,
+            IncludePaletteLumps = IncludePaletteLumps,
+            IncludeSpriteLumps = IncludeSpriteLumps,
             Maps = SlotRows
                 .Where(r => !r.IsEmpty)
                 .Select(r => new MapEntryData
@@ -529,6 +545,8 @@ private int _slotCount = 32;
         OutputPath = data.OutputPath;
         AutoAssignMaps = data.AutoAssignMaps;
         FilterResourcesToUsed = data.FilterResourcesToUsed;
+        IncludePaletteLumps = data.IncludePaletteLumps;
+        IncludeSpriteLumps = data.IncludeSpriteLumps;
 
         foreach (string wadPath in data.WadPaths)
             AddWadsPathOnly(wadPath);
@@ -669,6 +687,8 @@ private int _slotCount = 32;
             {
                 AutoAssignMaps = false,
                 FilterToUsedResources = FilterResourcesToUsed,
+                IncludePaletteLumps = IncludePaletteLumps,
+                IncludeSpriteLumps = IncludeSpriteLumps,
             },
         };
 

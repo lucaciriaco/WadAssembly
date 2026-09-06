@@ -33,6 +33,19 @@ public sealed class MergeOptions
     public bool FilterToUsedResources { get; set; } = true;
 
     /// <summary>
+    /// When <c>true</c> (default), palette lumps (PLAYPAL, COLORMAP, etc.) from
+    /// resource WADs are copied to the output even when filtering to used resources.
+    /// </summary>
+    public bool IncludePaletteLumps { get; set; } = true;
+
+    /// <summary>
+    /// When <c>true</c>, all sprite lumps (S_START..S_END, SS_START..SS_END) from
+    /// resource WADs are copied to the output. This is independent of the
+    /// <see cref="FilterToUsedResources"/> setting.
+    /// </summary>
+    public bool IncludeSpriteLumps { get; set; } = false;
+
+    /// <summary>
     /// When <c>true</c> (default), a MAPINFO lump (ZDoom new format) with the level
     /// names of every assigned map is generated. Existing MAPINFO/ZMAPINFO lumps in the
     /// input/resource WADs are then skipped with a warning.

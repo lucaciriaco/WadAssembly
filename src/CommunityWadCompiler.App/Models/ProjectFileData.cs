@@ -31,6 +31,10 @@ public sealed class ProjectFileData
     public bool AutoAssignMaps { get; set; } = true;
 
     public bool FilterResourcesToUsed { get; set; } = true;
+
+    public bool IncludePaletteLumps { get; set; } = true;
+
+    public bool IncludeSpriteLumps { get; set; } = false;
 }
 
 public sealed class MapEntryData

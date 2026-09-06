@@ -51,9 +51,63 @@ public sealed class WadMerger
     /// Non-texture lumps always implemented from a resource WAD even when filtering to
     /// used resources, because they are shared graphics state (palette / animation tables).
     /// </summary>
+    private static readonly HashSet<string> PaletteLumpNames = new(StringComparer.Ordinal)
+    {
+        "PLAYPAL", "COLORMAP", "TINTTAB", "RGBMAP", "PLAYPAL2",
+    };
+
+    /// <summary>
+    /// Sprite marker names that delimit sprite graphics in a WAD.
+    /// </summary>
+    private static readonly HashSet<string> SpriteMarkerNames = new(StringComparer.Ordinal)
+    {
+        "S_START", "S_END", "SS_START", "SS_END",
+    };
+
+    /// <summary>
+    /// Collects all sprite lump names from the base WAD (IWAD) that are between
+    /// S_START/S_END or SS_START/SS_END markers. These are the "official" sprite
+    /// names that the engine expects; we'll only copy matching lumps from resources.
+    /// </summary>
+    private static HashSet<string> CollectBaseSpriteNames(WadFile? baseWad)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (baseWad is null)
+            return names;
+
+        var mapRanges = MapDetector.DetectMaps(baseWad)
+            .Select(m => (m.StartIndex, m.EndIndex))
+            .ToList();
+
+        string? groupStart = null;
+        for (int i = 0; i < baseWad.Lumps.Count; i++)
+        {
+            var lump = baseWad.Lumps[i];
+            if (mapRanges.Any(r => i >= r.Item1 && i < r.Item2))
+                continue;
+
+            if (SpriteMarkerNames.Contains(lump.Name))
+            {
+                if (groupStart is null && (lump.Name == "S_START" || lump.Name == "SS_START"))
+                    groupStart = lump.Name;
+                else if (groupStart is not null && lump.Name == MarkerEnds[groupStart])
+                    groupStart = null;
+                continue;
+            }
+
+            if (groupStart is not null)
+                names.Add(lump.Name);
+        }
+        return names;
+    }
+
+    /// <summary>
+    /// Non-texture lumps always implemented from a resource WAD even when filtering to
+    /// used resources, because they are shared graphics state (animation tables).
+    /// </summary>
     private static readonly HashSet<string> AlwaysCopyResourceLumps = new(StringComparer.Ordinal)
     {
-        "PLAYPAL", "COLORMAP", "ANIMATED",
+        "ANIMATED",
     };
 
     /// <summary>
@@ -312,15 +366,20 @@ public sealed class WadMerger
 
         // 2. Non-map lumps from the inputs, deduplicated (first wins).
         var skipFromBase = BuildBaseSkipSet(baseWad, request.Options);
+        var baseSpriteNames = CollectBaseSpriteNames(baseWad);
         bool zdoomTexturesSeen = false;
 
         foreach (var wad in inputs)
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures,
-                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn);
+                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
+                request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
+                baseSpriteNames);
 
         foreach (var wad in resources)
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
-                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn);
+                ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
+                request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
+                baseSpriteNames);
 
         if (mapInfoText is not null && mapInfoSeen)
             warn("Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.");
@@ -385,7 +444,7 @@ public sealed class WadMerger
             return set;
 
         foreach (var lump in baseWad.Lumps)
-            if (!TextureLumpNames.Contains(lump.Name))
+            if (!TextureLumpNames.Contains(lump.Name) && !PaletteLumpNames.Contains(lump.Name))
                 set.Add(lump.Name);
         return set;
     }
@@ -406,7 +465,10 @@ public sealed class WadMerger
         ref bool zdoomTexturesSeen,
         bool skipMapInfo,
         ref bool mapInfoSeen,
-        Action<string> warn)
+        Action<string> warn,
+        bool includePaletteLumps,
+        bool includeSpriteLumps,
+        HashSet<string> baseSpriteNames)
     {
         var mapRanges = MapDetector.DetectMaps(wad)
             .Select(m => (m.StartIndex, m.EndIndex))
@@ -493,7 +555,19 @@ public sealed class WadMerger
             }
 
             // Filtered resource WAD: keep only graphics the maps reference.
+            bool isSpriteGroup = includeSpriteLumps
+                && (groupStart == "S_START" || groupStart == "SS_START");
+
+            // When IncludeSpriteLumps is ON, copy lumps that match IWAD sprite names
+            // (regardless of whether they're between markers in the resource WAD).
+            bool isMatchingBaseSprite = includeSpriteLumps
+                && baseSpriteNames.Contains(lump.Name);
+
             bool included = usage is null
+                || isSpriteGroup
+                || isMatchingBaseSprite
+                || (includePaletteLumps && PaletteLumpNames.Contains(lump.Name))
+                || (includeSpriteLumps && SpriteMarkerNames.Contains(lump.Name))
                 || AlwaysCopyResourceLumps.Contains(lump.Name)
                 || usage.Flats.Contains(lump.Name)
                 || (neededPatches is not null && neededPatches.Contains(lump.Name));
