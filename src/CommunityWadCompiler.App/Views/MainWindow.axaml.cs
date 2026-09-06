@@ -206,8 +206,10 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Reordering a row: the row that will host the insertion.
-            _viewModel.SetDropTargetIndex(Math.Min(dropIndex, Math.Max(0, _viewModel.SlotRows.Count - 1)));
+            // Reordering a row: highlight the insertion point row.
+            // If dropIndex == Count (after last row), highlight the last row.
+            int highlightIndex = Math.Min(dropIndex, Math.Max(0, _viewModel.SlotRows.Count - 1));
+            _viewModel.SetDropTargetIndex(highlightIndex);
         }
     }
 
@@ -245,8 +247,6 @@ public partial class MainWindow : Window
             return;
 
         int target = ComputeDropIndex(items, point);
-        if (current < target)
-            target--;
         if (current != target)
         {
             _viewModel.SlotRows.Move(current, target);
