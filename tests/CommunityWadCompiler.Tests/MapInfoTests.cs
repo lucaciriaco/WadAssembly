@@ -663,4 +663,97 @@ var request = new MergeRequest
     }
 
     private static string TempDir() => Path.Combine(Path.GetTempPath(), $"cwc-mapinfo-{Guid.NewGuid():N}");
+
+    [Fact]
+    public void Merge_ExternalMusicFile_CopiesAndReferencesInMapInfo()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01", musicLumpName: "D_ORIG");
+            string output = Path.Combine(dir, "out.wad");
+
+            // External .it music file (minimal IMPM header).
+            byte[] itData = Encoding.ASCII.GetBytes("IMPMexternal_song_padded_xxxxxxxx");
+            string extPath = Path.Combine(dir, "my_track.it");
+            File.WriteAllBytes(extPath, itData);
+
+            var externalMusic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["EXT01"] = extPath,
+            };
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Test Map", "EXT01"),
+                },
+                ExternalMusicFiles = externalMusic,
+                Options = new MergeOptions { AutoAssignMaps = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            Assert.Equal(1, result.MusicCopied);
+
+            using var wad = WadFile.Open(output);
+
+            // Lump "EXT01" should exist with the external file bytes.
+            Lump? extLump = wad.FindFirst("EXT01");
+            Assert.NotNull(extLump);
+            Assert.Equal(itData, extLump!.ReadAll());
+
+            // MAPINFO should reference EXT01.
+            string mapInfo = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("music = \"EXT01\"", mapInfo);
+
+            // The original D_ORIG was NOT copied (it's assigned as EXT01, not D_ORIG).
+            Assert.Null(wad.FindFirst("D_ORIG"));
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
+    public void Merge_ExternalMusicFileMissing_LogsWarning()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var externalMusic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["EXT01"] = Path.Combine(dir, "nonexistent.it"),
+            };
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Test Map", "EXT01"),
+                },
+                ExternalMusicFiles = externalMusic,
+                Options = new MergeOptions { AutoAssignMaps = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            // MusicCopied stays 0 since the file was missing.
+            Assert.Equal(0, result.MusicCopied);
+            Assert.Contains(result.Warnings, i => i.Contains("no encontrado"));
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
 }

@@ -17,6 +17,13 @@ public class MusicLumpDetectorTests
         Assert.True(MusicLumpDetector.IsMusicData(data));
     }
 
+    [Fact]
+    public void IsMusicData_XmExtendedModule_IsDetected()
+    {
+        // XM signature: "Extended Module: " (17 ASCII bytes, ending with a space).
+        Assert.True(MusicLumpDetector.IsMusicData(Encoding.ASCII.GetBytes("Extended Module: ")));
+    }
+
     [Theory]
     [InlineData("TEXT")]
     [InlineData("PLAY")]

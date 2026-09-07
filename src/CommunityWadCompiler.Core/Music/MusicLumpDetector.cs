@@ -7,8 +7,8 @@ namespace CommunityWadCompiler.Core.Music;
 public sealed record MusicCandidate(string WadPath, string OriginalName, string FinalName);
 
 /// <summary>
-/// Detects music lumps (MUS / MIDI "MThd" / Impulse Tracker "IMPM" / ProTracker MOD) inside a
-/// WAD. Only lumps outside map ranges are considered, mirroring how music is conventionally stored.
+/// Detects music lumps (MUS / MIDI "MThd" / Impulse Tracker "IMPM" / XM "Extended Module:" /
+/// ProTracker MOD) inside a WAD. Only lumps outside map ranges are considered.
 /// </summary>
 public static class MusicLumpDetector
 {
@@ -17,14 +17,14 @@ public static class MusicLumpDetector
     private const int MusicHeaderBytes = ModSignatureOffset + SignatureBytes; // 1084
 
     /// <summary>
-    /// True when the given bytes begin with a MUS/MIDI/IT signature, or carry a known
+    /// True when the given bytes begin with a MUS/MIDI/IT/XM signature, or carry a known
     /// ProTracker-family MOD signature at offset 1080.
     /// </summary>
     public static bool IsMusicData(byte[] data)
     {
         if (data.Length < SignatureBytes)
             return false;
-        if (IsMus(data) || IsMidi(data) || IsImpulseTracker(data))
+        if (IsMus(data) || IsMidi(data) || IsImpulseTracker(data) || IsXM(data))
             return true;
         return data.Length >= MusicHeaderBytes && IsModule(data);
     }
@@ -41,6 +41,14 @@ public static class MusicLumpDetector
 
     private static bool IsImpulseTracker(byte[] d) =>
         d[0] == (byte)'I' && d[1] == (byte)'M' && d[2] == (byte)'P' && d[3] == (byte)'M';
+
+    private static bool IsXM(byte[] d) =>
+        d.Length >= 17 &&
+        d[0] == 'E' && d[1] == 'x' && d[2] == 't' && d[3] == 'e' &&
+        d[4] == 'n' && d[5] == 'd' && d[6] == 'e' && d[7] == 'd' &&
+        d[8] == ' ' && d[9] == 'M' && d[10] == 'o' && d[11] == 'd' &&
+        d[12] == 'u' && d[13] == 'l' && d[14] == 'e' && d[15] == ':' &&
+        d[16] == ' ';
 
     private static bool IsModule(byte[] d)
     {
