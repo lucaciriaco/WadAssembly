@@ -58,6 +58,48 @@ var request = new MergeRequest
     }
 
     [Fact]
+    public void Merge_AssignmentsOutOfWadOrder_EmitMapInfoInSlotOrder()
+    {
+        string dir = TempDir();
+        try
+        {
+            // WAD A carries the map that becomes MAP01 but is listed AFTER WAD B in inputs.
+            string wadA = BuildClassicMapWad(dir, "a.wad", "MAP03");
+            string wadB = BuildClassicMapWad(dir, "b.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { wadA, wadB },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(wadA, "MAP03", "MAP01", "Arena"),
+                    new MapAssignment(wadB, "MAP01", "MAP02", "Tower"),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            Assert.Contains("map MAP01 \"Arena\"", Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll()));
+            Assert.Contains("map MAP02 \"Tower\"", Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll()));
+
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.True(
+                text.IndexOf("map MAP01", StringComparison.Ordinal)
+                < text.IndexOf("map MAP02", StringComparison.Ordinal),
+                "El MAPINFO debe listar los mapas en orden de slot (MAP01 antes que MAP02)");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void MergeWithoutLevelNames_OmitsMapInfo()
     {
         string dir = TempDir();

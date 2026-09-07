@@ -281,7 +281,33 @@ public sealed class WadMerger
             }
         }
 
+        // Emit maps in slot order (MAP01, MAP02, ... MAP10, E1M1, ...), numerically aware so
+        // MAP10 sorts after MAP09 instead of lexicographically before it.
+        result.Sort(CompareByFinalName);
         return result;
+    }
+
+    private static int CompareByFinalName(AssignmentInfo a, AssignmentInfo b)
+    {
+        (string prefixA, int numA) = SplitSlotName(a.FinalName);
+        (string prefixB, int numB) = SplitSlotName(b.FinalName);
+        int cmp = string.Compare(prefixA, prefixB, StringComparison.OrdinalIgnoreCase);
+        return cmp != 0 ? cmp : numA.CompareTo(numB);
+    }
+
+    /// <summary>Splits a slot name into its non-digit prefix and trailing numeric part,
+    /// e.g. "MAP09" → ("MAP", 9), "E1M1" → ("E1M", 1), "BOSSR" → ("BOSSR", -1).</summary>
+    private static (string Prefix, int Number) SplitSlotName(string slot)
+    {
+        if (string.IsNullOrEmpty(slot))
+            return (slot ?? "", -1);
+
+        int i = slot.Length;
+        while (i > 0 && char.IsDigit(slot[i - 1]))
+            i--;
+
+        string number = slot[i..];
+        return (slot[..i], number.Length == 0 ? -1 : int.Parse(number));
     }
 
     private sealed class DefaultComparer : IEqualityComparer<(string, string)>
