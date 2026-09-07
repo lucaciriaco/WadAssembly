@@ -793,19 +793,8 @@ bool included = usage is null
     private static string SanitizeMapInfoString(string value)
         => value.Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");
 
-    /// <summary>Detects if a lump contains MUS or MIDI music data by checking its header.</summary>
-    private static bool IsMusicLump(Lump lump)
-    {
-        const int SignatureBytes = 4;
-        var data = lump.ReadPrefix(SignatureBytes);
-        if (data.Length < SignatureBytes)
-            return false;
-        // MUS signature: 'M' 'U' 'S' 0x1A
-        bool isMus = data[0] == (byte)'M' && data[1] == (byte)'U' && data[2] == (byte)'S' && data[3] == 0x1A;
-        // MIDI signature: 'M' 'T' 'h' 'd'
-        bool isMidi = data[0] == (byte)'M' && data[1] == (byte)'T' && data[2] == (byte)'h' && data[3] == (byte)'d';
-        return isMus || isMidi;
-    }
+    /// <summary>Detects if a lump contains MUS, MIDI, IT or MOD music data by checking its header.</summary>
+    private static bool IsMusicLump(Lump lump) => MusicLumpDetector.IsMusicData(lump);
 
     /// <summary>Checks if a lump name looks like a sky texture by common naming patterns.
     /// Common sky texture names in Doom: SKY1, SKY2, SKY3, RSKY1, RSKY2, RSKY3, F_SKY1, F_SKY2, etc.</summary>

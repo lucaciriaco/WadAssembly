@@ -290,6 +290,7 @@ private int _slotCount = 32;
                 AppendLog($"[ERROR] {ex.Message}");
             }
         }
+        RefreshMusicOptions();
     }
 
     public void RemoveSelectedResourceWad()
@@ -298,6 +299,7 @@ private int _slotCount = 32;
             return;
         ResourceWads.Remove(SelectedResourceWad);
         SelectedResourceWad = null;
+        RefreshMusicOptions();
     }
 
     public void MoveSelectedResourceWad(int delta)

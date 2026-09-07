@@ -7,26 +7,55 @@ namespace CommunityWadCompiler.Core.Music;
 public sealed record MusicCandidate(string WadPath, string OriginalName, string FinalName);
 
 /// <summary>
-/// Detects music lumps (MUS format / MIDI "MThd") inside a WAD. Only lumps outside
-/// map ranges are considered, mirroring how music is conventionally stored.
+/// Detects music lumps (MUS / MIDI "MThd" / Impulse Tracker "IMPM" / ProTracker MOD) inside a
+/// WAD. Only lumps outside map ranges are considered, mirroring how music is conventionally stored.
 /// </summary>
 public static class MusicLumpDetector
 {
     private const int SignatureBytes = 4;
+    private const int ModSignatureOffset = 1080; // MOD header signature, e.g. "M.K."
+    private const int MusicHeaderBytes = ModSignatureOffset + SignatureBytes; // 1084
 
-    /// <summary>True when the given bytes begin with a MUS signature or a MIDI MThd header.</summary>
+    /// <summary>
+    /// True when the given bytes begin with a MUS/MIDI/IT signature, or carry a known
+    /// ProTracker-family MOD signature at offset 1080.
+    /// </summary>
     public static bool IsMusicData(byte[] data)
     {
         if (data.Length < SignatureBytes)
             return false;
-        return IsMus(data) || IsMidi(data);
+        if (IsMus(data) || IsMidi(data) || IsImpulseTracker(data))
+            return true;
+        return data.Length >= MusicHeaderBytes && IsModule(data);
     }
+
+    /// <summary>True when the lump begins with a signature of any supported music format.</summary>
+    public static bool IsMusicData(Lump lump)
+        => IsMusicData(lump.ReadPrefix(MusicHeaderBytes));
 
     private static bool IsMus(byte[] d) =>
         d[0] == (byte)'M' && d[1] == (byte)'U' && d[2] == (byte)'S' && d[3] == 0x1A;
 
     private static bool IsMidi(byte[] d) =>
         d[0] == (byte)'M' && d[1] == (byte)'T' && d[2] == (byte)'h' && d[3] == (byte)'d';
+
+    private static bool IsImpulseTracker(byte[] d) =>
+        d[0] == (byte)'I' && d[1] == (byte)'M' && d[2] == (byte)'P' && d[3] == (byte)'M';
+
+    private static bool IsModule(byte[] d)
+    {
+        string signature = System.Text.Encoding.ASCII.GetString(d, ModSignatureOffset, SignatureBytes);
+        return ModSignatures.Contains(signature);
+    }
+
+    /// <summary>Well-known 4-char signatures of the ProTracker/NoiseTracker family at offset 1080.</summary>
+    private static readonly HashSet<string> ModSignatures = new(StringComparer.Ordinal)
+    {
+        "M.K.", "M!K!", "M&K!", "N.T.", "FLT4", "FLT8", "CD81", "OKTA",
+        "4CHN", "5CHN", "6CHN", "7CHN", "8CHN", "9CHN", "10CH", "11CH", "12CH", "16CN",
+        "20CH", "24CH", "28CH", "30CH", "31CH", "32CH", "EXO4", "EXO8",
+        "PATT", "TDZ1", "TDZ2", "TDZ3", "M15M",
+    };
 
     /// <summary>Names of the music lumps found outside the map ranges, in directory order.</summary>
     public static IReadOnlyList<string> DetectNames(WadFile wad)
@@ -40,7 +69,7 @@ public static class MusicLumpDetector
         {
             if (ranges.Any(r => i >= r.Item1 && i < r.Item2))
                 continue;
-            if (IsMusicData(wad.Lumps[i].ReadPrefix(SignatureBytes)))
+            if (IsMusicData(wad.Lumps[i]))
                 names.Add(wad.Lumps[i].Name);
         }
 
