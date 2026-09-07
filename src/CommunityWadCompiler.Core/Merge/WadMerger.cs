@@ -753,10 +753,12 @@ bool included = usage is null
             if (modified.Length > 0)
                 sb.AppendLine($"// Última modificación: {SanitizeMapInfoString(modified)}");
             sb.AppendLine($"map {a.FinalName} \"{SanitizeMapInfoString(name)}\"");
+            sb.AppendLine("{");
             if (music.Length > 0)
-                sb.AppendLine($"music {SanitizeMapInfoString(music).Replace(" ", "")}");
+                sb.AppendLine($"    music = \"{SanitizeMapInfoString(music).Replace(" ", "")}\"");
             if (sky.Length > 0)
-                sb.AppendLine($"sky1 {SanitizeMapInfoString(sky).Replace(" ", "")}");
+                sb.AppendLine($"    sky1 = \"{SanitizeMapInfoString(sky).Replace(" ", "")}\"");
+            sb.AppendLine("}");
         }
 
         return count == 0 ? (null, 0) : (sb.ToString(), count);

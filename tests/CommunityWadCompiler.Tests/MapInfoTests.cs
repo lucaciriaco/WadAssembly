@@ -1,5 +1,6 @@
 using System.Text;
 using CommunityWadCompiler.Core;
+using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Merge;
 using CommunityWadCompiler.Core.Music;
 using CommunityWadCompiler.Core.Textures;
@@ -41,9 +42,14 @@ var request = new MergeRequest
             string text = Encoding.UTF8.GetString(mapinfo!.ReadAll());
 
             Assert.Contains("map MAP01 \"Hangar de la Arena\"", text);
-            Assert.Contains("music CITY1", text);
+            Assert.Contains("music = \"CITY1\"", text);
             Assert.Contains("map MAP02 \"Las Torres Gemelas\"", text);
-            Assert.Contains("music MUSW1", text);
+            Assert.Contains("music = \"MUSW1\"", text);
+
+            // ZDoom/Odamex brace blocks must open AND close with } on their own line.
+            Assert.Matches(@"map MAP01 ""Hangar de la Arena""\r?\n\{[\s\S]*?\}\r?\n", text);
+            Assert.Matches(@"map MAP02 ""Las Torres Gemelas""\r?\n\{[\s\S]*?\}\r?\n", text);
+            Assert.Matches(@"\}\s*$", text);
         }
         finally
         {
@@ -140,7 +146,7 @@ var request = new MergeRequest
             Assert.NotNull(wad.FindFirst("CITY1"));
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
             Assert.Contains("map MAP01 \"\"", text);
-            Assert.Contains("music CITY1", text);
+            Assert.Contains("music = \"CITY1\"", text);
         }
         finally
         {
@@ -175,7 +181,7 @@ var request = new MergeRequest
             Assert.Equal(1, result.MusicCopied);
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
             Assert.Contains("map MAP01 \"El Nido\"", text);
-            Assert.Contains("music RSCMUS", text);
+            Assert.Contains("music = \"RSCMUS\"", text);
         }
         finally
         {
@@ -205,7 +211,7 @@ var request = new MergeRequest
             Assert.Contains(result.Warnings, w => w.Contains("D_FAKE"));
             using var wad = WadFile.Open(output);
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
-            Assert.Contains("music D_FAKE", text);
+            Assert.Contains("music = \"D_FAKE\"", text);
         }
         finally
         {
@@ -246,8 +252,8 @@ var request = new MergeRequest
             Assert.Contains(result.Info, i => i.Contains("CITY1") && i.Contains("CITY_TWO"));
 
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
-            Assert.Contains("music CITY1", text);
-            Assert.Contains("music CITY_TWO", text);
+            Assert.Contains("music = \"CITY1\"", text);
+            Assert.Contains("music = \"CITY_TWO\"", text);
         }
         finally
         {
@@ -437,6 +443,113 @@ var request = new MergeRequest
         {
             Directory.Delete(dir, recursive: true);
         }
+    }
+
+    [Fact]
+    public void Parse_ZdoomBraceFormat_ExtractsNamesMusicAndSky()
+    {
+        const string text = """
+            map MAP01
+            {
+                levelname = "Entryway"
+                music = "D_RUNNIN"
+                sky1 = "SKY1"
+            }
+            map MAP02
+            {
+                levelname = "Tower"
+                music = "D_E1M2"
+            }
+            """;
+
+        var parsed = MapInfoParser.Parse(text);
+
+        Assert.True(parsed.TryGetValue("MAP01", out var m1));
+        Assert.Equal("Entryway", m1.LevelName);
+        Assert.Equal("D_RUNNIN", m1.MusicName);
+        Assert.Equal("SKY1", m1.SkyName);
+
+        Assert.True(parsed.TryGetValue("MAP02", out var m2));
+        Assert.Equal("Tower", m2.LevelName);
+        Assert.Equal("D_E1M2", m2.MusicName);
+    }
+
+    [Fact]
+    public void Parse_ZdoomInlineBraceAfterName_ExtractsProperties()
+    {
+        const string text = """
+            map MAP01 "Hangar" { levelname = "Hangar"; music = "D_E1M1"; sky1 = "SKY1" }
+            """;
+
+        var parsed = MapInfoParser.Parse(text);
+
+        Assert.True(parsed.TryGetValue("MAP01", out var m));
+        Assert.Equal("Hangar", m.LevelName);
+        Assert.Equal("D_E1M1", m.MusicName);
+        Assert.Equal("SKY1", m.SkyName);
+    }
+
+    [Fact]
+    public void Parse_OdamexUnquotedValues_ExtractsMusicAndSky()
+    {
+        const string text = """
+            map MAP01
+            {
+                levelnum = 1
+                levelname = "Entryway"
+                music = D_RUNNIN
+                sky1 = SKY1
+            }
+            """;
+
+        var parsed = MapInfoParser.Parse(text);
+
+        Assert.True(parsed.TryGetValue("MAP01", out var m));
+        Assert.Equal("Entryway", m.LevelName);
+        Assert.Equal("D_RUNNIN", m.MusicName);
+        Assert.Equal("SKY1", m.SkyName);
+    }
+
+    [Fact]
+    public void Parse_ClassicPropertiesWithoutBraces_StillExtracts()
+    {
+        const string text = """
+            map MAP01 "Hangar"
+            next MAP02
+            par 30
+            music D_RUNNIN
+            sky1 SKY1
+            cluster 1
+            """;
+
+        var parsed = MapInfoParser.Parse(text);
+
+        Assert.True(parsed.TryGetValue("MAP01", out var m));
+        Assert.Equal("Hangar", m.LevelName);
+        Assert.Equal("D_RUNNIN", m.MusicName);
+        Assert.Equal("SKY1", m.SkyName);
+    }
+
+    [Fact]
+    public void Parse_ClosedBlockThenSection_DoesNotLeakPropertiesIntoMap()
+    {
+        const string text = """
+            map MAP01
+            {
+                levelname = "Entryway"
+                music = "D_RUNNIN"
+            }
+            cluster 1
+            {
+                exittext = "Done"
+                music = "D_VICTOR"
+            }
+            """;
+
+        var parsed = MapInfoParser.Parse(text);
+
+        Assert.True(parsed.TryGetValue("MAP01", out var m));
+        Assert.Equal("D_RUNNIN", m.MusicName);
     }
 
     // ------------------------------------------------------------------
