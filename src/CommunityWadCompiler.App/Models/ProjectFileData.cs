@@ -53,6 +53,9 @@ public sealed class MapEntryData
     /// <summary>Music lump assigned to the map, referenced by the generated MAPINFO.</summary>
     public string? MusicName { get; set; }
 
+    /// <summary>Absolute path of an external music file (.mid/.mod/.it) for this slot.</summary>
+    public string? MusicExternalPath { get; set; }
+
     /// <summary>Author of the map, written as a comment in the generated MAPINFO.</summary>
     public string? Author { get; set; }
 

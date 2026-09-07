@@ -29,9 +29,18 @@ public sealed class MergeRequest
     /// <summary>Optional project name, written as a comment in the generated MAPINFO.</summary>
     public string? ProjectName { get; init; }
 
-    /// <summary>Optional editable version prefix (e.g. "1.2.3") stamped into the MAPINFO
-    /// before the automatic compile timestamp.</summary>
+    /// <summary>
+    /// Optional editable version prefix (e.g. "1.2.3") stamped into the MAPINFO
+    /// before the automatic compile timestamp.
+    /// </summary>
     public string? VersionPrefix { get; init; }
 
     public MergeOptions Options { get; init; } = new();
+
+    /// <summary>
+    /// External music files chosen by the user: lump name → absolute file path.
+    /// These are copied verbatim into the output WAD and referenced by MAPINFO.
+    /// Supported extensions: .mid, .mod, .it, .xm, .s3m.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? ExternalMusicFiles { get; init; }
 }

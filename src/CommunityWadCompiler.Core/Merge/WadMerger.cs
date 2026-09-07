@@ -468,6 +468,40 @@ public sealed class WadMerger
             }
         }
 
+        // 3.5b. External music files: copy files chosen by the user into the output WAD.
+        if (request.ExternalMusicFiles is { Count: > 0 } externalMusic)
+        {
+            var validExts = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mid", ".mod", ".it", ".xm", ".s3m",
+            };
+
+            foreach (var (lumpName, filePath) in externalMusic)
+            {
+                if (outputNames.Contains(lumpName))
+                    continue;
+
+                if (!File.Exists(filePath))
+                {
+                    warn($"Música externa '{lumpName}': archivo no encontrado '{filePath}'.");
+                    continue;
+                }
+
+                string ext = Path.GetExtension(filePath);
+                if (!validExts.Contains(ext))
+                {
+                    warn($"Música externa '{lumpName}': extensión '{ext}' no soportada.");
+                    continue;
+                }
+
+                byte[] data = File.ReadAllBytes(filePath);
+                builder.AddLump(lumpName, data);
+                outputNames.Add(lumpName);
+                _result.MusicCopied++;
+                _result.Info.Add($"Música externa '{lumpName}' copiada desde '{Path.GetFileName(filePath)}'.");
+            }
+        }
+
         // 3.6. Sky textures: copy needed sky lumps from resources to output.
         if (neededSkyNames.Count > 0)
         {

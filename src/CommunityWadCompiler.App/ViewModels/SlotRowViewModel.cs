@@ -18,6 +18,7 @@ public sealed class SlotRowViewModel : ObservableObject
     private string _slotName = "";
     private string _levelName = "";
     private string _musicName = "";
+    private string _musicExternalPath = "";
     private string _skyName = "";
     private string _author = "";
     private string _status = "";
@@ -78,6 +79,20 @@ public sealed class SlotRowViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Absolute path of an external music file (.mid/.mod/.it) chosen by the user.
+    /// Empty when music comes from a WAD lump or is unset.
+    /// </summary>
+    public string MusicExternalPath
+    {
+        get => _musicExternalPath;
+        set
+        {
+            if (SetProperty(ref _musicExternalPath, value))
+                OnPropertyChanged(nameof(MusicDisplay));
+        }
+    }
+
     /// <summary>Sky texture name for this map (e.g., SKY1); used by the generated MAPINFO.</summary>
     public string SkyName
     {
@@ -86,7 +101,17 @@ public sealed class SlotRowViewModel : ObservableObject
     }
 
     /// <summary>Text shown by the music picker button: the assigned lump, or "Ninguna".</summary>
-    public string MusicDisplay => string.IsNullOrWhiteSpace(MusicName) ? NoMusicOption : MusicName;
+    public string MusicDisplay
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(MusicName))
+                return NoMusicOption;
+            return string.IsNullOrWhiteSpace(MusicExternalPath)
+                ? MusicName
+                : $"{MusicName}  [ext]";
+        }
+    }
 
     /// <summary>Author of the map, written as a comment above the map block in the MAPINFO.</summary>
     public string Author

@@ -632,6 +632,7 @@ private int _slotCount = 32;
                     IsUdmf = r.IsUdmf,
                     LevelName = r.LevelName,
                     MusicName = r.MusicName,
+                    MusicExternalPath = r.MusicExternalPath,
                     SkyName = r.SkyName,
                     Author = r.Author,
                     Status = r.Status,
@@ -688,6 +689,7 @@ private int _slotCount = 32;
                 SlotName = m.FinalName,
                 LevelName = m.LevelName ?? "",
                 MusicName = m.MusicName ?? "",
+                MusicExternalPath = m.MusicExternalPath ?? "",
                 SkyName = m.SkyName ?? "sky1",
                 Author = m.Author ?? "",
                 Status = m.Status ?? "",
@@ -805,6 +807,14 @@ private int _slotCount = 32;
             assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName, music, sky, author, status, lastModified));
         }
 
+        var externalMusic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in SlotRows.Where(r => !r.IsEmpty && !string.IsNullOrWhiteSpace(r.MusicExternalPath) && !string.IsNullOrWhiteSpace(r.MusicName)))
+        {
+            string lumpName = NormalizeMusic(row.MusicName) ?? "";
+            if (lumpName.Length > 0 && !externalMusic.ContainsKey(lumpName))
+                externalMusic[lumpName] = row.MusicExternalPath!;
+        }
+
         var request = new MergeRequest
         {
             ProjectName = string.IsNullOrWhiteSpace(ProjectName) ? null : ProjectName.Trim(),
@@ -814,6 +824,7 @@ private int _slotCount = 32;
             ResourceWadPaths = ResourceWadPaths,
             OutputPath = OutputPath,
             MapAssignments = assignments,
+            ExternalMusicFiles = externalMusic.Count > 0 ? externalMusic : null,
             Options = new MergeOptions
             {
                 AutoAssignMaps = false,

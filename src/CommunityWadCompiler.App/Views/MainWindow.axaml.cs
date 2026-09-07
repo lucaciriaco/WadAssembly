@@ -170,7 +170,10 @@ public partial class MainWindow : Window
         var picker = new MusicPickerWindow(options, row.MusicName ?? "");
         await picker.ShowDialog(this);
         if (picker.Accepted)
+        {
+            row.MusicExternalPath = picker.SelectedExternalPath;
             row.MusicName = picker.SelectedName;
+        }
     }
 
     /// <summary>Opens the sky picker for the slot whose row button was clicked.</summary>
