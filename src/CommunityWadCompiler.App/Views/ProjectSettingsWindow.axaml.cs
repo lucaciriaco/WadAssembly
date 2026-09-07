@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
 
 namespace CommunityWadCompiler.App.Views;
@@ -80,7 +81,7 @@ public partial class ProjectSettingsWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Seleccionar WAD base (IWAD)",
+            Title = LanguageService.GetString("Dialog.PickBaseWad"),
             AllowMultiple = false,
             FileTypeFilter = new[] { new FilePickerFileType("WAD files") { Patterns = new[] { "*.wad" } } },
         });
@@ -107,7 +108,7 @@ public partial class ProjectSettingsWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Seleccionar WADs",
+            Title = LanguageService.GetString("Dialog.PickWads"),
             AllowMultiple = true,
             FileTypeFilter = new[] { new FilePickerFileType("WAD files") { Patterns = new[] { "*.wad" } } },
         });

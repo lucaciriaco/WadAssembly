@@ -1,0 +1,130 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    x:Class="CommunityWadCompiler.App.Resources.Strings_en">
+
+  <!-- ===== Main menu ===== -->
+  <sys:String x:Key="Menu.File">File</sys:String>
+  <sys:String x:Key="Menu.NewProject">New project</sys:String>
+  <sys:String x:Key="Menu.OpenProject">Open project...</sys:String>
+  <sys:String x:Key="Menu.SaveProject">Save project</sys:String>
+  <sys:String x:Key="Menu.SaveProjectAs">Save project as...</sys:String>
+  <sys:String x:Key="Menu.ProjectSettings">Project settings...</sys:String>
+  <sys:String x:Key="Menu.Language">Language</sys:String>
+  <sys:String x:Key="Menu.Language.Español">Español</sys:String>
+  <sys:String x:Key="Menu.Language.English">English</sys:String>
+  <sys:String x:Key="Menu.Exit">Exit</sys:String>
+  <sys:String x:Key="Menu.Help">Help</sys:String>
+  <sys:String x:Key="Menu.About">About...</sys:String>
+
+  <!-- ===== Bottom bar ===== -->
+  <sys:String x:Key="Output.Label">Output:</sys:String>
+  <sys:String x:Key="Output.Watermark">Path of the compiled .wad (e.g. megawad.wad)</sys:String>
+  <sys:String x:Key="Compile">Compile</sys:String>
+
+  <!-- ===== Left panel: input WADs ===== -->
+  <sys:String x:Key="Input.Title">Contributed WADs (maps)</sys:String>
+  <sys:String x:Key="Input.Hint">Pick a map (dropdown if there are several) and drag it into a slot of the sheet.</sys:String>
+  <sys:String x:Key="Input.AddWads">Add WADs...</sys:String>
+  <sys:String x:Key="Input.Remove">Remove</sys:String>
+  <sys:String x:Key="Input.MoveUp">Move up</sys:String>
+  <sys:String x:Key="Input.MoveDown">Move down</sys:String>
+
+  <!-- ===== Sheet headers ===== -->
+  <sys:String x:Key="Header.Slot">Slot</sys:String>
+  <sys:String x:Key="Header.Wad">WAD</sys:String>
+  <sys:String x:Key="Header.OriginalMap">Original map</sys:String>
+  <sys:String x:Key="Header.LevelName">Map name</sys:String>
+  <sys:String x:Key="Header.Status">Status</sys:String>
+  <sys:String x:Key="Header.LastModified">Last modified</sys:String>
+  <sys:String x:Key="Header.Music">Music</sys:String>
+  <sys:String x:Key="Header.Sky">Sky</sys:String>
+  <sys:String x:Key="Header.Author">Author</sys:String>
+
+  <!-- ===== Row context menu ===== -->
+  <sys:String x:Key="Row.ClearFields">Clear all fields</sys:String>
+
+  <!-- ===== Log ===== -->
+  <sys:String x:Key="Log.Title">Log</sys:String>
+
+  <!-- ===== Project Settings window ===== -->
+  <sys:String x:Key="ProjectSettings.Title">Project settings</sys:String>
+  <sys:String x:Key="Accept">OK</sys:String>
+  <sys:String x:Key="Cancel">Cancel</sys:String>
+  <sys:String x:Key="ProjectSettings.ProjectName">Project name</sys:String>
+  <sys:String x:Key="ProjectSettings.ProjectName.Watermark">e.g. La Hermandad de la Arena</sys:String>
+  <sys:String x:Key="ProjectSettings.Version">Version (editable prefix)</sys:String>
+  <sys:String x:Key="ProjectSettings.Version.Watermark">e.g. 1.2.3 — the compile suffix is appended automatically (1.2.3.145001)</sys:String>
+  <sys:String x:Key="ProjectSettings.SlotCount">Number of PWAD slots</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseWad">Base WAD (IWAD)</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseWad.Watermark">Optional. DOOM2.WAD as seed for TEXTURE1/PNAMES.</sys:String>
+  <sys:String x:Key="ProjectSettings.Clear">Clear</sys:String>
+  <sys:String x:Key="ProjectSettings.ResourceWads">Resource WADs (textures / flats)</sys:String>
+  <sys:String x:Key="ProjectSettings.AddResources">Add resources...</sys:String>
+  <sys:String x:Key="ProjectSettings.FilterToUsed">Only include textures/flats used by the maps</sys:String>
+  <sys:String x:Key="ProjectSettings.IncludePalette">Include palette lumps (PLAYPAL, COLORMAP, etc.)</sys:String>
+  <sys:String x:Key="ProjectSettings.IncludeSprites">Include sprites (S_START..S_END, SS_START..SS_END)</sys:String>
+  <sys:String x:Key="ProjectSettings.Collaborators">Collaborators (map authors)</sys:String>
+  <sys:String x:Key="ProjectSettings.AddCollaborator">Add collaborator</sys:String>
+
+  <!-- ===== Sky Picker window ===== -->
+  <sys:String x:Key="SkyPicker.Title">Select Sky</sys:String>
+  <sys:String x:Key="SkyPicker.Hint">Choose the sky texture for the map. You can type a manual name or pick from the texture list of the resource WAD.</sys:String>
+  <sys:String x:Key="SkyPicker.ManualLabel">Manual SKYNAME:</sys:String>
+  <sys:String x:Key="SkyPicker.ManualWatermark">e.g. SKY1, RSKY1, F_SKY1...</sys:String>
+  <sys:String x:Key="SkyPicker.FilterLabel">Filter textures:</sys:String>
+  <sys:String x:Key="SkyPicker.FilterWatermark">Search texture...</sys:String>
+  <sys:String x:Key="SkyPicker.ListTitle">Textures available in resource WADs:</sys:String>
+  <sys:String x:Key="SkyPicker.Preview">Preview</sys:String>
+  <sys:String x:Key="SkyPicker.PreviewHint">Select a texture to see the preview</sys:String>
+  <sys:String x:Key="SkyPicker.PreviewNotAvailable">Preview not available (VM not set)</sys:String>
+  <sys:String x:Key="SkyPicker.NotFound">'{0}' not found in resource WADs</sys:String>
+  <sys:String x:Key="SkyPicker.UnsupportedFormat">Unsupported format for preview: {0} ({1} bytes)</sys:String>
+
+  <!-- ===== Music Picker window ===== -->
+  <sys:String x:Key="MusicPicker.Title">Select music</sys:String>
+  <sys:String x:Key="MusicPicker.Hint">Choose the music for the slot or load an external file (MIDI/MOD/IT).</sys:String>
+  <sys:String x:Key="MusicPicker.LoadExternal">Load external file...</sys:String>
+
+  <!-- ===== Misc strings (display, VM) ===== -->
+  <sys:String x:Key="NoMusic">None</sys:String>
+  <sys:String x:Key="Wad.Kind.Input">contributed</sys:String>
+  <sys:String x:Key="Wad.Kind.Resources">resources</sys:String>
+  <sys:String x:Key="Wad.MapCountFormat"> | {0} map(s)</sys:String>
+  <sys:String x:Key="Wad.DisplayFormat">{0}   [{1} | {2}]{3}</sys:String>
+  <sys:String x:Key="Music.ExtMark">[ext]</sys:String>
+  <sys:String x:Key="Music.FromWadFormat">{0}   [from {1}]</sys:String>
+
+  <!-- ===== File dialogs ===== -->
+  <sys:String x:Key="Dialog.PickInputWads">Select contributed WADs</sys:String>
+  <sys:String x:Key="Dialog.SaveOutputWad">Save compiled WAD</sys:String>
+  <sys:String x:Key="Dialog.ProjectFilter">Community Wad Project</sys:String>
+  <sys:String x:Key="Dialog.OpenProject">Open project</sys:String>
+  <sys:String x:Key="Dialog.SaveProject">Save project</sys:String>
+  <sys:String x:Key="Dialog.SuggestedProjectName">project.json</sys:String>
+  <sys:String x:Key="Dialog.About">About</sys:String>
+  <sys:String x:Key="Dialog.AboutText">Community Wad Compiler&#x0a;&#x0a;Compiles WADs from several authors into a single PWAD.&#x0a;Supports classic Doom and UDMF maps, TEXTURE1/PNAMES merging&#x0a;and resource deduplication.&#x0a;&#x0a;Structure: CommunityWadCompiler.Core library + Avalonia UI.</sys:String>
+  <sys:String x:Key="Dialog.PickBaseWad">Select base WAD (IWAD)</sys:String>
+  <sys:String x:Key="Dialog.PickWads">Select WADs</sys:String>
+  <sys:String x:Key="Dialog.PickExternalMusic">Select external music file</sys:String>
+  <sys:String x:Key="Dialog.MusicFilesFilter">Music files</sys:String>
+
+  <!-- ===== Log / VM messages ===== -->
+  <sys:String x:Key="Log.SlotCleared">[INFO] Slot {0} cleared.</sys:String>
+  <sys:String x:Key="Log.MapReplaced">[INFO] '{0}' from '{1}' replaced the map of slot {2}</sys:String>
+  <sys:String x:Key="Log.MapAssigned">[INFO] '{0}' from '{1}' → slot {2}</sys:String>
+  <sys:String x:Key="Log.MapsByAuthorRemoved">[INFO] Maps by author '{0}' removed from the sheet.</sys:String>
+  <sys:String x:Key="Log.MusicRenamed">[INFO] Music renamed due to duplicate name: {0}</sys:String>
+  <sys:String x:Key="Log.ProjectSaved">[INFO] Project saved to {0}</sys:String>
+  <sys:String x:Key="Log.ProjectReadError">[ERROR] Could not read the project {0}</sys:String>
+  <sys:String x:Key="Log.ProjectLoaded">[INFO] Project loaded from {0}</sys:String>
+  <sys:String x:Key="Log.NeedInputWad">[ERROR] Add at least one input WAD.</sys:String>
+  <sys:String x:Key="Log.NeedOutputPath">[ERROR] Set an output path.</sys:String>
+  <sys:String x:Key="Log.NoSlot">[ERROR] The map '{0}' from '{1}' has no final slot.</sys:String>
+  <sys:String x:Key="Log.Compiling">── Compiling ───────────────────────────────</sys:String>
+
+  <!-- ===== Sheet header (MapsHeader) ===== -->
+  <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
+  <sys:String x:Key="Header.EmptyTitle">Maps and final slots (editable)</sys:String>
+  <sys:String x:Key="Header.EditableSuffix"> (editable)</sys:String>
+</ResourceDictionary>

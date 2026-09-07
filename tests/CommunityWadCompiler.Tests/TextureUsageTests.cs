@@ -213,6 +213,55 @@ public class TextureUsageTests
         }
     }
 
+    [Fact]
+    public void ResourceWad_AnimdefsSwitchTextures_AreKeptDespiteFilter()
+    {
+        string dir = TempDir();
+        try
+        {
+            string resourceWad = Path.Combine(dir, "resources.wad");
+            string mapWad = Path.Combine(dir, "map.wad");
+            string outputWad = Path.Combine(dir, "out.wad");
+
+            BuildAnimdefsResourceWad(resourceWad);
+            BuildClassicMapWad(mapWad, "MAP05");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { mapWad },
+                ResourceWadPaths = new[] { resourceWad },
+                OutputPath = outputWad,
+                MapAssignments = new[] { new MapAssignment(mapWad, "MAP05", "MAP05") },
+                Options = new MergeOptions { AutoAssignMaps = false, FilterToUsedResources = true },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(outputWad);
+
+            // ANIMDEFS references SW1BRCO/SW2BRCO (animated switch); neither is used by
+            // the map's geometry, yet both must survive so the engine can load ANIMDEFS.
+            var textures = TextureSet.Read(wad.FindLast("TEXTURE1")!.ReadAll());
+            Assert.Equal(new[] { "SW1BRCO", "SW2BRCO", "TEX1" }, textures.Textures.Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal));
+
+            var pnames = PnamesList.Read(wad.FindLast("PNAMES")!.ReadAll());
+            Assert.Contains("PATCHA", pnames.Names);
+            Assert.Contains("PATCHB", pnames.Names);
+            Assert.Contains("PATCHC", pnames.Names);
+            Assert.NotNull(wad.FindFirst("PATCHA"));
+            Assert.NotNull(wad.FindFirst("PATCHB"));
+            Assert.NotNull(wad.FindFirst("PATCHC"));
+
+            // Unused flat FLAT2 keeps being excluded.
+            Assert.Null(wad.FindFirst("FLAT2"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     // ------------------------------------------------------------------
     // Builders
     // ------------------------------------------------------------------
@@ -248,6 +297,30 @@ public class TextureUsageTests
         builder.AddLump("P_START", new byte[0]);
         builder.AddLump("PATCHA", new byte[8]);
         builder.AddLump("PATCHB", new byte[8]);
+        builder.AddLump("P_END", new byte[0]);
+        builder.AddLump("F_START", new byte[0]);
+        builder.AddLump("FLAT1", new byte[4096]);
+        builder.AddLump("FLAT2", new byte[4096]);
+        builder.AddLump("F_END", new byte[0]);
+        builder.AddLump("PLAYPAL", new byte[768]);
+        builder.Write(path);
+    }
+
+    /// <summary>Resource WAD with an unused animated-switch texture referenced by ANIMDEFS.</summary>
+    private static void BuildAnimdefsResourceWad(string path)
+    {
+        var builder = new WadBuilder();
+        builder.AddLump("PNAMES", MakePnames("PATCHA", "PATCHB", "PATCHC"));
+        builder.AddLump("TEXTURE1", MakeTexture1(
+            MakeTexture("TEX1", 64, 64, (0, 0, 0)),
+            MakeTexture("SW1BRCO", 64, 64, (1, 0, 0)),
+            MakeTexture("SW2BRCO", 64, 64, (2, 0, 0))));
+        builder.AddLump("ANIMDEFS", System.Text.Encoding.ASCII.GetBytes(
+            "animatedTexture SW1BRCO, SW2BRCO, 8, RANDOM, 1.0, 0.5"));
+        builder.AddLump("P_START", new byte[0]);
+        builder.AddLump("PATCHA", new byte[8]);
+        builder.AddLump("PATCHB", new byte[8]);
+        builder.AddLump("PATCHC", new byte[8]);
         builder.AddLump("P_END", new byte[0]);
         builder.AddLump("F_START", new byte[0]);
         builder.AddLump("FLAT1", new byte[4096]);

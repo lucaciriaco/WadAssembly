@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CommunityWadCompiler.App.Views.ProjectSettingsWindow"
-        Title="Configuración del proyecto"
+        Title="{DynamicResource ProjectSettings.Title}"
         Width="540" Height="760"
         MinWidth="480" MinHeight="640"
         WindowStartupLocation="CenterOwner">
@@ -10,43 +10,43 @@
 
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-      <Button Content="Aceptar" IsDefault="True" MinWidth="96" Click="OnAccept"/>
-      <Button Content="Cancelar" MinWidth="96" Click="OnCancel"/>
+      <Button Content="{DynamicResource Accept}" IsDefault="True" MinWidth="96" Click="OnAccept"/>
+      <Button Content="{DynamicResource Cancel}" MinWidth="96" Click="OnCancel"/>
     </StackPanel>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="12">
 
       <StackPanel Spacing="4">
-        <TextBlock Text="Nombre del proyecto" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.ProjectName}" FontWeight="Bold"/>
         <TextBox Text="{Binding ProjectName, Mode=TwoWay}"
-                 Watermark="Ej. La Hermandad de la Arena"/>
+                 Watermark="{DynamicResource ProjectSettings.ProjectName.Watermark}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock Text="Versión (prefijo editable)" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.Version}" FontWeight="Bold"/>
         <TextBox Text="{Binding VersionPrefix, Mode=TwoWay}"
-                 Watermark="Ej. 1.2.3 — se le agrega automáticamente el sufijo de compilación (1.2.3.145001)"/>
+                 Watermark="{DynamicResource ProjectSettings.Version.Watermark}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock Text="Cantidad de slots del PWAD" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.SlotCount}" FontWeight="Bold"/>
         <NumericUpDown Minimum="1" Maximum="999" Increment="1" FormatString="0"
                        Value="{Binding SlotCount, Mode=TwoWay}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock Text="WAD base (IWAD)" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.BaseWad}" FontWeight="Bold"/>
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
           <TextBox Grid.Column="0" Text="{Binding BaseWadPath, Mode=TwoWay}"
-                   Watermark="Opcional. DOOM2.WAD como semilla para TEXTURE1/PNAMES."/>
+                   Watermark="{DynamicResource ProjectSettings.BaseWad.Watermark}"/>
           <Button Grid.Column="1" Content="..." Click="OnBrowseBaseWad" MinWidth="48"/>
-          <Button Grid.Column="2" Content="Limpiar" Click="OnClearBaseWad"/>
+          <Button Grid.Column="2" Content="{DynamicResource ProjectSettings.Clear}" Click="OnClearBaseWad"/>
         </Grid>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock Text="WAD de recursos (texturas / flats)" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.ResourceWads}" FontWeight="Bold"/>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3" MinHeight="120">
           <ListBox x:Name="ResourceWadList" ItemsSource="{Binding ResourceWads}"
                    SelectedItem="{Binding SelectedResourceWad, Mode=TwoWay}" MaxHeight="140">
@@ -58,21 +58,21 @@
           </ListBox>
         </Border>
         <StackPanel Orientation="Horizontal" Spacing="6">
-          <Button Content="Agregar recursos..." Click="OnAddResources"/>
-          <Button Content="Quitar" Click="OnRemoveResource"/>
-          <Button Content="Subir" Click="OnMoveResourceUp"/>
-          <Button Content="Bajar" Click="OnMoveResourceDown"/>
+          <Button Content="{DynamicResource ProjectSettings.AddResources}" Click="OnAddResources"/>
+          <Button Content="{DynamicResource Input.Remove}" Click="OnRemoveResource"/>
+          <Button Content="{DynamicResource Input.MoveUp}" Click="OnMoveResourceUp"/>
+          <Button Content="{DynamicResource Input.MoveDown}" Click="OnMoveResourceDown"/>
         </StackPanel>
-        <CheckBox Content="Solo incluir texturas/flats usados por los mapas"
+        <CheckBox Content="{DynamicResource ProjectSettings.FilterToUsed}"
                   IsChecked="{Binding FilterResourcesToUsed}"/>
-        <CheckBox Content="Incluir lumps de paleta (PLAYPAL, COLORMAP, etc.)"
+        <CheckBox Content="{DynamicResource ProjectSettings.IncludePalette}"
                   IsChecked="{Binding IncludePaletteLumps}"/>
-        <CheckBox Content="Incluir sprites (S_START..S_END, SS_START..SS_END)"
+        <CheckBox Content="{DynamicResource ProjectSettings.IncludeSprites}"
                   IsChecked="{Binding IncludeSpriteLumps}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock Text="Colaboradores (autores de los mapas)" FontWeight="Bold"/>
+        <TextBlock Text="{DynamicResource ProjectSettings.Collaborators}" FontWeight="Bold"/>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3" MinHeight="160">
           <ListBox x:Name="CollaboratorList" ItemsSource="{Binding Collaborators}"
                    MaxHeight="220">
@@ -84,8 +84,8 @@
           </ListBox>
         </Border>
         <StackPanel Orientation="Horizontal" Spacing="6">
-          <Button Content="Agregar colaborador" Click="OnAddCollaborator"/>
-          <Button Content="Quitar" Click="OnRemoveCollaborator"/>
+          <Button Content="{DynamicResource ProjectSettings.AddCollaborator}" Click="OnAddCollaborator"/>
+          <Button Content="{DynamicResource Input.Remove}" Click="OnRemoveCollaborator"/>
         </StackPanel>
       </StackPanel>
 

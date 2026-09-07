@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CommunityWadCompiler.App.Views.SkyPickerWindow"
-        Title="Seleccionar Sky"
+        Title="{DynamicResource SkyPicker.Title}"
         Width="680" Height="500"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
@@ -9,19 +9,19 @@
   <DockPanel Margin="12">
 
     <TextBlock DockPanel.Dock="Top"
-               Text="Elegí la textura de sky para el mapa. Podés escribir un nombre manual o elegir de la lista de texturas del WAD de recursos."
+               Text="{DynamicResource SkyPicker.Hint}"
                TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8"/>
 
     <!-- Manual entry -->
     <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
-      <TextBlock Text="SKYNAME manual:" FontWeight="Bold"/>
-      <TextBox x:Name="ManualSkyBox" Watermark="Ej: SKY1, RSKY1, F_SKY1..." Text="{Binding ManualSkyName, Mode=TwoWay}"/>
+      <TextBlock Text="{DynamicResource SkyPicker.ManualLabel}" FontWeight="Bold"/>
+      <TextBox x:Name="ManualSkyBox" Watermark="{DynamicResource SkyPicker.ManualWatermark}" Text="{Binding ManualSkyName, Mode=TwoWay}"/>
     </StackPanel>
 
     <!-- Search filter -->
     <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
-      <TextBlock Text="Filtrar texturas:" FontWeight="Bold"/>
-      <TextBox x:Name="SearchBox" Watermark="Buscar textura..." TextChanged="OnSearchChanged"/>
+      <TextBlock Text="{DynamicResource SkyPicker.FilterLabel}" FontWeight="Bold"/>
+      <TextBox x:Name="SearchBox" Watermark="{DynamicResource SkyPicker.FilterWatermark}" TextChanged="OnSearchChanged"/>
     </StackPanel>
 
     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200" Margin="0,8,0,0">
@@ -29,7 +29,7 @@
       <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
               VerticalAlignment="Stretch">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="Texturas disponibles en WADs de recursos:"
+          <TextBlock DockPanel.Dock="Top" Text="{DynamicResource SkyPicker.ListTitle}"
                      FontWeight="Bold" Margin="4,4,4,0"/>
           <ListBox x:Name="TextureList"
                    MaxWidth="440"
@@ -50,7 +50,7 @@
       <Border Grid.Column="1" Margin="12,0,0,0" BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
               Background="#1E1E1E" Padding="8">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="Preview" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,4"/>
+          <TextBlock DockPanel.Dock="Top" Text="{DynamicResource SkyPicker.Preview}" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,4"/>
           <Image x:Name="PreviewImage"
                  Width="192" Height="192"
                  Stretch="Uniform"
@@ -58,7 +58,7 @@
                  VerticalAlignment="Center"/>
           <TextBlock x:Name="PreviewInfo"
                      DockPanel.Dock="Bottom"
-                     Text="Seleccioná una textura para ver preview"
+                     Text="{DynamicResource SkyPicker.PreviewHint}"
                      FontSize="11" Foreground="Gray"
                      TextWrapping="Wrap" TextAlignment="Center"
                      Margin="0,8,0,0"/>
@@ -69,8 +69,8 @@
     <!-- Buttons -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-      <Button Content="Aceptar" IsDefault="True" Click="OnAccept" MinWidth="90"/>
-      <Button Content="Cancelar" IsCancel="True" Click="OnCancel" MinWidth="90"/>
+      <Button Content="{DynamicResource Accept}" IsDefault="True" Click="OnAccept" MinWidth="90"/>
+      <Button Content="{DynamicResource Cancel}" IsCancel="True" Click="OnCancel" MinWidth="90"/>
     </StackPanel>
 
   </DockPanel>

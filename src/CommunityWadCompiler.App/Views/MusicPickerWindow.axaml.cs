@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
 
 namespace CommunityWadCompiler.App.Views;
@@ -55,11 +56,11 @@ public partial class MusicPickerWindow : Window
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Seleccionar archivo de música externo",
+            Title = LanguageService.GetString("Dialog.PickExternalMusic"),
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Archivos de música") { Patterns = new[] { "*.mid", "*.mod", "*.it", "*.xm", "*.s3m" } },
+                new FilePickerFileType(LanguageService.GetString("Dialog.MusicFilesFilter")) { Patterns = new[] { "*.mid", "*.mod", "*.it", "*.xm", "*.s3m" } },
                 new FilePickerFileType("MIDI") { Patterns = new[] { "*.mid" } },
                 new FilePickerFileType("MOD (ProTracker)") { Patterns = new[] { "*.mod" } },
                 new FilePickerFileType("Impulse Tracker") { Patterns = new[] { "*.it" } },

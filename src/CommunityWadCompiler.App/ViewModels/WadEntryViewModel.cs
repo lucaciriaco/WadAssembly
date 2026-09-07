@@ -1,12 +1,13 @@
 namespace CommunityWadCompiler.App.ViewModels;
 
+using CommunityWadCompiler.App.Services;
+
 /// <summary>One map lump inside an input WAD, with its format flag, level name, music and sky from MAPINFO.</summary>
 public sealed record MapOption(string OriginalName, bool IsUdmf, string? LevelName = null, string? MusicName = null, string? SkyName = null);
 
 /// <summary>One loaded WAD file shown in the inputs or resources list.</summary>
 public sealed class WadEntryViewModel : ObservableObject
 {
-    private string _status = "Cargado";
     private string? _selectedMapName;
 
     public required string Path { get; init; }
@@ -15,8 +16,8 @@ public sealed class WadEntryViewModel : ObservableObject
 
     public string WadTypeLabel { get; init; } = "";
 
-    /// <summary>Human-readable role of the WAD (aportado / recursos).</summary>
-    public string Kind { get; init; } = "aportado";
+    /// <summary>True when this WAD is a resource pack (textures/flats); false for input maps.</summary>
+    public bool IsResource { get; init; }
 
     /// <summary>Maps detected in this WAD (empty for resource packs).</summary>
     public List<MapOption> Maps { get; init; } = new();
@@ -36,18 +37,16 @@ public sealed class WadEntryViewModel : ObservableObject
     /// <summary>Lump names exposed to the picker dropdown.</summary>
     public IReadOnlyList<string> MapNames => Maps.Select(m => m.OriginalName).ToList();
 
-    public string Status
-    {
-        get => _status;
-        set => SetProperty(ref _status, value);
-    }
-
+    /// <summary>Localized display string for the WAD entry.</summary>
     public string Display
     {
         get
         {
-            string detail = Maps.Count > 0 ? $" | {Maps.Count} mapa(s)" : "";
-            return $"{FileName}   [{WadTypeLabel} | {Kind}]{detail}";
+            string detail = Maps.Count > 0 ? string.Format(LanguageService.GetString("Wad.MapCountFormat"), Maps.Count) : "";
+            string kind = IsResource
+                ? LanguageService.GetString("Wad.Kind.Resources")
+                : LanguageService.GetString("Wad.Kind.Input");
+            return string.Format(LanguageService.GetString("Wad.DisplayFormat"), FileName, WadTypeLabel, kind, detail);
         }
     }
 }

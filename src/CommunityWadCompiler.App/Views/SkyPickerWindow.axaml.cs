@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
+using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +95,7 @@ public partial class SkyPickerWindow : Window
 
         if (_viewModel is null)
         {
-            previewInfo.Text = "Preview no disponible (VM no seteado)";
+            previewInfo.Text = LanguageService.GetString("SkyPicker.PreviewNotAvailable");
             previewImage.Source = null;
             return;
         }
@@ -102,7 +103,7 @@ public partial class SkyPickerWindow : Window
         var data = _viewModel.TryGetTextureData(skyName);
         if (data is null)
         {
-            previewInfo.Text = $"No se encontró '{skyName}' en WADs de recursos";
+            previewInfo.Text = string.Format(LanguageService.GetString("SkyPicker.NotFound"), skyName);
             previewImage.Source = null;
             return;
         }
@@ -110,7 +111,7 @@ public partial class SkyPickerWindow : Window
         var bitmap = TexturePreviewDecoder.Decode(data, skyName);
         if (bitmap is null)
         {
-            previewInfo.Text = $"Formato no soportado para preview: {skyName} ({data.Length} bytes)";
+            previewInfo.Text = string.Format(LanguageService.GetString("SkyPicker.UnsupportedFormat"), skyName, data.Length);
             previewImage.Source = null;
             return;
         }

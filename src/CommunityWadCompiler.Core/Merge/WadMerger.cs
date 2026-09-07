@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Music;
 using CommunityWadCompiler.Core.Textures;
@@ -172,6 +173,7 @@ public sealed class WadMerger
             {
                 Report("Analizando texturas/flats usados por los mapas...");
                 usage = AnalyzeUsage(assignments);
+                UnionAnimationLumpUsage(inputs, resources, usage);
                 Report($"  - {usage.Walls.Count} texturas de pared y {usage.Flats.Count} flats detectados.");
             }
 
@@ -326,6 +328,36 @@ public sealed class WadMerger
         foreach (var a in assignments)
             used.UnionWith(MapTextureAnalyzer.Analyze(a.Map));
         return used;
+    }
+
+    /// <summary>
+    /// Expands the used set with the texture/flat names referenced by the ANIMDEFS/SWITCHES
+    /// lumps of the WADs (first source wins per lump), so the resource filter keeps animated
+    /// walls, switches, doors and animated flats the engine still processes at load time.
+    /// </summary>
+    private static void UnionAnimationLumpUsage(
+        IEnumerable<WadFile> inputs,
+        IEnumerable<WadFile> resources,
+        UsedTextures usage)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var wad in inputs.Concat<WadFile>(resources))
+        {
+            foreach (string lumpName in new[] { "ANIMDEFS", "SWITCHES" })
+            {
+                if (wad.FindFirst(lumpName) is not Lump lump)
+                    continue;
+                string text = System.Text.Encoding.ASCII.GetString(lump.ReadAll());
+                foreach (Match match in Regex.Matches(text, "[A-Za-z][A-Za-z0-9_]{0,7}"))
+                    names.Add(match.Value.ToUpperInvariant());
+            }
+        }
+
+        if (names.Count == 0)
+            return;
+
+        usage.Walls.UnionWith(names);
+        usage.Flats.UnionWith(names);
     }
 
     // ------------------------------------------------------------------

@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CommunityWadCompiler.App.ViewModels"
         x:Class="CommunityWadCompiler.App.Views.MusicPickerWindow"
-        Title="Seleccionar música"
+        Title="{DynamicResource MusicPicker.Title}"
         Width="520" Height="440"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
@@ -10,14 +10,14 @@
   <DockPanel Margin="12">
 
     <TextBlock DockPanel.Dock="Top"
-               Text="Elegí la música del slot o cargá un archivo externo (MIDI/MOD/IT)."
+               Text="{DynamicResource MusicPicker.Hint}"
                TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8"/>
 
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-      <Button Content="Cargar archivo externo..." Click="OnPickExternal" MinWidth="160"/>
-      <Button Content="Aceptar" IsDefault="True" Click="OnAccept" MinWidth="90"/>
-      <Button Content="Cancelar" IsCancel="True" Click="OnCancel" MinWidth="90"/>
+      <Button Content="{DynamicResource MusicPicker.LoadExternal}" Click="OnPickExternal" MinWidth="160"/>
+      <Button Content="{DynamicResource Accept}" IsDefault="True" Click="OnAccept" MinWidth="90"/>
+      <Button Content="{DynamicResource Cancel}" IsCancel="True" Click="OnCancel" MinWidth="90"/>
     </StackPanel>
 
     <ListBox x:Name="MusicList"

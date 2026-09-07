@@ -13,19 +13,24 @@
   <DockPanel>
 
     <Menu DockPanel.Dock="Top">
-      <MenuItem Header="Archivo">
-        <MenuItem Header="Nuevo proyecto" Click="OnNewProject"/>
+      <MenuItem Header="{DynamicResource Menu.File}">
+        <MenuItem Header="{DynamicResource Menu.NewProject}" Click="OnNewProject"/>
         <Separator/>
-        <MenuItem Header="Abrir proyecto..." Click="OnOpenProject"/>
-        <MenuItem Header="Guardar proyecto" Click="OnSaveProject"/>
-        <MenuItem Header="Guardar proyecto como..." Click="OnSaveProjectAs"/>
+        <MenuItem Header="{DynamicResource Menu.OpenProject}" Click="OnOpenProject"/>
+        <MenuItem Header="{DynamicResource Menu.SaveProject}" Click="OnSaveProject"/>
+        <MenuItem Header="{DynamicResource Menu.SaveProjectAs}" Click="OnSaveProjectAs"/>
         <Separator/>
-        <MenuItem Header="Configuración del proyecto..." Click="OnProjectSettings"/>
+        <MenuItem Header="{DynamicResource Menu.ProjectSettings}" Click="OnProjectSettings"/>
         <Separator/>
-        <MenuItem Header="Salir" Click="OnExit"/>
+        <MenuItem Header="{DynamicResource Menu.Language}">
+          <MenuItem Header="{DynamicResource Menu.Language.Español}" Click="OnLanguageSpanish"/>
+          <MenuItem Header="{DynamicResource Menu.Language.English}" Click="OnLanguageEnglish"/>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{DynamicResource Menu.Exit}" Click="OnExit"/>
       </MenuItem>
-      <MenuItem Header="Ayuda">
-        <MenuItem Header="Acerca de..." Click="OnAbout"/>
+      <MenuItem Header="{DynamicResource Menu.Help}">
+        <MenuItem Header="{DynamicResource Menu.About}" Click="OnAbout"/>
       </MenuItem>
     </Menu>
 
@@ -33,12 +38,12 @@
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="8,4,8,8">
       <Button Grid.Column="0" Content="..." Click="OnBrowseOutput" MinWidth="36"
               VerticalAlignment="Center"/>
-      <TextBlock Grid.Column="1" Text="Salida:" VerticalAlignment="Center" Margin="6,0,6,0"/>
+      <TextBlock Grid.Column="1" Text="{DynamicResource Output.Label}" VerticalAlignment="Center" Margin="6,0,6,0"/>
       <TextBox Grid.Column="2" Text="{Binding OutputPath, Mode=TwoWay}"
-               Watermark="Ruta del .wad compilado (ej. megawad.wad)" VerticalAlignment="Center"/>
+               Watermark="{DynamicResource Output.Watermark}" VerticalAlignment="Center"/>
       <ProgressBar Grid.Column="3" Width="220" Height="18" IsIndeterminate="True"
                    IsVisible="{Binding IsBusy}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-      <Button Grid.Column="4" HorizontalAlignment="Right" Content="Compilar"
+      <Button Grid.Column="4" HorizontalAlignment="Right" Content="{DynamicResource Compile}"
               IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0"/>
     </Grid>
 
@@ -46,14 +51,14 @@
 
       <!-- Left: input WADs -->
       <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-        <TextBlock DockPanel.Dock="Top" Text="WADs aportados (mapas)" FontWeight="Bold" Margin="0,0,0,2"/>
-        <TextBlock DockPanel.Dock="Top" Text="Elegí un mapa (dropdown si hay varios) y arrastralo a un slot de la planilla."
+        <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Title}" FontWeight="Bold" Margin="0,0,0,2"/>
+        <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Hint}"
                    Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
-          <Button Content="Agregar WADs..." Click="OnAddWads"/>
-          <Button Content="Quitar" Click="OnRemoveWad"/>
-          <Button Content="Subir" Click="OnMoveUp"/>
-          <Button Content="Bajar" Click="OnMoveDown"/>
+          <Button Content="{DynamicResource Input.AddWads}" Click="OnAddWads"/>
+          <Button Content="{DynamicResource Input.Remove}" Click="OnRemoveWad"/>
+          <Button Content="{DynamicResource Input.MoveUp}" Click="OnMoveUp"/>
+          <Button Content="{DynamicResource Input.MoveDown}" Click="OnMoveDown"/>
         </StackPanel>
         <ListBox ItemsSource="{Binding InputWads}"
                  SelectedItem="{Binding SelectedWad, Mode=TwoWay}"
@@ -97,15 +102,15 @@
                   <ColumnDefinition Width="100"/>
                   <ColumnDefinition Width="150"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="6" Text="Sky" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="2" Text="{DynamicResource Header.OriginalMap}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="3" Text="{DynamicResource Header.LevelName}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="4" Text="{DynamicResource Header.Status}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="5" Text="{DynamicResource Header.LastModified}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="6" Text="{DynamicResource Header.Music}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="6" Text="{DynamicResource Header.Sky}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="7" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
               </Grid>
               <!-- Rows -->
               <ItemsControl ItemsSource="{Binding SlotRows}"
@@ -133,7 +138,7 @@
                         </Grid.ColumnDefinitions>
                         <Grid.ContextMenu>
                           <ContextMenu>
-                            <MenuItem Header="Borrar todos los campos" Click="OnClearSlotFields"/>
+                            <MenuItem Header="{DynamicResource Row.ClearFields}" Click="OnClearSlotFields"/>
                           </ContextMenu>
                         </Grid.ContextMenu>
                         <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
@@ -182,7 +187,7 @@
 
       <!-- Log -->
       <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" RowDefinitions="Auto,*">
-        <TextBlock Text="Registro" FontWeight="Bold" Margin="0,4,0,4"/>
+        <TextBlock Text="{DynamicResource Log.Title}" FontWeight="Bold" Margin="0,4,0,4"/>
         <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
                  IsReadOnly="True" TextWrapping="Wrap"
                  AcceptsReturn="True" FontFamily="Consolas, Courier New"

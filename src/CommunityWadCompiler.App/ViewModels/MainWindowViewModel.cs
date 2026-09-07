@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using CommunityWadCompiler.App.Models;
+using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.Core;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Merge;
@@ -119,12 +120,12 @@ private int _slotCount = 32;
         {
             string name = ProjectName.Trim();
             string v = VersionPrefix.Trim();
-            string slots = SlotCount > 0 ? $" · {SlotCount} slots" : "";
+            string slots = SlotCount > 0 ? string.Format(LanguageService.GetString("Header.SlotsSuffix"), SlotCount) : "";
             if (name.Length == 0 && v.Length == 0 && slots.Length == 0)
-                return "Mapas y slots finales (editable)";
+                return LanguageService.GetString("Header.EmptyTitle");
             string suffix = v.Length > 0 ? $"{v}.xxxxxx" : $"v{CompilerInfo.Version}.xxxxxx";
             string body = name.Length > 0 ? $"{name} — {suffix}" : suffix;
-            return $"{body}{slots} (editable)";
+            return $"{body}{slots}{LanguageService.GetString("Header.EditableSuffix")}";
         }
     }
 
@@ -282,7 +283,7 @@ private int _slotCount = 32;
                 {
                     Path = path,
                     WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
-                    Kind = "recursos",
+                    IsResource = true,
                 });
             }
             catch (WadException ex)
@@ -407,7 +408,7 @@ private int _slotCount = 32;
         SlotRows[index] = new SlotRowViewModel(null, null, false) { MusicOptions = AvailableMusicLumps };
         RenumberSlotsByPosition();
         if (hadMap)
-            AppendLog($"[INFO] Slot {SlotRows[index].SlotName} borrado.");
+            AppendLog(string.Format(LanguageService.GetString("Log.SlotCleared"), SlotRows[index].SlotName));
     }
 
     /// <summary>Assigns a map (from an input WAD) to the slot at <paramref name="index"/>.
@@ -428,8 +429,8 @@ private int _slotCount = 32;
         RenumberSlotsByPosition();
         string slot = SlotRows[index].SlotName;
         AppendLog(replaced
-            ? $"[INFO] '{map.OriginalName}' de '{source.FileName}' reemplazó el mapa de slot {slot}"
-            : $"[INFO] '{map.OriginalName}' de '{source.FileName}' → slot {slot}");
+            ? string.Format(LanguageService.GetString("Log.MapReplaced"), map.OriginalName, source.FileName, slot)
+            : string.Format(LanguageService.GetString("Log.MapAssigned"), map.OriginalName, source.FileName, slot));
     }
 
     /// <summary>Renumbers every slot name by its row position (MAP01, MAP02, ...).
@@ -460,7 +461,7 @@ private int _slotCount = 32;
         if (any)
         {
             RenumberSlotsByPosition();
-            AppendLog($"[INFO] Mapas del autor '{author}' eliminados de la planilla.");
+            AppendLog(string.Format(LanguageService.GetString("Log.MapsByAuthorRemoved"), author));
         }
     }
 
@@ -502,7 +503,7 @@ private int _slotCount = 32;
 
 
             if (renames.Count > 0)
-                AppendLog($"[INFO] Música renombrada por nombre duplicado: {string.Join("; ", renames)}");
+                AppendLog(string.Format(LanguageService.GetString("Log.MusicRenamed"), string.Join("; ", renames)));
         }
         finally
         {
@@ -595,11 +596,17 @@ private int _slotCount = 32;
     }
 
     /// <summary>Maps the selected music value to a lump name; the "no music" sentinel
-    /// (or an empty value) becomes <c>null</c>.</summary>
+    /// (either language) or an empty value becomes <c>null</c>.</summary>
     private static string? NormalizeMusic(string? value)
     {
         string v = value?.Trim() ?? "";
-        return v.Length == 0 || v == SlotRowViewModel.NoMusicOption ? null : v;
+        if (v.Length == 0)
+            return null;
+        if (v == SlotRowViewModel.NoMusicOption ||
+            v == LanguageService.GetString("NoMusic") ||
+            v == "Ninguna" || v == "None")
+            return null;
+        return v;
     }
 
     // ------------------------------------------------------------------
@@ -643,7 +650,7 @@ private int _slotCount = 32;
         string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(path, json);
         CurrentProjectPath = path;
-        AppendLog($"[INFO] Proyecto guardado en {path}");
+        AppendLog(string.Format(LanguageService.GetString("Log.ProjectSaved"), path));
     }
 
     public void LoadProject(string path)
@@ -652,7 +659,7 @@ private int _slotCount = 32;
         var data = JsonSerializer.Deserialize<ProjectFileData>(json);
         if (data is null)
         {
-            AppendLog($"[ERROR] No se pudo leer el proyecto {path}");
+            AppendLog(string.Format(LanguageService.GetString("Log.ProjectReadError"), path));
             return;
         }
 
@@ -708,7 +715,7 @@ private int _slotCount = 32;
 
         RebuildSlots();
 
-        AppendLog($"[INFO] Proyecto cargado desde {path}");
+        AppendLog(string.Format(LanguageService.GetString("Log.ProjectLoaded"), path));
         CurrentProjectPath = path;
     }
 
@@ -754,7 +761,7 @@ private int _slotCount = 32;
             {
                 Path = path,
                 WadTypeLabel = wad.WadType == WadType.IWad ? "IWAD" : "PWAD",
-                Kind = "recursos",
+                IsResource = true,
             });
         }
         catch (WadException ex)
@@ -774,13 +781,13 @@ private int _slotCount = 32;
 
         if (InputWads.Count == 0)
         {
-            AppendLog("[ERROR] Agregá al menos un WAD de entrada.");
+            AppendLog(LanguageService.GetString("Log.NeedInputWad"));
             return;
         }
 
         if (string.IsNullOrWhiteSpace(OutputPath))
         {
-            AppendLog("[ERROR] Definí la ruta de salida.");
+            AppendLog(LanguageService.GetString("Log.NeedOutputPath"));
             return;
         }
 
@@ -793,7 +800,7 @@ private int _slotCount = 32;
             string final = row.SlotName.Trim().ToUpperInvariant();
             if (string.IsNullOrEmpty(final))
             {
-                AppendLog($"[ERROR] El mapa '{row.OriginalName}' de '{row.WadPath}' no tiene slot final.");
+                AppendLog(string.Format(LanguageService.GetString("Log.NoSlot"), row.OriginalName, row.WadPath));
                 return;
             }
             if (!string.Equals(final, row.SlotName, StringComparison.OrdinalIgnoreCase))
@@ -835,7 +842,7 @@ private int _slotCount = 32;
         };
 
         IsBusy = true;
-        AppendLog("── Compilando ───────────────────────────────");
+        AppendLog(LanguageService.GetString("Log.Compiling"));
 
         var progress = new Progress<string>(AppendLog);
         try

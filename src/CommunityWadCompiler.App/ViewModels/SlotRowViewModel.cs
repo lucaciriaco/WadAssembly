@@ -6,8 +6,8 @@ using Avalonia.Media;
 /// to the slot) or empty (free slot placeholder). Empty rows are skipped when compiling.</summary>
 public sealed class SlotRowViewModel : ObservableObject
 {
-    /// <summary>Sentinel shown as the last entry of the music dropdown meaning "no music".</summary>
-    public const string NoMusicOption = "Ninguna";
+    /// <summary>Sentinel meaning "no music", resolved in the current UI language.</summary>
+    public static string NoMusicOption => CommunityWadCompiler.App.Services.LanguageService.GetString("NoMusic");
 
     /// <summary>Status options shown in the per-slot status dropdown.</summary>
     public static readonly string[] StatusOptions = { "TODO", "WIP", "DONE", "FIX" };
@@ -109,7 +109,7 @@ public sealed class SlotRowViewModel : ObservableObject
                 return NoMusicOption;
             return string.IsNullOrWhiteSpace(MusicExternalPath)
                 ? MusicName
-                : $"{MusicName}  [ext]";
+                : $"{MusicName}  {CommunityWadCompiler.App.Services.LanguageService.GetString("Music.ExtMark")}";
         }
     }
 

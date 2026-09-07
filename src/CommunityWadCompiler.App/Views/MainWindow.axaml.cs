@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
 
 namespace CommunityWadCompiler.App.Views;
@@ -39,7 +40,7 @@ public partial class MainWindow : Window
     {
         var files = await Storage.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Seleccionar WADs aportados",
+            Title = LanguageService.GetString("Dialog.PickInputWads"),
             AllowMultiple = true,
             FileTypeFilter = new[] { new FilePickerFileType("WAD files") { Patterns = new[] { "*.wad" } } },
         });
@@ -50,7 +51,7 @@ public partial class MainWindow : Window
     {
         var file = await Storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Guardar WAD compilado",
+            Title = LanguageService.GetString("Dialog.SaveOutputWad"),
             SuggestedFileName = "megawad.wad",
             DefaultExtension = "wad",
             FileTypeChoices = new[] { new FilePickerFileType("WAD files") { Patterns = new[] { "*.wad" } } },
@@ -60,12 +61,12 @@ public partial class MainWindow : Window
 
     private async Task<string?> PickProjectFileAsync(bool open)
     {
-        var filter = new[] { new FilePickerFileType("Proyecto Community Wad") { Patterns = new[] { "*.json" } } };
+        var filter = new[] { new FilePickerFileType(LanguageService.GetString("Dialog.ProjectFilter")) { Patterns = new[] { "*.json" } } };
         if (open)
         {
             var files = await Storage.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Abrir proyecto",
+                Title = LanguageService.GetString("Dialog.OpenProject"),
                 AllowMultiple = false,
                 FileTypeFilter = filter,
             });
@@ -74,8 +75,8 @@ public partial class MainWindow : Window
 
         var file = await Storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Guardar proyecto",
-            SuggestedFileName = "proyecto.json",
+            Title = LanguageService.GetString("Dialog.SaveProject"),
+            SuggestedFileName = LanguageService.GetString("Dialog.SuggestedProjectName"),
             DefaultExtension = "json",
             FileTypeChoices = filter,
         });
@@ -372,23 +373,24 @@ public partial class MainWindow : Window
 
     private void OnExit(object? sender, RoutedEventArgs e) => Close();
 
+    private void OnLanguageSpanish(object? sender, RoutedEventArgs e) => LanguageService.SetLanguage(LanguageService.Spanish);
+
+    private void OnLanguageEnglish(object? sender, RoutedEventArgs e) => LanguageService.SetLanguage(LanguageService.English);
+
     private void OnAbout(object? sender, RoutedEventArgs e)
     {
         var about = new Window
         {
-            Title = "Acerca de",
+            Title = LanguageService.GetString("Dialog.About"),
             Width = 420,
             Height = 220,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
             Content = new TextBlock
             {
                 Margin = new Thickness(16),
                 TextWrapping = TextWrapping.Wrap,
-                Text = "Community Wad Compiler\n\n" +
-                       "Compila WADs de varios autores en un único PWAD.\n" +
-                       "Soporta mapas Doom clásico y UDMF, fusión de TEXTURE1/PNAMES\n" +
-                       "y deduplicación de recursos.\n\n" +
-                       "Estructura: librería CommunityWadCompiler.Core + UI Avalonia.",
+                Text = LanguageService.GetString("Dialog.AboutText"),
             },
         };
         about.ShowDialog(this);
