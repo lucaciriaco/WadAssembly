@@ -49,4 +49,7 @@ public sealed class WadEntryViewModel : ObservableObject
             return string.Format(LanguageService.GetString("Wad.DisplayFormat"), FileName, WadTypeLabel, kind, detail);
         }
     }
+
+    /// <summary>Raises property-changed for the localized <see cref="Display"/> after a language switch.</summary>
+    internal void RefreshLocalizedText() => OnPropertyChanged(nameof(Display));
 }

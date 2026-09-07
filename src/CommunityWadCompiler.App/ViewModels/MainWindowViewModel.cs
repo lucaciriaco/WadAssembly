@@ -34,10 +34,39 @@ private int _slotCount = 32;
 
         public MainWindowViewModel()
         {
+            LanguageService.LanguageChanged += OnLanguageChanged;
             // Start with placeholder rows so the sheet is visible before any WAD is loaded.
             for (int i = 0; i < _slotCount; i++)
                 SlotRows.Add(new(null, null, false));
             RenumberSlotsByPosition();
+        }
+
+        /// <summary>Refreshes every computed, language-dependent string when the UI language
+        /// changes. {DynamicResource} bindings refresh by themselves; these are strings
+        /// built in code, so their property-changed events must be raised manually.</summary>
+        private void OnLanguageChanged(object? sender, EventArgs e)
+        {
+            foreach (var wad in InputWads)
+                wad.RefreshLocalizedText();
+            foreach (var wad in ResourceWads)
+                wad.RefreshLocalizedText();
+            foreach (var row in SlotRows)
+                row.RefreshLocalizedText();
+            RefreshMusicSentinel();
+            OnPropertyChanged(nameof(MapsHeader));
+        }
+
+        /// <summary>Re-creates the shared "no music" sentinel so its name follows the new language.</summary>
+        private void RefreshMusicSentinel()
+        {
+            for (int i = 0; i < AvailableMusicLumps.Count; i++)
+            {
+                if (string.IsNullOrWhiteSpace(AvailableMusicLumps[i].WadPath))
+                {
+                    AvailableMusicLumps[i] = new MusicLumpInfo(SlotRowViewModel.NoMusicOption, "");
+                    return;
+                }
+            }
         }
 
         public ObservableCollection<WadEntryViewModel> InputWads { get; } = new();

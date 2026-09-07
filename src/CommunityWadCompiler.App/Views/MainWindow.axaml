@@ -20,14 +20,16 @@
         <MenuItem Header="{DynamicResource Menu.SaveProject}" Click="OnSaveProject"/>
         <MenuItem Header="{DynamicResource Menu.SaveProjectAs}" Click="OnSaveProjectAs"/>
         <Separator/>
+        <MenuItem Header="{DynamicResource Menu.Exit}" Click="OnExit"/>
+      </MenuItem>
+      <MenuItem Header="{DynamicResource Menu.Project}">
         <MenuItem Header="{DynamicResource Menu.ProjectSettings}" Click="OnProjectSettings"/>
-        <Separator/>
+      </MenuItem>
+      <MenuItem Header="{DynamicResource Menu.Configuration}">
         <MenuItem Header="{DynamicResource Menu.Language}">
           <MenuItem Header="{DynamicResource Menu.Language.Español}" Click="OnLanguageSpanish"/>
           <MenuItem Header="{DynamicResource Menu.Language.English}" Click="OnLanguageEnglish"/>
         </MenuItem>
-        <Separator/>
-        <MenuItem Header="{DynamicResource Menu.Exit}" Click="OnExit"/>
       </MenuItem>
       <MenuItem Header="{DynamicResource Menu.Help}">
         <MenuItem Header="{DynamicResource Menu.About}" Click="OnAbout"/>

@@ -139,6 +139,9 @@ public sealed class SlotRowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Raises property-changed for the localized <see cref="MusicDisplay"/> after a language switch.</summary>
+    internal void RefreshLocalizedText() => OnPropertyChanged(nameof(MusicDisplay));
+
     /// <summary>Background brush of the row: transparent normally, blue while this row is
     /// the highlighted drop target of a drag.</summary>
     public IBrush RowBackground => IsDropTarget ? DropHighlightBackground : NormalBackground;

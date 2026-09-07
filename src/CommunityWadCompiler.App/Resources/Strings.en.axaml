@@ -10,6 +10,8 @@
   <sys:String x:Key="Menu.SaveProject">Save project</sys:String>
   <sys:String x:Key="Menu.SaveProjectAs">Save project as...</sys:String>
   <sys:String x:Key="Menu.ProjectSettings">Project settings...</sys:String>
+  <sys:String x:Key="Menu.Project">Project</sys:String>
+  <sys:String x:Key="Menu.Configuration">Configuration</sys:String>
   <sys:String x:Key="Menu.Language">Language</sys:String>
   <sys:String x:Key="Menu.Language.Español">Español</sys:String>
   <sys:String x:Key="Menu.Language.English">English</sys:String>
