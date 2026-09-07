@@ -8,6 +8,8 @@
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen">
 
+  
+
   <DockPanel>
 
     <Menu DockPanel.Dock="Top">
@@ -78,22 +80,33 @@
       <DockPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
         <TextBlock DockPanel.Dock="Top" Text="{Binding MapsHeader}"
                    FontWeight="Bold" Margin="0,0,0,4"/>
-        <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
+<Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
-            <StackPanel>
+<StackPanel>
               <!-- Header: scrolls horizontally WITH the rows -->
-<Grid ColumnDefinitions="90,140,100,170,100,160,130,100,150" Margin="0,0,0,2">
-          <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold"/>
-          <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold"/>
-          <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold"/>
-          <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold"/>
-          <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold"/>
-          <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold"/>
-          <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold"/>
-          <TextBlock Grid.Column="7" Text="Sky" FontWeight="Bold"/>
-          <TextBlock Grid.Column="8" Text="Autor" FontWeight="Bold"/>
-        </Grid>
+              <Grid x:Name="HeaderGrid" Margin="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="90"/>
+                  <ColumnDefinition Width="140"/>
+                  <ColumnDefinition Width="100"/>
+                  <ColumnDefinition Width="170"/>
+                  <ColumnDefinition Width="100"/>
+                  <ColumnDefinition Width="160"/>
+                  <ColumnDefinition Width="130"/>
+                  <ColumnDefinition Width="100"/>
+                  <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Slot" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="1" Text="WAD" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="2" Text="Mapa original" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="3" Text="Nombre del mapa" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="4" Text="Estado" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="5" Text="Última modificación" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="6" Text="Música" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="6" Text="Sky" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Grid.Column="7" Text="Autor" FontWeight="Bold" Margin="4,0,4,0"/>
+              </Grid>
               <!-- Rows -->
               <ItemsControl ItemsSource="{Binding SlotRows}"
                         input:DragDrop.AllowDrop="True"
@@ -102,43 +115,66 @@
                         input:DragDrop.Drop="OnSlotDrop">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Grid ColumnDefinitions="90,140,100,170,100,160,130,100,150" Margin="2,3"
+                    <Grid Margin="2,3"
                             Background="{Binding RowBackground}" Cursor="Hand"
                             PointerPressed="OnSlotPointerPressed"
                             PointerMoved="OnSlotPointerMoved"
                             PointerReleased="OnSlotPointerReleased">
-                    <Grid.ContextMenu>
-                      <ContextMenu>
-                        <MenuItem Header="Borrar todos los campos" Click="OnClearSlotFields"/>
-                      </ContextMenu>
-                    </Grid.ContextMenu>
-                    <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
-                             MinWidth="60" VerticalContentAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="{Binding WadFileName}"
-                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBlock Grid.Column="2" Text="{Binding OriginalName}"
-                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBox Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
-                             MinWidth="110" VerticalContentAlignment="Center"/>
-                    <ComboBox Grid.Column="4"
-                              ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
-                              SelectedItem="{Binding Status, Mode=TwoWay}"
-                              VerticalAlignment="Center" MinWidth="80"
-                              MaxDropDownHeight="220"/>
-                    <TextBlock Grid.Column="5" Text="{Binding LastModified}"
-                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <Button Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
-                        Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                        Click="OnPickMusic"/>
-                    <Button Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
-                        Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                        Click="OnPickSky"/>
-                    <TextBox Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
-                             MinWidth="120" VerticalContentAlignment="Center"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="90"/>
+                          <ColumnDefinition Width="140"/>
+                          <ColumnDefinition Width="100"/>
+                          <ColumnDefinition Width="170"/>
+                          <ColumnDefinition Width="100"/>
+                          <ColumnDefinition Width="160"/>
+                          <ColumnDefinition Width="130"/>
+                          <ColumnDefinition Width="100"/>
+                          <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="Borrar todos los campos" Click="OnClearSlotFields"/>
+                          </ContextMenu>
+                        </Grid.ContextMenu>
+                        <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
+                                 MinWidth="60" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding WadFileName}"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="4,0,4,0"/>
+                        <TextBlock Grid.Column="2" Text="{Binding OriginalName}"
+                                   VerticalAlignment="Center" Margin="4,0,4,0"/>
+                        <TextBox Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
+                                 MinWidth="110" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
+                        <ComboBox Grid.Column="4"
+                                  ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
+                                  SelectedItem="{Binding Status, Mode=TwoWay}"
+                                  VerticalAlignment="Center"
+                                  MaxDropDownHeight="220"
+                                  HorizontalContentAlignment="Stretch"
+                                  HorizontalAlignment="Stretch">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="12" Height="12" CornerRadius="6" Margin="0,0,4,0"
+                                        Background="{Binding Converter={x:Static vm:StatusToColorConverter.Instance}}"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                              </StackPanel>
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                          </ComboBox>
+                        <TextBlock Grid.Column="5" Text="{Binding LastModified}"
+                                   VerticalAlignment="Center" Margin="4,0,4,0"/>
+                        <Button Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
+                            Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                            Click="OnPickMusic" Margin="4,0,4,0"/>
+                        <Button Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
+                            Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                            Click="OnPickSky" Margin="4,0,4,0"/>
+                        <TextBox Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
+                                 MinWidth="120" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
+                      </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
             </StackPanel>
           </ScrollViewer>
         </Border>
