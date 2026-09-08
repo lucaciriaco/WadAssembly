@@ -19,6 +19,7 @@ public partial class SkyPickerWindow : Window
 
     private readonly List<string> _allTextures;
     private MainWindowViewModel? _viewModel;
+    private byte[]? _palette;
 
     /// <summary>Required by the Avalonia runtime loader; use the parameterized constructor.</summary>
     public SkyPickerWindow()
@@ -51,7 +52,13 @@ public partial class SkyPickerWindow : Window
         UpdatePreview(currentSky);
     }
 
-    public void SetViewModel(MainWindowViewModel vm) => _viewModel = vm;
+    public void SetViewModel(MainWindowViewModel vm)
+    {
+        _viewModel = vm;
+        _palette = vm.TryGetPalette();
+        // Refresh the initial preview now that the palette/model is available.
+        UpdatePreview(SelectedSkyName);
+    }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
@@ -108,7 +115,7 @@ public partial class SkyPickerWindow : Window
             return;
         }
 
-        var bitmap = TexturePreviewDecoder.Decode(data, skyName);
+        var bitmap = TexturePreviewDecoder.Decode(data, skyName, _palette);
         if (bitmap is null)
         {
             previewInfo.Text = string.Format(LanguageService.GetString("SkyPicker.UnsupportedFormat"), skyName, data.Length);

@@ -570,6 +570,28 @@ private int _slotCount = 32;
         return null;
     }
 
+    /// <summary>Finds the first PLAYPAL lump (256 RGB entries) in the resource WADs so the
+    /// texture preview can use the palette the user actually plays with. Returns null when
+    /// no resource WAD provides a PLAYPAL; callers fall back to the standard Doom palette.</summary>
+    public byte[]? TryGetPalette()
+    {
+        foreach (var wadEntry in ResourceWads)
+        {
+            try
+            {
+                using var wad = WadFile.Open(wadEntry.Path);
+                var lump = wad.FindFirst("PLAYPAL");
+                if (lump is not null && lump.Size == 768)
+                    return lump.ReadAll();
+            }
+            catch (WadException)
+            {
+                // Ignore and try next WAD
+            }
+        }
+        return null;
+    }
+
     /// <summary>Collects all texture lump names from resource WADs that could be used as sky.
     /// Only texture lumps (patches and standalone texture graphics) are included: sprite
     /// (S_START..S_END), flat (F_START..F_END) and map lumps are filtered out.</summary>
