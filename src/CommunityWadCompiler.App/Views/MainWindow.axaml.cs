@@ -36,6 +36,9 @@ public partial class MainWindow : Window
     private int _headerDragId = -1;
     private Point _headerDragPressPoint;
 
+    private MenuItem? _viewColumnsMenu;
+    private List<MenuItem>? _viewColumnMenuItems;
+
     private readonly DispatcherTimer _configSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
 
     public MainWindow()
@@ -65,11 +68,11 @@ public partial class MainWindow : Window
             contextMenu.Opened += (_, _) => PopulateColumnMenu(contextMenu);
         }
 
-        var viewMenu = this.FindControl<MenuItem>("ViewColumnsMenu");
-        if (viewMenu is not null)
+        _viewColumnsMenu = this.FindControl<MenuItem>("ViewColumnsMenu");
+        if (_viewColumnsMenu is not null)
         {
-            PopulateColumnMenu(viewMenu);
-            LanguageService.LanguageChanged += (_, _) => PopulateColumnMenu(viewMenu);
+            PopulateColumnMenu(_viewColumnsMenu);
+            LanguageService.LanguageChanged += (_, _) => PopulateColumnMenu(_viewColumnsMenu);
         }
     }
 
@@ -336,6 +339,7 @@ public partial class MainWindow : Window
         _planColumns.ApplyTo(_planColumnWidths);
         ApplyColumnPositions();
         UpdateColumnVisuals();
+        UpdateViewColumnChecks();
     }
 
     /// <summary>Hides / shows the column with <paramref name="id"/> and persists it.
@@ -445,6 +449,7 @@ public partial class MainWindow : Window
                     MinWidth = 16,
                     TextAlignment = TextAlignment.Center,
                 },
+                Tag = column.Id,
             };
             int id = column.Id;
             item.Click += (_, _) => ToggleColumnVisibility(id);
@@ -454,7 +459,26 @@ public partial class MainWindow : Window
     }
 
     private void PopulateColumnMenu(ItemsControl menu)
-        => menu.ItemsSource = CreateColumnMenuItems();
+    {
+        var items = CreateColumnMenuItems();
+        menu.ItemsSource = items;
+        if (ReferenceEquals(menu, _viewColumnsMenu))
+            _viewColumnMenuItems = items;
+    }
+
+    /// <summary>Mirrors the current visibility into the checkmark icons of the
+    /// Configuration → View submenu, so hiding a column (from anywhere) is reflected
+    /// when the menu is re-opened. Mutates the live items in place — no rebuild.</summary>
+    private void UpdateViewColumnChecks()
+    {
+        if (_viewColumnMenuItems is null)
+            return;
+        foreach (var item in _viewColumnMenuItems)
+        {
+            if (item.Tag is int id && item.Icon is TextBlock icon)
+                icon.Text = _planColumns.ColumnById(id)?.Visible == true ? "✓" : " ";
+        }
+    }
 
     private void OnClearSlotFields(object? sender, RoutedEventArgs e)
     {
