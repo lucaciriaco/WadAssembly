@@ -95,6 +95,16 @@
 <StackPanel>
               <!-- Header: scrolls horizontally WITH the rows -->
               <Grid x:Name="HeaderGrid" Margin="0,0,0,2">
+                <Grid.Styles>
+                  <Style Selector="Border.divider">
+                    <Setter Property="Width" Value="2"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                    <Setter Property="IsHitTestVisible" Value="False"/>
+                    <Setter Property="Opacity" Value="0.35"/>
+                    <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                  </Style>
+                </Grid.Styles>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="60"/>
                   <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
@@ -117,36 +127,44 @@
                 <TextBlock Grid.Column="7" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="2" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="3" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="4" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="5" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="6" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="7" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <GridSplitter Grid.Column="8" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
-                              Background="Transparent" Focusable="False"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <Border Grid.Column="1" Classes="divider"/>
+                <Border Grid.Column="2" Classes="divider"/>
+                <Border Grid.Column="3" Classes="divider"/>
+                <Border Grid.Column="4" Classes="divider"/>
+                <Border Grid.Column="5" Classes="divider"/>
+                <Border Grid.Column="6" Classes="divider"/>
+                <Border Grid.Column="7" Classes="divider"/>
+                <Border Grid.Column="8" Classes="divider"/>
               </Grid>
               <!-- Rows -->
               <ItemsControl ItemsSource="{Binding SlotRows}"
