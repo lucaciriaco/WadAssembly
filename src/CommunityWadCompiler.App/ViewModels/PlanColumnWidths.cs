@@ -32,4 +32,37 @@ public sealed class PlanColumnWidths : INotifyPropertyChanged
 
     private void OnPropertyChanged(string propertyName)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    /// <summary>Width of the physical column at <paramref name="index"/> (0..8).</summary>
+    public GridLength GetWidth(int index) => index switch
+    {
+        0 => C0,
+        1 => C1,
+        2 => C2,
+        3 => C3,
+        4 => C4,
+        5 => C5,
+        6 => C6,
+        7 => C7,
+        8 => C8,
+        _ => throw new ArgumentOutOfRangeException(nameof(index)),
+    };
+
+    /// <summary>Sets the width of the physical column at <paramref name="index"/> (0..8).</summary>
+    public void SetWidth(int index, GridLength value)
+    {
+        switch (index)
+        {
+            case 0: C0 = value; break;
+            case 1: C1 = value; break;
+            case 2: C2 = value; break;
+            case 3: C3 = value; break;
+            case 4: C4 = value; break;
+            case 5: C5 = value; break;
+            case 6: C6 = value; break;
+            case 7: C7 = value; break;
+            case 8: C8 = value; break;
+            default: throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
 }

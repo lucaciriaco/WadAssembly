@@ -94,7 +94,9 @@
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
 <StackPanel>
               <!-- Header: scrolls horizontally WITH the rows -->
-              <Grid x:Name="HeaderGrid" Margin="0,0,0,2">
+              <Grid x:Name="HeaderGrid" Margin="0,0,0,2" input:DragDrop.AllowDrop="True"
+                      input:DragDrop.DragOver="OnHeaderDragOver"
+                      input:DragDrop.Drop="OnHeaderDrop">
                 <Grid.Styles>
                   <Style Selector="Border.divider">
                     <Setter Property="Width" Value="2"/>
@@ -103,6 +105,9 @@
                     <Setter Property="IsHitTestVisible" Value="False"/>
                     <Setter Property="Opacity" Value="0.35"/>
                     <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                  </Style>
+                  <Style Selector="TextBlock">
+                    <Setter Property="Cursor" Value="SizeAll"/>
                   </Style>
                 </Grid.Styles>
                 <Grid.ColumnDefinitions>
@@ -116,15 +121,15 @@
                   <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
                   <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="120"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="2" Text="{DynamicResource Header.OriginalMap}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="3" Text="{DynamicResource Header.LevelName}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="4" Text="{DynamicResource Header.Status}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="5" Text="{DynamicResource Header.LastModified}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="6" Text="{DynamicResource Header.Music}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="6" Text="{DynamicResource Header.Sky}" FontWeight="Bold" Margin="4,0,4,0"/>
-                <TextBlock Grid.Column="7" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="0" Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="1" Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="2" Grid.Column="2" Text="{DynamicResource Header.OriginalMap}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="3" Grid.Column="3" Text="{DynamicResource Header.LevelName}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="4" Grid.Column="4" Text="{DynamicResource Header.Status}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="5" Grid.Column="5" Text="{DynamicResource Header.LastModified}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="6" Grid.Column="6" Text="{DynamicResource Header.Music}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="7" Grid.Column="7" Text="{DynamicResource Header.Sky}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="8" Grid.Column="8" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
                               Background="Transparent" Focusable="False" Cursor="SizeWestEast"
@@ -167,8 +172,8 @@
                 <Border Grid.Column="8" Classes="divider"/>
               </Grid>
               <!-- Rows -->
-              <ItemsControl ItemsSource="{Binding SlotRows}"
-                        input:DragDrop.AllowDrop="True"
+              <ItemsControl x:Name="RowsControl" ItemsSource="{Binding SlotRows}"
+                      input:DragDrop.AllowDrop="True"
                         input:DragDrop.DragOver="OnSlotDragOver"
                         input:DragDrop.DragLeave="OnSlotDragLeave"
                         input:DragDrop.Drop="OnSlotDrop">
@@ -195,15 +200,15 @@
                             <MenuItem Header="{DynamicResource Row.ClearFields}" Click="OnClearSlotFields"/>
                           </ContextMenu>
                         </Grid.ContextMenu>
-                        <TextBox Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
+                        <TextBox Tag="0" Grid.Column="0" Text="{Binding SlotName, Mode=TwoWay}"
                                  MinWidth="60" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
-                        <TextBlock Grid.Column="1" Text="{Binding WadFileName}"
+                        <TextBlock Tag="1" Grid.Column="1" Text="{Binding WadFileName}"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="4,0,4,0"/>
-                        <TextBlock Grid.Column="2" Text="{Binding OriginalName}"
+                        <TextBlock Tag="2" Grid.Column="2" Text="{Binding OriginalName}"
                                    VerticalAlignment="Center" Margin="4,0,4,0"/>
-                        <TextBox Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
+                        <TextBox Tag="3" Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
                                  MinWidth="110" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
-                        <ComboBox Grid.Column="4"
+                        <ComboBox Tag="4" Grid.Column="4"
                                   ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
                                   SelectedItem="{Binding Status, Mode=TwoWay}"
                                   VerticalAlignment="Center"
@@ -220,15 +225,15 @@
                             </DataTemplate>
                           </ComboBox.ItemTemplate>
                           </ComboBox>
-                        <TextBlock Grid.Column="5" Text="{Binding LastModified}"
+                        <TextBlock Tag="5" Grid.Column="5" Text="{Binding LastModified}"
                                    VerticalAlignment="Center" Margin="4,0,4,0"/>
-                        <Button Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
+                        <Button Tag="6" Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
                             Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                             Click="OnPickMusic" Margin="4,0,4,0"/>
-                        <Button Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
+                        <Button Tag="7" Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
                             Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                             Click="OnPickSky" Margin="4,0,4,0"/>
-                        <TextBox Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
+                        <TextBox Tag="8" Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
                                  MinWidth="120" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
                       </Grid>
                     </DataTemplate>

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -14,10 +15,12 @@ public partial class MainWindow : Window
 {
     private const string SlotRowFormat = "SlotRowSource";
     private const string MapSourceFormat = "MapSource";
+    private const string ColumnHeaderFormat = "ColumnHeaderSource";
 
     private readonly MainWindowViewModel _viewModel = new();
 
     private Grid _headerGrid = null!;
+    private ItemsControl _rowsControl = null!;
 
     private PlanColumnWidths? _planColumnWidths;
 
@@ -26,12 +29,25 @@ public partial class MainWindow : Window
     private WadEntryViewModel? _wadDragCandidate;
     private Point _wadDragPressPoint;
 
+    /// <summary>Column ids (0..8) currently shown at each physical position.</summary>
+    private int[] _columnOrder = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    private int _headerDragId = -1;
+    private Point _headerDragPressPoint;
+
     public MainWindow()
     {
         InitializeComponent();
         _headerGrid = this.FindControl<Grid>("HeaderGrid")!;
+        _rowsControl = this.FindControl<ItemsControl>("RowsControl")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
+
+        foreach (var header in _headerGrid.Children.OfType<TextBlock>())
+        {
+            header.PointerPressed += OnHeaderPointerPressed;
+            header.PointerMoved += OnHeaderPointerMoved;
+            header.PointerReleased += OnHeaderPointerReleased;
+        }
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -179,6 +195,122 @@ public partial class MainWindow : Window
         _planColumnWidths.C6 = definitions[6].Width;
         _planColumnWidths.C7 = definitions[7].Width;
         _planColumnWidths.C8 = definitions[8].Width;
+    }
+
+    // ------------------------------------------------------------------
+    // Header column reorder (drag a header cell to a new position)
+    // ------------------------------------------------------------------
+
+    private void OnHeaderPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+            return;
+
+        if (sender is TextBlock { Tag: string tag } && int.TryParse(tag, out int id))
+        {
+            _headerDragPressPoint = e.GetPosition((Visual)sender!);
+            _headerDragId = id;
+        }
+    }
+
+    private async void OnHeaderPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_headerDragId < 0)
+            return;
+        if (!e.GetCurrentPoint((Visual)sender!).Properties.IsLeftButtonPressed)
+        {
+            _headerDragId = -1;
+            return;
+        }
+
+        var delta = e.GetPosition((Visual)sender!) - _headerDragPressPoint;
+        if (delta.X * delta.X + delta.Y * delta.Y < 16)
+            return;
+
+        var data = new DataObject();
+        data.Set(ColumnHeaderFormat, _headerDragId);
+        _headerDragId = -1;
+        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+    }
+
+    private void OnHeaderPointerReleased(object? sender, PointerReleasedEventArgs e)
+        => _headerDragId = -1;
+
+    private void OnHeaderDragOver(object? sender, DragEventArgs e)
+        => e.DragEffects = e.Data.Contains(ColumnHeaderFormat) ? DragDropEffects.Move : DragDropEffects.None;
+
+    private void OnHeaderDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Get(ColumnHeaderFormat) is not int dragId)
+            return;
+
+        var point = e.GetPosition(_headerGrid);
+        ReorderColumns(dragId, ComputeHeaderDropIndex(point.X));
+        e.DragEffects = DragDropEffects.Move;
+    }
+
+    /// <summary>Insertion position: the column whose center is to the right of the pointer.</summary>
+    private int ComputeHeaderDropIndex(double x)
+    {
+        double running = 0;
+        for (int i = 0; i < _columnOrder.Length; i++)
+        {
+            double width = _headerGrid.ColumnDefinitions[i].ActualWidth;
+            if (x < running + width / 2)
+                return i;
+            running += width;
+        }
+        return _columnOrder.Length - 1;
+    }
+
+    /// <summary>Moves the column <paramref name="dragId"/> to physical position
+    /// <paramref name="target"/>. The width stored at each old position travels with
+    /// its column, then header cells and every slot row cell are re-positioned.</summary>
+    private void ReorderColumns(int dragId, int target)
+    {
+        if (_planColumnWidths is null)
+            return;
+        int from = Array.IndexOf(_columnOrder, dragId);
+        if (from < 0 || target < 0 || target >= _columnOrder.Length || from == target)
+            return;
+
+        var reordered = new List<int>(_columnOrder);
+        reordered.RemoveAt(from);
+        reordered.Insert(target, dragId);
+        var newOrder = reordered.ToArray();
+
+        var oldWidths = new GridLength[9];
+        for (int i = 0; i < 9; i++)
+            oldWidths[i] = _planColumnWidths.GetWidth(i);
+
+        for (int i = 0; i < 9; i++)
+            _planColumnWidths.SetWidth(i, oldWidths[Array.IndexOf(_columnOrder, newOrder[i])]);
+
+        _columnOrder = newOrder;
+        ApplyColumnPositions();
+    }
+
+    /// <summary>Re-positions the header cells and every slot row cell so each column
+    /// renders at its new physical position.</summary>
+    private void ApplyColumnPositions()
+    {
+        foreach (var child in _headerGrid.Children)
+        {
+            if (child is TextBlock { Tag: string tag } && int.TryParse(tag, out int id))
+                Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
+        }
+
+        for (int r = 0; r < _viewModel.SlotRows.Count; r++)
+        {
+            var container = _rowsControl.ContainerFromIndex(r);
+            if ((container as ContentPresenter)?.Child is not Grid rowGrid)
+                continue;
+            foreach (var child in rowGrid.Children)
+            {
+                if (child is Control { Tag: string tag } && int.TryParse(tag, out int id))
+                    Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
+            }
+        }
     }
 
     private void OnClearSlotFields(object? sender, RoutedEventArgs e)
