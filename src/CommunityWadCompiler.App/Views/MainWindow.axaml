@@ -32,6 +32,7 @@
           <MenuItem Header="{DynamicResource Menu.Language.Español}" Click="OnLanguageSpanish"/>
           <MenuItem Header="{DynamicResource Menu.Language.English}" Click="OnLanguageEnglish"/>
         </MenuItem>
+        <MenuItem Header="{DynamicResource Menu.View}" x:Name="ViewColumnsMenu"/>
       </MenuItem>
       <MenuItem Header="{DynamicResource Menu.Help}">
         <MenuItem Header="{DynamicResource Menu.About}" Click="OnAbout"/>
@@ -111,15 +112,15 @@
                   </Style>
                 </Grid.Styles>
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="60"/>
-                  <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
-                  <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
-                  <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
-                  <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                  <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                  <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
-                  <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                  <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="120"/>
+                  <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW0, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW1, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW2, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW3, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW4, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW5, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW6, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW7, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW8, Source={StaticResource PlanColWidths}}"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Tag="0" Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Tag="1" Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
@@ -186,15 +187,15 @@
                             PointerMoved="OnSlotPointerMoved"
                             PointerReleased="OnSlotPointerReleased">
                         <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="60"/>
-                          <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
-                          <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
-                          <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
-                          <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                          <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                          <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
-                          <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
-                          <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="120"/>
+                          <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW0, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW1, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW2, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW3, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW4, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW5, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW6, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW7, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW8, Source={StaticResource PlanColWidths}}"/>
                         </Grid.ColumnDefinitions>
                         <Grid.ContextMenu>
                           <ContextMenu>

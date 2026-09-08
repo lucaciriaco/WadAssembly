@@ -26,14 +26,13 @@ public partial class MainWindow : Window
     private ItemsControl _rowsControl = null!;
 
     private PlanColumnWidths? _planColumnWidths;
+    private readonly PlanColumnsViewModel _planColumns = new();
 
     private SlotRowViewModel? _dragCandidate;
     private Point _dragPressPoint;
     private WadEntryViewModel? _wadDragCandidate;
     private Point _wadDragPressPoint;
 
-    /// <summary>Column ids (0..8) currently shown at each physical position.</summary>
-    private int[] _columnOrder = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
     private int _headerDragId = -1;
     private Point _headerDragPressPoint;
 
@@ -47,23 +46,9 @@ public partial class MainWindow : Window
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
 
-        // Re-position the cells of rows created after startup (project load, new slots)
-        // so they match the saved / rearranged column order (see OnRowAttachedToVisualTree).
-
-        var settings = AppSettingsService.Load();
-        if (settings.ColumnWidths is { Length: 9 } widths && _planColumnWidths is not null)
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                if (widths[i] > 0)
-                    _planColumnWidths.SetWidth(i, new GridLength(widths[i]));
-            }
-        }
-        if (IsValidColumnOrder(settings.ColumnOrder))
-        {
-            _columnOrder = settings.ColumnOrder;
-            ApplyColumnPositions();
-        }
+        _planColumns.ColumnsChanged += ApplyColumnChanges;
+        _planColumns.LoadFrom(AppSettingsService.Load());
+        ApplyColumnChanges();
 
         _configSaveTimer.Tick += (_, _) => { _configSaveTimer.Stop(); SaveConfigNow(); };
         Closing += (_, _) => SaveConfigNow();
@@ -73,6 +58,18 @@ public partial class MainWindow : Window
             header.PointerPressed += OnHeaderPointerPressed;
             header.PointerMoved += OnHeaderPointerMoved;
             header.PointerReleased += OnHeaderPointerReleased;
+
+            // Right-click a header cell to show/hide any column (hidden ones included).
+            var contextMenu = new ContextMenu();
+            header.ContextMenu = contextMenu;
+            contextMenu.Opened += (_, _) => PopulateColumnMenu(contextMenu);
+        }
+
+        var viewMenu = this.FindControl<MenuItem>("ViewColumnsMenu");
+        if (viewMenu is not null)
+        {
+            PopulateColumnMenu(viewMenu);
+            LanguageService.LanguageChanged += (_, _) => PopulateColumnMenu(viewMenu);
         }
     }
 
@@ -203,7 +200,8 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
 
     /// <summary>GridSplitter in the header moved: mirror the header widths into the
-    /// shared <see cref="PlanColumnWidths"/> so every slot row stays aligned.</summary>
+    /// shared <see cref="PlanColumnWidths"/> so every slot row stays aligned, and keep
+    /// each visible column's width in the persisted column state.</summary>
     private void OnColumnResized(object? sender, VectorEventArgs e) => SyncColumnWidths();
 
     private void SyncColumnWidths()
@@ -212,24 +210,26 @@ public partial class MainWindow : Window
             return;
 
         var definitions = _headerGrid.ColumnDefinitions;
-        _planColumnWidths.C0 = definitions[0].Width;
-        _planColumnWidths.C1 = definitions[1].Width;
-        _planColumnWidths.C2 = definitions[2].Width;
-        _planColumnWidths.C3 = definitions[3].Width;
-        _planColumnWidths.C4 = definitions[4].Width;
-        _planColumnWidths.C5 = definitions[5].Width;
-        _planColumnWidths.C6 = definitions[6].Width;
-        _planColumnWidths.C7 = definitions[7].Width;
-        _planColumnWidths.C8 = definitions[8].Width;
+        for (int i = 0; i < 9; i++)
+        {
+            var column = _planColumns.ColumnAt(i);
+            if (column.Visible)
+            {
+                column.Width = definitions[i].Width.Value;
+                _planColumnWidths.SetWidth(i, definitions[i].Width);
+            }
+            else
+            {
+                // Hidden columns stay collapsed whatever the splitter tried to do.
+                _planColumnWidths.SetWidth(i, new GridLength(0));
+            }
+        }
         ScheduleConfigSave();
     }
 
     // ------------------------------------------------------------------
-    // Settings persistence (column widths + order, saved to the config JSON)
+    // Settings persistence (column widths + order + visibility, saved to the config JSON)
     // ------------------------------------------------------------------
-
-    private static bool IsValidColumnOrder(int[]? order)
-        => order is { Length: 9 } && order.Distinct().Count() == 9 && order.All(i => i is >= 0 and <= 8);
 
     /// <summary>Debounces the save while a splitter drag streams resize events.</summary>
     private void ScheduleConfigSave()
@@ -242,12 +242,8 @@ public partial class MainWindow : Window
     {
         if (_planColumnWidths is null)
             return;
-        var settings = new AppSettings
-        {
-            Language = LanguageService.CurrentLanguage,
-            ColumnWidths = Enumerable.Range(0, 9).Select(i => _planColumnWidths.GetWidth(i).Value).ToArray(),
-            ColumnOrder = _columnOrder.ToArray(),
-        };
+        var settings = new AppSettings { Language = LanguageService.CurrentLanguage };
+        _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
     }
 
@@ -307,56 +303,103 @@ public partial class MainWindow : Window
     private int ComputeHeaderDropIndex(double x)
     {
         double running = 0;
-        for (int i = 0; i < _columnOrder.Length; i++)
+        for (int i = 0; i < _planColumns.Columns.Count; i++)
         {
             double width = _headerGrid.ColumnDefinitions[i].ActualWidth;
             if (x < running + width / 2)
                 return i;
             running += width;
         }
-        return _columnOrder.Length - 1;
+        return _planColumns.Columns.Count - 1;
     }
 
     /// <summary>Moves the column <paramref name="dragId"/> to physical position
-    /// <paramref name="target"/>. The width stored at each old position travels with
-    /// its column, then header cells and every slot row cell are re-positioned.</summary>
+    /// <paramref name="target"/>. Each column keeps its own width, so the width follows
+    /// the column automatically; the change handler re-applies the physical grid and
+    /// re-positions header cells and every slot row cell.</summary>
     private void ReorderColumns(int dragId, int target)
+    {
+        int from = _planColumns.IndexOfId(dragId);
+        if (from < 0 || target < 0 || target >= _planColumns.Columns.Count || from == target)
+            return;
+
+        _planColumns.Move(from, target);
+        SaveConfigNow();
+    }
+
+    /// <summary>Re-applies everything derived from the column state: physical widths,
+    /// cell positions and hidden-column visuals.</summary>
+    private void ApplyColumnChanges()
     {
         if (_planColumnWidths is null)
             return;
-        int from = Array.IndexOf(_columnOrder, dragId);
-        if (from < 0 || target < 0 || target >= _columnOrder.Length || from == target)
-            return;
-
-        var reordered = new List<int>(_columnOrder);
-        reordered.RemoveAt(from);
-        reordered.Insert(target, dragId);
-        var newOrder = reordered.ToArray();
-
-        var oldWidths = new GridLength[9];
-        for (int i = 0; i < 9; i++)
-            oldWidths[i] = _planColumnWidths.GetWidth(i);
-
-        for (int i = 0; i < 9; i++)
-            _planColumnWidths.SetWidth(i, oldWidths[Array.IndexOf(_columnOrder, newOrder[i])]);
-
-        _columnOrder = newOrder;
+        _planColumns.ApplyTo(_planColumnWidths);
         ApplyColumnPositions();
+        UpdateColumnVisuals();
+    }
+
+    /// <summary>Hides / shows the column with <paramref name="id"/> and persists it.
+    /// Used by the header context menu and the Configuration → View menu.</summary>
+    private void ToggleColumnVisibility(int id)
+    {
+        var column = _planColumns.ColumnById(id);
+        if (column is null)
+            return;
+        column.Visible = !column.Visible;
         SaveConfigNow();
     }
 
     /// <summary>Re-positions the header cells and every slot row cell so each column
-    /// renders at its new physical position.</summary>
+    /// renders at its current physical position.</summary>
     private void ApplyColumnPositions()
     {
         foreach (var child in _headerGrid.Children)
         {
             if (child is TextBlock { Tag: string tag } && int.TryParse(tag, out int id))
-                Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
+            {
+                int pos = _planColumns.IndexOfId(id);
+                if (pos >= 0)
+                    Grid.SetColumn(child, pos);
+            }
         }
 
         for (int r = 0; r < _viewModel.SlotRows.Count; r++)
             LayoutRowCells(_rowsControl.ContainerFromIndex(r));
+    }
+
+    /// <summary>Collapses the cells of hidden columns (header + rows) and disables the
+    /// splitters that sit next to a hidden column, so a hidden slot cannot be stretched.</summary>
+    private void UpdateColumnVisuals()
+    {
+        foreach (var child in _headerGrid.Children)
+        {
+            switch (child)
+            {
+                case TextBlock { Tag: string tag } when int.TryParse(tag, out int id):
+                    child.IsVisible = _planColumns.ColumnById(id)?.Visible ?? true;
+                    break;
+
+                case GridSplitter splitter:
+                {
+                    int pos = Grid.GetColumn(splitter);
+                    if (pos is >= 1 and <= 8)
+                    {
+                        bool leftVisible = _planColumns.ColumnAt(pos - 1).Visible;
+                        bool rightVisible = _planColumns.ColumnAt(pos).Visible;
+                        splitter.IsEnabled = leftVisible && rightVisible;
+                    }
+                    break;
+                }
+
+                case Border border when border.Classes.Contains("divider"):
+                {
+                    int pos = Grid.GetColumn(border);
+                    if (pos is >= 1 and <= 8)
+                        border.IsVisible = _planColumns.ColumnAt(pos).Visible;
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>Called when a slot row is attached to the visual tree (initial and
@@ -377,9 +420,41 @@ public partial class MainWindow : Window
         foreach (var child in rowGrid.Children)
         {
             if (child is Control { Tag: string tag } && int.TryParse(tag, out int id))
-                Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
+            {
+                int pos = _planColumns.IndexOfId(id);
+                if (pos >= 0)
+                    Grid.SetColumn(child, pos);
+                child.IsVisible = _planColumns.ColumnById(id)?.Visible ?? true;
+            }
         }
     }
+
+    /// <summary>Builds one toggle item per column (checkmark = visible) for the header
+    /// context menu and the Configuration → View menu.</summary>
+    private List<MenuItem> CreateColumnMenuItems()
+    {
+        var items = new List<MenuItem>();
+        foreach (var column in _planColumns.Columns)
+        {
+            var item = new MenuItem
+            {
+                Header = column.Title,
+                Icon = new TextBlock
+                {
+                    Text = column.Visible ? "✓" : " ",
+                    MinWidth = 16,
+                    TextAlignment = TextAlignment.Center,
+                },
+            };
+            int id = column.Id;
+            item.Click += (_, _) => ToggleColumnVisibility(id);
+            items.Add(item);
+        }
+        return items;
+    }
+
+    private void PopulateColumnMenu(ItemsControl menu)
+        => menu.ItemsSource = CreateColumnMenuItems();
 
     private void OnClearSlotFields(object? sender, RoutedEventArgs e)
     {

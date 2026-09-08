@@ -16,4 +16,8 @@ public sealed class AppSettings
 
     /// <summary>Column ids (0..8) shown at each physical position.</summary>
     public int[] ColumnOrder { get; set; } = Array.Empty<int>();
+
+    /// <summary>Visibility of each physical column (9 values, true = shown). Follows
+    /// the columns when they are reordered.</summary>
+    public bool[] ColumnVisibility { get; set; } = Array.Empty<bool>();
 }

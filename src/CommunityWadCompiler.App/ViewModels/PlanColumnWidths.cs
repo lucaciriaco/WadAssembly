@@ -20,6 +20,18 @@ public sealed class PlanColumnWidths : INotifyPropertyChanged
     private GridLength _c7 = new(100);
     private GridLength _c8 = new(150);
 
+    public static readonly double[] DefaultMinWidths = { 60, 80, 80, 110, 90, 90, 110, 90, 120 };
+
+    private double _min0 = DefaultMinWidths[0];
+    private double _min1 = DefaultMinWidths[1];
+    private double _min2 = DefaultMinWidths[2];
+    private double _min3 = DefaultMinWidths[3];
+    private double _min4 = DefaultMinWidths[4];
+    private double _min5 = DefaultMinWidths[5];
+    private double _min6 = DefaultMinWidths[6];
+    private double _min7 = DefaultMinWidths[7];
+    private double _min8 = DefaultMinWidths[8];
+
     public GridLength C0 { get => _c0; set { _c0 = value; OnPropertyChanged(nameof(C0)); } }
     public GridLength C1 { get => _c1; set { _c1 = value; OnPropertyChanged(nameof(C1)); } }
     public GridLength C2 { get => _c2; set { _c2 = value; OnPropertyChanged(nameof(C2)); } }
@@ -29,6 +41,16 @@ public sealed class PlanColumnWidths : INotifyPropertyChanged
     public GridLength C6 { get => _c6; set { _c6 = value; OnPropertyChanged(nameof(C6)); } }
     public GridLength C7 { get => _c7; set { _c7 = value; OnPropertyChanged(nameof(C7)); } }
     public GridLength C8 { get => _c8; set { _c8 = value; OnPropertyChanged(nameof(C8)); } }
+
+    public double MinW0 { get => _min0; set { _min0 = value; OnPropertyChanged(nameof(MinW0)); } }
+    public double MinW1 { get => _min1; set { _min1 = value; OnPropertyChanged(nameof(MinW1)); } }
+    public double MinW2 { get => _min2; set { _min2 = value; OnPropertyChanged(nameof(MinW2)); } }
+    public double MinW3 { get => _min3; set { _min3 = value; OnPropertyChanged(nameof(MinW3)); } }
+    public double MinW4 { get => _min4; set { _min4 = value; OnPropertyChanged(nameof(MinW4)); } }
+    public double MinW5 { get => _min5; set { _min5 = value; OnPropertyChanged(nameof(MinW5)); } }
+    public double MinW6 { get => _min6; set { _min6 = value; OnPropertyChanged(nameof(MinW6)); } }
+    public double MinW7 { get => _min7; set { _min7 = value; OnPropertyChanged(nameof(MinW7)); } }
+    public double MinW8 { get => _min8; set { _min8 = value; OnPropertyChanged(nameof(MinW8)); } }
 
     private void OnPropertyChanged(string propertyName)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -62,6 +84,25 @@ public sealed class PlanColumnWidths : INotifyPropertyChanged
             case 6: C6 = value; break;
             case 7: C7 = value; break;
             case 8: C8 = value; break;
+            default: throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+
+    /// <summary>Sets the minimum width of the physical column at <paramref name="index"/>
+    /// (0..8). A value of 0 lets a hidden column collapse its slot entirely.</summary>
+    public void SetMin(int index, double value)
+    {
+        switch (index)
+        {
+            case 0: MinW0 = value; break;
+            case 1: MinW1 = value; break;
+            case 2: MinW2 = value; break;
+            case 3: MinW3 = value; break;
+            case 4: MinW4 = value; break;
+            case 5: MinW5 = value; break;
+            case 6: MinW6 = value; break;
+            case 7: MinW7 = value; break;
+            case 8: MinW8 = value; break;
             default: throw new ArgumentOutOfRangeException(nameof(index));
         }
     }

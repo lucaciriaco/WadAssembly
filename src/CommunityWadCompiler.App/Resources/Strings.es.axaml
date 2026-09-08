@@ -15,6 +15,7 @@
   <sys:String x:Key="Menu.Language">Idioma</sys:String>
   <sys:String x:Key="Menu.Language.Español">Español</sys:String>
   <sys:String x:Key="Menu.Language.English">English</sys:String>
+  <sys:String x:Key="Menu.View">Vista</sys:String>
   <sys:String x:Key="Menu.Exit">Salir</sys:String>
   <sys:String x:Key="Menu.Help">Ayuda</sys:String>
   <sys:String x:Key="Menu.About">Acerca de...</sys:String>
