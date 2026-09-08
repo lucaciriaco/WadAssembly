@@ -24,6 +24,11 @@
     <StreamGeometry x:Key="Icon.View">M12,9.0046246 C14.209139,9.0046246 16,10.7954856 16,13.0046246 C16,15.2137636 14.209139,17.0046246 12,17.0046246 C9.790861,17.0046246 8,15.2137636 8,13.0046246 C8,10.7954856 9.790861,9.0046246 12,9.0046246 Z M12,10.5046246 C10.6192881,10.5046246 9.5,11.6239127 9.5,13.0046246 C9.5,14.3853365 10.6192881,15.5046246 12,15.5046246 C13.3807119,15.5046246 14.5,14.3853365 14.5,13.0046246 C14.5,11.6239127 13.3807119,10.5046246 12,10.5046246 Z M12,5.5 C16.613512,5.5 20.5960869,8.65000641 21.7011157,13.0643865 C21.8017,13.4662019 21.557504,13.8734775 21.1556885,13.9740618 C20.7538731,14.0746462 20.3465976,13.8304502 20.2460132,13.4286347 C19.3071259,9.67795854 15.9213644,7 12,7 C8.07693257,7 4.69009765,9.68026417 3.75285786,13.4331499 C3.65249525,13.8350208 3.24535455,14.0794416 2.84348365,13.979079 C2.44161275,13.8787164 2.19719198,13.4715757 2.29755459,13.0697048 C3.4006459,8.65271806 7.38448293,5.5 12,5.5 Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.Help">M24 5.5C18.4796 5.5 14 9.97964 14 15.5C14 16.1904 14.5596 16.75 15.25 16.75C15.9404 16.75 16.5 16.1904 16.5 15.5C16.5 11.3604 19.8604 8 24 8C28.1396 8 31.5 11.3604 31.5 15.5C31.5 17.3754 31.0292 18.4403 30.3989 19.2446C29.889 19.8954 29.2935 20.3788 28.5509 20.9815C28.2472 21.2281 27.9187 21.4947 27.5615 21.8009C26.3916 22.8037 25.1534 24.0676 24.2301 26.0903C23.3147 28.0953 22.75 30.7533 22.75 34.5V34.75C22.75 35.4404 23.3096 36 24 36C24.6904 36 25.25 35.4404 25.25 34.75V34.5C25.25 30.9967 25.779 28.7172 26.5043 27.1285C27.2216 25.5574 28.1709 24.5713 29.1885 23.6991C29.4213 23.4995 29.6744 23.2943 29.9373 23.0811C30.7553 22.4179 31.669 21.6771 32.3667 20.7866C33.377 19.4972 34 17.8746 34 15.5C34 9.97964 29.5204 5.5 24 5.5Z M24 42C24.8284 42 25.5 41.3284 25.5 40.5C25.5 39.6716 24.8284 39 24 39C23.1716 39 22.5 39.6716 22.5 40.5C22.5 41.3284 23.1716 42 24 42Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.About">M14,2 C20.6274,2 26,7.37258 26,14 C26,20.6274 20.6274,26 14,26 C7.37258,26 2,20.6274 2,14 C2,7.37258 7.37258,2 14,2 Z M14,3.5 C8.20101,3.5 3.5,8.20101 3.5,14 C3.5,19.799 8.20101,24.5 14,24.5 C19.799,24.5 24.5,19.799 24.5,14 C24.5,8.20101 19.799,3.5 14,3.5 Z M14,11 C14.3796833,11 14.6934889,11.2821653 14.7431531,11.6482323 L14.75,11.75 L14.75,19.25 C14.75,19.6642 14.4142,20 14,20 C13.6203167,20 13.3065111,19.7178347 13.2568469,19.3517677 L13.25,19.25 L13.25,11.75 C13.25,11.3358 13.5858,11 14,11 Z M14,7 C14.5523,7 15,7.44772 15,8 C15,8.55228 14.5523,9 14,9 C13.4477,9 13,8.55228 13,8 C13,7.44772 13.4477,7 14,7 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Compile">M13.7501344,8.41212026 L38.1671892,21.1169293 C39.7594652,21.9454306 40.3786269,23.9078584 39.5501255,25.5001344 C39.2420737,26.0921715 38.7592263,26.5750189 38.1671892,26.8830707 L13.7501344,39.5878797 C12.1578584,40.4163811 10.1954306,39.7972194 9.36692926,38.2049434 C9.12586301,37.7416442 9,37.2270724 9,36.704809 L9,11.295191 C9,9.50026556 10.4550746,8.045191 12.25,8.045191 C12.6976544,8.045191 13.1396577,8.13766178 13.5485655,8.31589049 L13.7501344,8.41212026 Z M12.5961849,10.629867 L12.4856981,10.5831892 C12.4099075,10.5581 12.3303482,10.545191 12.25,10.545191 C11.8357864,10.545191 11.5,10.8809774 11.5,11.295191 L11.5,36.704809 C11.5,36.8253313 11.5290453,36.9440787 11.584676,37.0509939 C11.7758686,37.4184422 12.2287365,37.5613256 12.5961849,37.370133 L37.0132397,24.665324 C37.1498636,24.5942351 37.2612899,24.4828088 37.3323788,24.3461849 C37.5235714,23.9787365 37.380688,23.5258686 37.0132397,23.334676 L12.5961849,10.629867 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.AddWads">M14.5,13 L14.5,3.75378577 C14.5,3.33978577 14.164,3.00378577 13.75,3.00378577 C13.336,3.00378577 13,3.33978577 13,3.75378577 L13,13 L3.75387573,13 C3.33987573,13 3.00387573,13.336 3.00387573,13.75 C3.00387573,14.164 3.33987573,14.5 3.75387573,14.5 L13,14.5 L13,23.7523651 C13,24.1663651 13.336,24.5023651 13.75,24.5023651 C14.164,24.5023651 14.5,24.1663651 14.5,23.7523651 L14.5,14.5 L23.7498262,14.5030754 C24.1638262,14.5030754 24.4998262,14.1670754 24.4998262,13.7530754 C24.4998262,13.3390754 24.1638262,13.0030754 23.7498262,13.0030754 L14.5,13 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Remove">M24,7.25 C27.1017853,7.25 29.629937,9.70601719 29.7458479,12.7794443 L29.75,13 L37,13 C37.6903559,13 38.25,13.5596441 38.25,14.25 C38.25,14.8972087 37.7581253,15.4295339 37.1278052,15.4935464 L37,15.5 L35.909,15.5 L34.2058308,38.0698451 C34.0385226,40.2866784 32.1910211,42 29.9678833,42 L18.0321167,42 C15.8089789,42 13.9614774,40.2866784 13.7941692,38.0698451 L12.09,15.5 L11,15.5 C10.3527913,15.5 9.8204661,15.0081253 9.75645361,14.3778052 L9.75,14.25 C9.75,13.6027913 10.2418747,13.0704661 10.8721948,13.0064536 L11,13 L18.25,13 C18.25,9.82436269 20.8243627,7.25 24,7.25 Z M33.4021054,15.5 L14.5978946,15.5 L16.2870795,37.8817009 C16.3559711,38.7945146 17.116707,39.5 18.0321167,39.5 L29.9678833,39.5 C30.883293,39.5 31.6440289,38.7945146 31.7129205,37.8817009 L33.4021054,15.5 Z M27.25,20.75 C27.8972087,20.75 28.4295339,21.2418747 28.4935464,21.8721948 L28.5,22 L28.5,33 C28.5,33.6903559 27.9403559,34.25 27.25,34.25 C26.6027913,34.25 26.0704661,33.7581253 26.0064536,33.1278052 L26,33 L26,22 C26,21.3096441 26.5596441,20.75 27.25,20.75 Z M20.75,20.75 C21.3972087,20.75 21.9295339,21.2418747 21.9935464,21.8721948 L22,22 L22,33 C22,33.6903559 21.4403559,34.25 20.75,34.25 C20.1027913,34.25 19.5704661,33.7581253 19.5064536,33.1278052 L19.5,33 L19.5,22 C19.5,21.3096441 20.0596441,20.75 20.75,20.75 Z M24,9.75 C22.2669685,9.75 20.8507541,11.1064548 20.7551448,12.8155761 L20.75,13 L27.25,13 C27.25,11.2050746 25.7949254,9.75 24,9.75 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.MoveUp">M4.21157,12.7326 C3.9244,13.0312 3.93361,13.5059 4.23213,13.7931 C4.53064,14.0803 5.00543,14.0711 5.29259,13.7725 L13.2521,5.49831 L13.2521,24.2511 C13.2521,24.6653 13.5879,25.0011 14.0021,25.0011 C14.4163,25.0011 14.7521,24.6653 14.7521,24.2511 L14.7521,5.4993 L22.7106,13.7725 C22.9978,14.0711 23.4726,14.0803 23.7711,13.7931 C24.0696,13.5059 24.0788,13.0312 23.7916,12.7326 L14.7223,3.30466 C14.3289,2.89568 13.6743,2.89568 13.2809,3.30466 L4.21157,12.7326 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.MoveDown">M23.7916,15.2664 C24.0788,14.9679 24.0696,14.4931 23.7711,14.206 C23.4726,13.9188 22.9978,13.928 22.7106,14.2265 L14.7511,22.5007 L14.7511,3.74792 C14.7511,3.33371 14.4153,2.99792 14.0011,2.99792 C13.5869,2.99792 13.2511,3.33371 13.2511,3.74793 L13.2511,22.4998 L5.29259,14.2265 C5.00543,13.928 4.53064,13.9188 4.23213,14.206 C3.93361,14.4931 3.9244,14.9679 4.21157,15.2664 L13.2809,24.6944 C13.6743,25.1034 14.3289,25.1034 14.7223,24.6944 L23.7916,15.2664 Z</StreamGeometry>
   </Window.Resources>
 
   <DockPanel>
@@ -110,15 +115,24 @@
 
     <!-- Bottom bar: output path (browse button at the bottom-left corner), progress, compile -->
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="8,4,8,8">
-      <Button Grid.Column="0" Content="..." Click="OnBrowseOutput" MinWidth="36"
-              VerticalAlignment="Center"/>
+      <Button Grid.Column="0" Click="OnBrowseOutput" MinWidth="36"
+              VerticalAlignment="Center" ToolTip.Tip="{DynamicResource Output.Label}">
+        <Path Data="{StaticResource Icon.OpenProject}" Width="16" Height="16" Stretch="Uniform"
+              Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+      </Button>
       <TextBlock Grid.Column="1" Text="{DynamicResource Output.Label}" VerticalAlignment="Center" Margin="6,0,6,0"/>
       <TextBox Grid.Column="2" Text="{Binding OutputPath, Mode=TwoWay}"
                Watermark="{DynamicResource Output.Watermark}" VerticalAlignment="Center"/>
       <ProgressBar Grid.Column="3" Width="220" Height="18" IsIndeterminate="True"
                    IsVisible="{Binding IsBusy}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-      <Button Grid.Column="4" HorizontalAlignment="Right" Content="{DynamicResource Compile}"
-              IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0"/>
+      <Button Grid.Column="4" HorizontalAlignment="Right"
+              IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Path Data="{StaticResource Icon.Compile}" Width="16" Height="16" Stretch="Uniform"
+                Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="{DynamicResource Compile}" VerticalAlignment="Center"/>
+        </StackPanel>
+      </Button>
     </Grid>
 
     <Grid Margin="8" RowDefinitions="3*,*" ColumnDefinitions="*,2*">
@@ -128,12 +142,30 @@
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Title}" FontWeight="Bold" Margin="0,0,0,2"/>
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Hint}"
                    Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
-          <Button Content="{DynamicResource Input.AddWads}" Click="OnAddWads"/>
-          <Button Content="{DynamicResource Input.Remove}" Click="OnRemoveWad"/>
-          <Button Content="{DynamicResource Input.MoveUp}" Click="OnMoveUp"/>
-          <Button Content="{DynamicResource Input.MoveDown}" Click="OnMoveDown"/>
-        </StackPanel>
+        <WrapPanel DockPanel.Dock="Bottom" ItemSpacing="6" Margin="0,6,0,0">
+          <Button Click="OnAddWads">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Path Data="{StaticResource Icon.AddWads}" Width="16" Height="16" Stretch="Uniform"
+                    Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+              <TextBlock Text="{DynamicResource Input.AddWads}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <Button Click="OnRemoveWad">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Path Data="{StaticResource Icon.Remove}" Width="16" Height="16" Stretch="Uniform"
+                    Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+              <TextBlock Text="{DynamicResource Input.Remove}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <Button Click="OnMoveUp" ToolTip.Tip="{DynamicResource Input.MoveUp}">
+            <Path Data="{StaticResource Icon.MoveUp}" Width="16" Height="16" Stretch="Uniform"
+                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Margin="6,2"/>
+          </Button>
+          <Button Click="OnMoveDown" ToolTip.Tip="{DynamicResource Input.MoveDown}">
+            <Path Data="{StaticResource Icon.MoveDown}" Width="16" Height="16" Stretch="Uniform"
+                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Margin="6,2"/>
+          </Button>
+        </WrapPanel>
         <ListBox ItemsSource="{Binding InputWads}"
                  SelectedItem="{Binding SelectedWad, Mode=TwoWay}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
