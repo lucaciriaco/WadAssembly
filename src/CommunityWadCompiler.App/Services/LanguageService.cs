@@ -6,68 +6,53 @@ namespace CommunityWadCompiler.App.Services;
 
 /// <summary>
 /// Manages the UI language at runtime by swapping the merged application resource
-/// dictionary (es / en). The choice is persisted in the Windows registry and restored
-/// on startup. XAML binds to strings with {DynamicResource ...}, which re-resolve
-/// automatically when the dictionary is swapped.
+/// dictionary (es / en). The default language is English; the choice is persisted in
+/// the application settings JSON (migrated from the old registry value on first run).
+/// XAML binds to strings with {DynamicResource ...}, which re-resolve automatically
+/// when the dictionary is swapped.
 /// </summary>
 public static class LanguageService
 {
     public const string Spanish = "es";
     public const string English = "en";
 
-    private const string RegKey = @"HKEY_CURRENT_USER\Software\CommunityWadCompiler";
-    private const string RegValue = "Language";
+    private const string LegacyRegKey = @"HKEY_CURRENT_USER\Software\CommunityWadCompiler";
+    private const string LegacyRegValue = "Language";
 
-    private static string _current = Spanish;
+    private static string _current = English;
+    private static bool _loaded;
 
-    /// <summary>Current two-letter language code ("es" or "en").</summary>
+    /// <summary>Current two-letter language code ("en" or "es").</summary>
     public static string CurrentLanguage => _current;
 
     /// <summary>Raised after the UI language changes; views can refresh computed strings.</summary>
     public static event EventHandler? LanguageChanged;
 
-    /// <summary>Switches the UI language and persists the choice in the registry.</summary>
+    /// <summary>Switches the UI language and persists the choice in the settings JSON.</summary>
     public static void SetLanguage(string language)
     {
         string lang = Normalize(language);
-        if (lang == _current)
-            return;
-        _current = lang;
-        ReloadDictionaries(lang);
-        if (OperatingSystem.IsWindows())
+        if (!_loaded || lang != _current)
         {
-            try
-            {
-                Microsoft.Win32.Registry.SetValue(RegKey, RegValue, lang);
-            }
-            catch
-            {
-                // Registry writes may fail in restricted environments; the UI still works.
-            }
+            _current = lang;
+            ReloadDictionaries(lang);
+            SaveLanguage(lang);
+            LanguageChanged?.Invoke(null, EventArgs.Empty);
         }
-        LanguageChanged?.Invoke(null, EventArgs.Empty);
     }
 
     /// <summary>Restores the persisted language (if any). Call once before creating the main window.</summary>
     public static void LoadPersistedLanguage()
     {
-        string? saved = null;
-        if (OperatingSystem.IsWindows())
-        {
-            try
-            {
-                saved = Microsoft.Win32.Registry.GetValue(RegKey, RegValue, null) as string;
-            }
-            catch
-            {
-                // Fall back to the default language (es).
-            }
-        }
-        if (saved is Spanish or English)
-        {
-            _current = saved;
-            ReloadDictionaries(saved);
-        }
+        string? lang = NormalizeOrNull(AppSettingsService.Load().Language);
+        if (lang is null)
+            lang = ReadLegacyRegistryLanguage(); // migrate the pre-JSON choice into the config on first run
+        if (lang is not null)
+            _current = lang;
+
+        // Keep the backing dictionaries in sync with the default (English).
+        ReloadDictionaries(_current);
+        _loaded = true;
     }
 
     /// <summary>Looks up a localized string by key; returns the key itself if not found.</summary>
@@ -80,8 +65,32 @@ public static class LanguageService
         return key;
     }
 
+    private static void SaveLanguage(string language)
+    {
+        var settings = AppSettingsService.Load();
+        settings.Language = language;
+        AppSettingsService.Save(settings);
+    }
+
+    private static string? ReadLegacyRegistryLanguage()
+    {
+        if (!OperatingSystem.IsWindows())
+            return null;
+        try
+        {
+            return Microsoft.Win32.Registry.GetValue(LegacyRegKey, LegacyRegValue, null) as string;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static string Normalize(string language)
         => language == English ? English : Spanish;
+
+    private static string? NormalizeOrNull(string? language)
+        => language is English or Spanish ? language : null;
 
     private static void ReloadDictionaries(string language)
     {

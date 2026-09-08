@@ -181,6 +181,7 @@
                   <DataTemplate>
                     <Grid Margin="2,3"
                             Background="{Binding RowBackground}" Cursor="Hand"
+                            AttachedToVisualTree="OnRowAttachedToVisualTree"
                             PointerPressed="OnSlotPointerPressed"
                             PointerMoved="OnSlotPointerMoved"
                             PointerReleased="OnSlotPointerReleased">

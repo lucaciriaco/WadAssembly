@@ -6,6 +6,9 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using CommunityWadCompiler.App.Models;
 using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
 
@@ -34,6 +37,8 @@ public partial class MainWindow : Window
     private int _headerDragId = -1;
     private Point _headerDragPressPoint;
 
+    private readonly DispatcherTimer _configSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
+
     public MainWindow()
     {
         InitializeComponent();
@@ -41,6 +46,27 @@ public partial class MainWindow : Window
         _rowsControl = this.FindControl<ItemsControl>("RowsControl")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
+
+        // Re-position the cells of rows created after startup (project load, new slots)
+        // so they match the saved / rearranged column order (see OnRowAttachedToVisualTree).
+
+        var settings = AppSettingsService.Load();
+        if (settings.ColumnWidths is { Length: 9 } widths && _planColumnWidths is not null)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                if (widths[i] > 0)
+                    _planColumnWidths.SetWidth(i, new GridLength(widths[i]));
+            }
+        }
+        if (IsValidColumnOrder(settings.ColumnOrder))
+        {
+            _columnOrder = settings.ColumnOrder;
+            ApplyColumnPositions();
+        }
+
+        _configSaveTimer.Tick += (_, _) => { _configSaveTimer.Stop(); SaveConfigNow(); };
+        Closing += (_, _) => SaveConfigNow();
 
         foreach (var header in _headerGrid.Children.OfType<TextBlock>())
         {
@@ -195,6 +221,34 @@ public partial class MainWindow : Window
         _planColumnWidths.C6 = definitions[6].Width;
         _planColumnWidths.C7 = definitions[7].Width;
         _planColumnWidths.C8 = definitions[8].Width;
+        ScheduleConfigSave();
+    }
+
+    // ------------------------------------------------------------------
+    // Settings persistence (column widths + order, saved to the config JSON)
+    // ------------------------------------------------------------------
+
+    private static bool IsValidColumnOrder(int[]? order)
+        => order is { Length: 9 } && order.Distinct().Count() == 9 && order.All(i => i is >= 0 and <= 8);
+
+    /// <summary>Debounces the save while a splitter drag streams resize events.</summary>
+    private void ScheduleConfigSave()
+    {
+        _configSaveTimer.Stop();
+        _configSaveTimer.Start();
+    }
+
+    private void SaveConfigNow()
+    {
+        if (_planColumnWidths is null)
+            return;
+        var settings = new AppSettings
+        {
+            Language = LanguageService.CurrentLanguage,
+            ColumnWidths = Enumerable.Range(0, 9).Select(i => _planColumnWidths.GetWidth(i).Value).ToArray(),
+            ColumnOrder = _columnOrder.ToArray(),
+        };
+        AppSettingsService.Save(settings);
     }
 
     // ------------------------------------------------------------------
@@ -288,6 +342,7 @@ public partial class MainWindow : Window
 
         _columnOrder = newOrder;
         ApplyColumnPositions();
+        SaveConfigNow();
     }
 
     /// <summary>Re-positions the header cells and every slot row cell so each column
@@ -301,15 +356,28 @@ public partial class MainWindow : Window
         }
 
         for (int r = 0; r < _viewModel.SlotRows.Count; r++)
+            LayoutRowCells(_rowsControl.ContainerFromIndex(r));
+    }
+
+    /// <summary>Called when a slot row is attached to the visual tree (initial and
+    /// later-realized rows); places its cells at the current column order.</summary>
+    private void OnRowAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        => LayoutRowCells(sender as Control);
+
+    private void LayoutRowCells(Control? container)
+    {
+        Grid? rowGrid = container switch
         {
-            var container = _rowsControl.ContainerFromIndex(r);
-            if ((container as ContentPresenter)?.Child is not Grid rowGrid)
-                continue;
-            foreach (var child in rowGrid.Children)
-            {
-                if (child is Control { Tag: string tag } && int.TryParse(tag, out int id))
-                    Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
-            }
+            Grid grid => grid,
+            ContentPresenter { Child: Grid child } => child,
+            _ => null,
+        };
+        if (rowGrid is null)
+            return;
+        foreach (var child in rowGrid.Children)
+        {
+            if (child is Control { Tag: string tag } && int.TryParse(tag, out int id))
+                Grid.SetColumn(child, Array.IndexOf(_columnOrder, id));
         }
     }
 
