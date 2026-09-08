@@ -32,6 +32,8 @@
   <sys:String x:Key="Input.Remove">Remove</sys:String>
   <sys:String x:Key="Input.MoveUp">Move up</sys:String>
   <sys:String x:Key="Input.MoveDown">Move down</sys:String>
+  <sys:String x:Key="Input.Collapse">Collapse WAD list panel</sys:String>
+  <sys:String x:Key="Input.Expand">Expand WAD list panel</sys:String>
 
   <!-- ===== Sheet headers ===== -->
   <sys:String x:Key="Header.Slot">Slot</sys:String>

@@ -24,6 +24,11 @@ public partial class MainWindow : Window
 
     private Grid _headerGrid = null!;
     private ItemsControl _rowsControl = null!;
+    private Grid _layoutGrid = null!;
+    private Panel _leftPanel = null!;
+    private Button _hamburgerButton = null!;
+    private Avalonia.Controls.Shapes.Path _collapseIcon = null!;
+    private bool _leftPanelCollapsed;
 
     private PlanColumnWidths? _planColumnWidths;
     private readonly PlanColumnsViewModel _planColumns = new();
@@ -46,6 +51,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         _headerGrid = this.FindControl<Grid>("HeaderGrid")!;
         _rowsControl = this.FindControl<ItemsControl>("RowsControl")!;
+        _layoutGrid = this.FindControl<Grid>("LayoutGrid")!;
+        _leftPanel = this.FindControl<Panel>("LeftPanel")!;
+        _hamburgerButton = this.FindControl<Button>("HamburgerButton")!;
+        _collapseIcon = this.FindControl<Avalonia.Controls.Shapes.Path>("CollapseIcon")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
 
@@ -77,6 +86,23 @@ public partial class MainWindow : Window
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    /// <summary>Toggles the left "contributed WADs" panel: collapses it into the narrow
+    /// toggle strip, giving the full width to the maps/slots grid. The arrow points left
+    /// while collapsed (the panel rests on the left) and right when open.</summary>
+    private void OnToggleLeftPanel(object? sender, RoutedEventArgs e)
+    {
+        _leftPanelCollapsed = !_leftPanelCollapsed;
+        _leftPanel.IsVisible = !_leftPanelCollapsed;
+        _layoutGrid.ColumnDefinitions[1].Width = _leftPanelCollapsed
+            ? GridLength.Auto
+            : new GridLength(1, GridUnitType.Star);
+        _collapseIcon.Data = _leftPanelCollapsed
+            ? Resources["Icon.ArrowLeft"] as StreamGeometry
+            : Resources["Icon.ArrowRight"] as StreamGeometry;
+        ToolTip.SetTip(_hamburgerButton, LanguageService.GetString(
+            _leftPanelCollapsed ? "Input.Expand" : "Input.Collapse"));
+    }
 
     // ------------------------------------------------------------------
     // File dialogs

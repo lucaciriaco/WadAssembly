@@ -32,6 +32,8 @@
   <sys:String x:Key="Input.Remove">Quitar</sys:String>
   <sys:String x:Key="Input.MoveUp">Subir</sys:String>
   <sys:String x:Key="Input.MoveDown">Bajar</sys:String>
+  <sys:String x:Key="Input.Collapse">Colapsar el panel de WADs</sys:String>
+  <sys:String x:Key="Input.Expand">Expandir el panel de WADs</sys:String>
 
   <!-- ===== Encabezados de la planilla ===== -->
   <sys:String x:Key="Header.Slot">Slot</sys:String>
