@@ -8,7 +8,9 @@
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen">
 
-  
+  <Window.Resources>
+    <vm:PlanColumnWidths x:Key="PlanColWidths"/>
+  </Window.Resources>
 
   <DockPanel>
 
@@ -94,15 +96,15 @@
               <!-- Header: scrolls horizontally WITH the rows -->
               <Grid x:Name="HeaderGrid" Margin="0,0,0,2">
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="90"/>
-                  <ColumnDefinition Width="140"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="170"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="160"/>
-                  <ColumnDefinition Width="130"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="150"/>
+                  <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="60"/>
+                  <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
+                  <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
+                  <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
+                  <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                  <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                  <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
+                  <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                  <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="120"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
@@ -113,6 +115,38 @@
                 <TextBlock Grid.Column="6" Text="{DynamicResource Header.Music}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Grid.Column="6" Text="{DynamicResource Header.Sky}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Grid.Column="7" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="2" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="3" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="4" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="5" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="6" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="7" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="8" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
               </Grid>
               <!-- Rows -->
               <ItemsControl ItemsSource="{Binding SlotRows}"
@@ -128,15 +162,15 @@
                             PointerMoved="OnSlotPointerMoved"
                             PointerReleased="OnSlotPointerReleased">
                         <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="90"/>
-                          <ColumnDefinition Width="140"/>
-                          <ColumnDefinition Width="100"/>
-                          <ColumnDefinition Width="170"/>
-                          <ColumnDefinition Width="100"/>
-                          <ColumnDefinition Width="160"/>
-                          <ColumnDefinition Width="130"/>
-                          <ColumnDefinition Width="100"/>
-                          <ColumnDefinition Width="150"/>
+                          <ColumnDefinition Width="{Binding C0, Source={StaticResource PlanColWidths}}" MinWidth="60"/>
+                          <ColumnDefinition Width="{Binding C1, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
+                          <ColumnDefinition Width="{Binding C2, Source={StaticResource PlanColWidths}}" MinWidth="80"/>
+                          <ColumnDefinition Width="{Binding C3, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
+                          <ColumnDefinition Width="{Binding C4, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                          <ColumnDefinition Width="{Binding C5, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                          <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="110"/>
+                          <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="90"/>
+                          <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="120"/>
                         </Grid.ColumnDefinitions>
                         <Grid.ContextMenu>
                           <ContextMenu>

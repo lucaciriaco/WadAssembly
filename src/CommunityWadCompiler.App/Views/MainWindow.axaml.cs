@@ -17,6 +17,10 @@ public partial class MainWindow : Window
 
     private readonly MainWindowViewModel _viewModel = new();
 
+    private Grid _headerGrid = null!;
+
+    private PlanColumnWidths? _planColumnWidths;
+
     private SlotRowViewModel? _dragCandidate;
     private Point _dragPressPoint;
     private WadEntryViewModel? _wadDragCandidate;
@@ -25,6 +29,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _headerGrid = this.FindControl<Grid>("HeaderGrid")!;
+        _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
     }
 
@@ -149,6 +155,31 @@ public partial class MainWindow : Window
 
     private void OnSlotPointerReleased(object? sender, PointerReleasedEventArgs e)
         => _dragCandidate = null;
+
+    // ------------------------------------------------------------------
+    // Header column resizing (GridSplitter)
+    // ------------------------------------------------------------------
+
+    /// <summary>GridSplitter in the header moved: mirror the header widths into the
+    /// shared <see cref="PlanColumnWidths"/> so every slot row stays aligned.</summary>
+    private void OnColumnResized(object? sender, VectorEventArgs e) => SyncColumnWidths();
+
+    private void SyncColumnWidths()
+    {
+        if (_planColumnWidths is null)
+            return;
+
+        var definitions = _headerGrid.ColumnDefinitions;
+        _planColumnWidths.C0 = definitions[0].Width;
+        _planColumnWidths.C1 = definitions[1].Width;
+        _planColumnWidths.C2 = definitions[2].Width;
+        _planColumnWidths.C3 = definitions[3].Width;
+        _planColumnWidths.C4 = definitions[4].Width;
+        _planColumnWidths.C5 = definitions[5].Width;
+        _planColumnWidths.C6 = definitions[6].Width;
+        _planColumnWidths.C7 = definitions[7].Width;
+        _planColumnWidths.C8 = definitions[8].Width;
+    }
 
     private void OnClearSlotFields(object? sender, RoutedEventArgs e)
     {
