@@ -31,6 +31,8 @@ namespace CommunityWadCompiler.App.ViewModels;
 private int _slotCount = 32;
     private string? _currentProjectPath;
     private int? _dropTargetIndex;
+    private string _intermissionMusic = "";
+    private string _intermissionMusicExternalPath = "";
 
         public MainWindowViewModel()
         {
@@ -54,6 +56,7 @@ private int _slotCount = 32;
                 row.RefreshLocalizedText();
             RefreshMusicSentinel();
             OnPropertyChanged(nameof(MapsHeader));
+            OnPropertyChanged(nameof(IntermissionMusicDisplay));
         }
 
         /// <summary>Re-creates the shared "no music" sentinel so its name follows the new language.</summary>
@@ -139,6 +142,45 @@ private int _slotCount = 32;
     {
         get => _includeSpriteLumps;
         set => SetProperty(ref _includeSpriteLumps, value);
+    }
+
+    /// <summary>Lump name of the intermission music chosen in Project Settings
+    /// (may hold the "no music" sentinel; normalized when compiling).</summary>
+    public string IntermissionMusic
+    {
+        get => _intermissionMusic;
+        set
+        {
+            if (SetProperty(ref _intermissionMusic, value))
+                OnPropertyChanged(nameof(IntermissionMusicDisplay));
+        }
+    }
+
+    /// <summary>Absolute path of an external music file for the intermission.
+    /// Empty when the intermission music comes from a WAD lump or is unset.</summary>
+    public string IntermissionMusicExternalPath
+    {
+        get => _intermissionMusicExternalPath;
+        set
+        {
+            if (SetProperty(ref _intermissionMusicExternalPath, value))
+                OnPropertyChanged(nameof(IntermissionMusicDisplay));
+        }
+    }
+
+    /// <summary>Text shown next to the intermission music field of Project Settings:
+    /// the lump name, or the localized "no music" label.</summary>
+    public string IntermissionMusicDisplay
+    {
+        get
+        {
+            string name = NormalizeMusic(IntermissionMusic) ?? "";
+            if (name.Length == 0)
+                return LanguageService.GetString("NoMusic");
+            return string.IsNullOrWhiteSpace(IntermissionMusicExternalPath)
+                ? name
+                : $"{name}  {LanguageService.GetString("Music.ExtMark")}";
+        }
     }
 
     /// <summary>Header shown above the maps/slots table reflecting the project name,
@@ -358,6 +400,8 @@ private int _slotCount = 32;
         VersionPrefix = "";
         SlotCount = 32;
         CurrentProjectPath = null;
+        IntermissionMusic = "";
+        IntermissionMusicExternalPath = "";
         LogText = "";
         RebuildSlots();
     }
@@ -694,6 +738,8 @@ private int _slotCount = 32;
             FilterResourcesToUsed = FilterResourcesToUsed,
             IncludePaletteLumps = IncludePaletteLumps,
             IncludeSpriteLumps = IncludeSpriteLumps,
+            IntermissionMusic = IntermissionMusic,
+            IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             Maps = SlotRows
                 .Where(r => !r.IsEmpty)
                 .Select(r => new MapEntryData
@@ -741,6 +787,8 @@ private int _slotCount = 32;
         FilterResourcesToUsed = data.FilterResourcesToUsed;
         IncludePaletteLumps = data.IncludePaletteLumps;
         IncludeSpriteLumps = data.IncludeSpriteLumps;
+        IntermissionMusic = data.IntermissionMusic ?? "";
+        IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
 
         foreach (string wadPath in data.WadPaths)
             AddWadsPathOnly(wadPath);
@@ -887,6 +935,12 @@ private int _slotCount = 32;
                 externalMusic[lumpName] = row.MusicExternalPath!;
         }
 
+        string? intermission = NormalizeMusic(IntermissionMusic);
+        if (intermission is not null
+            && !string.IsNullOrWhiteSpace(IntermissionMusicExternalPath)
+            && !externalMusic.ContainsKey(intermission))
+            externalMusic[intermission] = IntermissionMusicExternalPath;
+
         var request = new MergeRequest
         {
             ProjectName = string.IsNullOrWhiteSpace(ProjectName) ? null : ProjectName.Trim(),
@@ -897,6 +951,7 @@ private int _slotCount = 32;
             OutputPath = OutputPath,
             MapAssignments = assignments,
             ExternalMusicFiles = externalMusic.Count > 0 ? externalMusic : null,
+            IntermissionMusic = intermission,
             Options = new MergeOptions
             {
                 AutoAssignMaps = false,

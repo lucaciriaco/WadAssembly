@@ -43,4 +43,11 @@ public sealed class MergeRequest
     /// Supported extensions: .mid, .mod, .it, .xm, .s3m.
     /// </summary>
     public IReadOnlyDictionary<string, string>? ExternalMusicFiles { get; init; }
+
+    /// <summary>
+    /// Lump name of the music played during the intermission screens (between levels).
+    /// Copied into the output WAD when found and written as a
+    /// <c>gameinfo { intermissionmusic ... }</c> block in the generated MAPINFO.
+    /// </summary>
+    public string? IntermissionMusic { get; init; }
 }

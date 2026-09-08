@@ -756,4 +756,49 @@ var request = new MergeRequest
             Directory.Delete(dir, true);
         }
     }
+
+    [Fact]
+    public void Merge_IntermissionMusic_CopiesLumpAndWritesGameInfoBlock()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01", musicLumpName: "D_INT");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Test Map"),
+                },
+                IntermissionMusic = "D_INT",
+                Options = new MergeOptions { AutoAssignMaps = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+            Assert.True(result.MusicCopied >= 1);
+
+            using var wad = WadFile.Open(output);
+
+            // The intermission lump must exist in the output with the MUS bytes.
+            Lump? intLump = wad.FindFirst("D_INT");
+            Assert.NotNull(intLump);
+            Assert.Equal(FakeMusData(), intLump!.ReadAll());
+
+            // MAPINFO must reference it via the gameinfo block (ZDoom new format).
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("gameinfo", text);
+            Assert.Contains("intermissionmusic = \"D_INT\"", text);
+            Assert.Matches(@"gameinfo\r?\n\{(?<body>[\s\S]*?)intermissionmusic = ""D_INT""[\s\S]*?\}", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
 }

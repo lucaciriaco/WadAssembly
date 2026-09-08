@@ -35,6 +35,13 @@ public sealed class ProjectFileData
     public bool IncludePaletteLumps { get; set; } = true;
 
     public bool IncludeSpriteLumps { get; set; } = false;
+
+    /// <summary>Lump name of the music played during the intermission screens
+    /// between levels; referenced by the generated MAPINFO.</summary>
+    public string? IntermissionMusic { get; set; }
+
+    /// <summary>Absolute path of an external music file for the intermission.</summary>
+    public string? IntermissionMusicExternalPath { get; set; }
 }
 
 public sealed class MapEntryData

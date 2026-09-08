@@ -17,6 +17,8 @@ public partial class ProjectSettingsWindow : Window
     private readonly string? _origBaseWadPath;
     private readonly int _origSlotCount;
     private readonly List<string> _origCollaborators = new();
+    private readonly string _origIntermissionMusic = "";
+    private readonly string _origIntermissionMusicExternalPath = "";
 
     public ProjectSettingsWindow()
     {
@@ -38,6 +40,8 @@ public partial class ProjectSettingsWindow : Window
             .Select(c => c.Name)
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .ToList();
+        _origIntermissionMusic = viewModel.IntermissionMusic;
+        _origIntermissionMusicExternalPath = viewModel.IntermissionMusicExternalPath;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -57,6 +61,8 @@ public partial class ProjectSettingsWindow : Window
         _viewModel.Collaborators.Clear();
         foreach (string name in _origCollaborators)
             _viewModel.Collaborators.Add(new CollaboratorEntryViewModel(name));
+        _viewModel.IntermissionMusic = _origIntermissionMusic;
+        _viewModel.IntermissionMusicExternalPath = _origIntermissionMusicExternalPath;
         _viewModel.RebuildSlots();
         Close();
     }
@@ -91,6 +97,29 @@ public partial class ProjectSettingsWindow : Window
     }
 
     private void OnClearBaseWad(object? sender, RoutedEventArgs e) => _viewModel.BaseWadPath = null;
+
+    /// <summary>Opens the music picker for the intermission theme. The "no music"
+    /// sentinel is always available even when no WAD is loaded.</summary>
+    private async void OnPickIntermissionMusic(object? sender, RoutedEventArgs e)
+    {
+        var options = _viewModel.AvailableMusicLumps.ToList();
+        if (options.All(o => !string.IsNullOrWhiteSpace(o.WadPath)))
+            options.Add(new MusicLumpInfo(SlotRowViewModel.NoMusicOption, ""));
+
+        var picker = new MusicPickerWindow(options, _viewModel.IntermissionMusic ?? "");
+        await picker.ShowDialog(this);
+        if (picker.Accepted)
+        {
+            _viewModel.IntermissionMusic = picker.SelectedName;
+            _viewModel.IntermissionMusicExternalPath = picker.SelectedExternalPath;
+        }
+    }
+
+    private void OnClearIntermissionMusic(object? sender, RoutedEventArgs e)
+    {
+        _viewModel.IntermissionMusic = "";
+        _viewModel.IntermissionMusicExternalPath = "";
+    }
 
     private async void OnAddResources(object? sender, RoutedEventArgs e)
     {

@@ -500,6 +500,28 @@ public sealed class WadMerger
             }
         }
 
+        // 3.5a. Intermission music: copy the chosen lump if it is not already in the
+        // output and is not provided by an external file (3.5b copies those).
+        string intermissionLump = (request.IntermissionMusic ?? "").Trim();
+        if (intermissionLump.Length > 0
+            && !outputNames.Contains(intermissionLump)
+            && (request.ExternalMusicFiles is null || !request.ExternalMusicFiles.ContainsKey(intermissionLump)))
+        {
+            if (musicByName.TryGetValue(intermissionLump, out var src)
+                && wadsByPath.TryGetValue(src.WadPath, out WadFile? srcWad)
+                && srcWad.FindFirst(src.OriginalName) is Lump musicLump)
+            {
+                builder.AddLump(intermissionLump, musicLump.ReadAll());
+                outputNames.Add(intermissionLump);
+                _result.MusicCopied++;
+                _result.Info.Add($"Música de intermisión '{intermissionLump}' añadida desde '{Path.GetFileName(src.WadPath)}'.");
+            }
+            else if (warnedMusic.Add(intermissionLump))
+            {
+                warn($"Música de intermisión '{intermissionLump}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).");
+            }
+        }
+
         // 3.5b. External music files: copy files chosen by the user into the output WAD.
         if (request.ExternalMusicFiles is { Count: > 0 } externalMusic)
         {
@@ -824,6 +846,15 @@ bool included = usage is null
         sb.AppendLine($"// Versión: {SanitizeMapInfoString(fullVersion)}");
         sb.AppendLine($"// Compilado: {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}");
 
+        string intermission = (request.IntermissionMusic ?? "").Trim();
+        if (intermission.Length > 0)
+        {
+            sb.AppendLine("gameinfo");
+            sb.AppendLine("{");
+            sb.AppendLine($"    intermissionmusic = \"{SanitizeMapInfoString(intermission).Replace(" ", "")}\"");
+            sb.AppendLine("}");
+        }
+
         int count = 0;
         foreach (var a in assignments)
         {
@@ -853,7 +884,7 @@ bool included = usage is null
             sb.AppendLine("}");
         }
 
-        return count == 0 ? (null, 0) : (sb.ToString(), count);
+        return count == 0 && intermission.Length == 0 ? (null, 0) : (sb.ToString(), count);
     }
 
     private static string SanitizeMapInfoString(string value)

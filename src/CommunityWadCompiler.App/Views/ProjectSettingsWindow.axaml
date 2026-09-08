@@ -46,6 +46,17 @@
       </StackPanel>
 
       <StackPanel Spacing="4">
+        <TextBlock Text="{DynamicResource ProjectSettings.IntermissionMusic}" FontWeight="Bold"/>
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+          <TextBox Grid.Column="0" Text="{Binding IntermissionMusicDisplay, Mode=OneWay}"
+                   IsReadOnly="True" Watermark="{DynamicResource ProjectSettings.IntermissionMusic.Watermark}"/>
+          <Button Grid.Column="1" Content="..." Click="OnPickIntermissionMusic" MinWidth="48"
+                  ToolTip.Tip="{DynamicResource ProjectSettings.IntermissionMusic.Pick}"/>
+          <Button Grid.Column="2" Content="{DynamicResource ProjectSettings.Clear}" Click="OnClearIntermissionMusic"/>
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
         <TextBlock Text="{DynamicResource ProjectSettings.ResourceWads}" FontWeight="Bold"/>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3" MinHeight="120">
           <ListBox x:Name="ResourceWadList" ItemsSource="{Binding ResourceWads}"

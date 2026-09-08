@@ -62,6 +62,9 @@
   <sys:String x:Key="ProjectSettings.BaseWad">WAD base (IWAD)</sys:String>
   <sys:String x:Key="ProjectSettings.BaseWad.Watermark">Opcional. DOOM2.WAD como semilla para TEXTURE1/PNAMES.</sys:String>
   <sys:String x:Key="ProjectSettings.Clear">Limpiar</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic">Música de intermisión</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic.Watermark">Música que suena entre niveles (intermisión)</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic.Pick">Abrir selector de música...</sys:String>
   <sys:String x:Key="ProjectSettings.ResourceWads">WAD de recursos (texturas / flats)</sys:String>
   <sys:String x:Key="ProjectSettings.AddResources">Agregar recursos...</sys:String>
   <sys:String x:Key="ProjectSettings.FilterToUsed">Solo incluir texturas/flats usados por los mapas</sys:String>
