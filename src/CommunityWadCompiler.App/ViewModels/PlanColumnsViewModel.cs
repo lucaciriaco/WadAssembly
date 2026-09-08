@@ -14,15 +14,15 @@ public sealed class PlanColumnsViewModel
     public static readonly IReadOnlyList<(int Id, string TitleKey, double Width)> Presets =
         new (int, string, double)[]
         {
-            (0, "Header.Slot", 90),
+            (0, "Header.Slot", 72),
             (1, "Header.Wad", 140),
-            (2, "Header.OriginalMap", 100),
-            (3, "Header.LevelName", 170),
-            (4, "Header.Status", 100),
-            (5, "Header.LastModified", 160),
-            (6, "Header.Music", 130),
+            (2, "Header.OriginalMap", 94),
+            (3, "Header.LevelName", 183),
+            (5, "Header.LastModified", 118),
+            (6, "Header.Music", 111),
             (7, "Header.Sky", 100),
-            (8, "Header.Author", 150),
+            (8, "Header.Author", 124),
+            (4, "Header.Status", 100),
         };
 
     public ObservableCollection<PlanColumnViewModel> Columns { get; } = new();

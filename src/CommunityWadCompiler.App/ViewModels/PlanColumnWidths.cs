@@ -10,17 +10,21 @@ public sealed class PlanColumnWidths : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private GridLength _c0 = new(90);
-    private GridLength _c1 = new(140);
-    private GridLength _c2 = new(100);
-    private GridLength _c3 = new(170);
-    private GridLength _c4 = new(100);
-    private GridLength _c5 = new(160);
-    private GridLength _c6 = new(130);
-    private GridLength _c7 = new(100);
-    private GridLength _c8 = new(150);
+    private GridLength _c0 = new(PlanColumnsViewModel.Presets[0].Width);
+    private GridLength _c1 = new(PlanColumnsViewModel.Presets[1].Width);
+    private GridLength _c2 = new(PlanColumnsViewModel.Presets[2].Width);
+    private GridLength _c3 = new(PlanColumnsViewModel.Presets[3].Width);
+    private GridLength _c4 = new(PlanColumnsViewModel.Presets[4].Width);
+    private GridLength _c5 = new(PlanColumnsViewModel.Presets[5].Width);
+    private GridLength _c6 = new(PlanColumnsViewModel.Presets[6].Width);
+    private GridLength _c7 = new(PlanColumnsViewModel.Presets[7].Width);
+    private GridLength _c8 = new(PlanColumnsViewModel.Presets[8].Width);
 
-    public static readonly double[] DefaultMinWidths = { 60, 80, 80, 110, 90, 90, 110, 90, 120 };
+    // Min widths per physical position for the default column order. The values follow
+    // the columns that occupy each position in the baked default layout (see Presets):
+    // Slot 60, Wad 80, OriginalMap 80, LevelName 110, LastModified 90, Music 110,
+    // Sky 90, Author 120, Status 90.
+    public static readonly double[] DefaultMinWidths = { 60, 80, 80, 110, 90, 110, 90, 120, 90 };
 
     private double _min0 = DefaultMinWidths[0];
     private double _min1 = DefaultMinWidths[1];

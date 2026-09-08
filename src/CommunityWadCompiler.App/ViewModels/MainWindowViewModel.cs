@@ -570,8 +570,9 @@ private int _slotCount = 32;
         return null;
     }
 
-    /// <summary>Collects all texture names from resource WADs that could be used as sky.
-    /// Includes all patches and flats (both can be used as sky textures).</summary>
+    /// <summary>Collects all texture lump names from resource WADs that could be used as sky.
+    /// Only texture lumps (patches and standalone texture graphics) are included: sprite
+    /// (S_START..S_END), flat (F_START..F_END) and map lumps are filtered out.</summary>
     public List<string> GetSkyTextureNames()
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -598,8 +599,21 @@ private int _slotCount = 32;
 
             foreach (var wad in opened)
             {
-                foreach (var lump in wad.Lumps)
+                var categories = LumpGroupClassifier.ClassifyAll(wad.Lumps);
+                var mapRanges = MapDetector.DetectMaps(wad)
+                    .Select(m => (m.StartIndex, m.EndIndex))
+                    .ToList();
+
+                for (int i = 0; i < wad.Lumps.Count; i++)
                 {
+                    var lump = wad.Lumps[i];
+
+                    // Only texture lumps: skip sprites, flats, the group markers and maps.
+                    if (categories[i] is LumpCategory.Sprite or LumpCategory.Flat ||
+                        LumpGroupClassifier.IsMarker(lump.Name) ||
+                        mapRanges.Any(r => i >= r.StartIndex && i < r.EndIndex))
+                        continue;
+
                     // Add patch names (from PNAMES/TEXTURE1) and flat names
                     // We include all non-map lumps that could be sky textures
                     if (!textureLumpNames.Contains(lump.Name) &&
