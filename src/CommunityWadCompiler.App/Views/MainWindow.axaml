@@ -137,7 +137,18 @@
       </Button>
     </Grid>
 
-    <Grid x:Name="LayoutGrid" Margin="8" RowDefinitions="3*,*" ColumnDefinitions="Auto,*,2*">
+    <Grid x:Name="LayoutGrid" Margin="8" ClipToBounds="True">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="3*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="5*" MinHeight="80"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="Auto"/>
+      <ColumnDefinition Width="2*"/>
+    </Grid.ColumnDefinitions>
 
       <!-- Collapse toggle strip: always visible so the WAD panel can be re-expanded. -->
       <Button Grid.Row="0" Grid.Column="0" x:Name="HamburgerButton" Click="OnToggleLeftPanel"
@@ -148,7 +159,7 @@
       </Button>
 
       <!-- Left: input WADs -->
-      <DockPanel x:Name="LeftPanel" Grid.Row="0" Grid.Column="1" Margin="0,0,8,8">
+      <DockPanel x:Name="LeftPanel" Grid.Row="0" Grid.Column="1" MinWidth="150" Margin="0,0,8,8">
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Title}" FontWeight="Bold" Margin="0,0,0,2"/>
         <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Hint}"
                    Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
@@ -197,8 +208,16 @@
         </ListBox>
       </DockPanel>
 
-<!-- Right: maps / slots -->
-      <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8">
+      <!-- Vertical splitter: resize the left "contributed WADs" panel -->
+      <GridSplitter x:Name="LeftPanelSplitter" Grid.Row="0" Grid.Column="2"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="6"
+                    Background="{DynamicResource SystemControlForegroundBaseHighBrush}" Opacity="0.3"
+                    Focusable="False" Cursor="SizeWestEast"
+                    ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"
+                    DragCompleted="OnLeftPanelSplitterCompleted"/>
+
+      <!-- Right: maps / slots -->
+      <DockPanel Grid.Row="0" Grid.Column="3" MinWidth="300" Margin="0,0,0,8">
         <TextBlock DockPanel.Dock="Top" Text="{Binding MapsHeader}"
                    FontWeight="Bold" Margin="0,0,0,4"/>
 <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
@@ -370,9 +389,16 @@
         </Border>
       </DockPanel>
 
+      <!-- Horizontal splitter: resize the log area -->
+      <GridSplitter x:Name="LogSplitter" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="6"
+                    Background="{DynamicResource SystemControlForegroundBaseHighBrush}" Opacity="0.3"
+                    Focusable="False" Cursor="SizeNorthSouth"
+                    ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"/>
+
       <!-- Log -->
-      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" RowDefinitions="Auto,*">
-        <TextBlock Text="{DynamicResource Log.Title}" FontWeight="Bold" Margin="0,4,0,4"/>
+      <Grid x:Name="LogPanel" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" RowDefinitions="Auto,*">
+        <TextBlock x:Name="LogTitle" Text="{DynamicResource Log.Title}" FontWeight="Bold" Margin="0,4,0,4"/>
         <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
                  IsReadOnly="True" TextWrapping="Wrap"
                  AcceptsReturn="True" FontFamily="Consolas, Courier New"

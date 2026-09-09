@@ -27,8 +27,15 @@ public partial class MainWindow : Window
     private Grid _layoutGrid = null!;
     private Panel _leftPanel = null!;
     private Button _hamburgerButton = null!;
+    private GridSplitter _leftPanelSplitter = null!;
     private Avalonia.Controls.Shapes.Path _collapseIcon = null!;
     private bool _leftPanelCollapsed;
+    private GridLength _leftPanelExpandedWidth = new(1, GridUnitType.Star);
+
+    private Grid _logPanel = null!;
+    private GridSplitter _logSplitter = null!;
+    private bool _logVisible = true;
+    private GridLength _savedLogRowHeight = new(5, GridUnitType.Star);
 
     private PlanColumnWidths? _planColumnWidths;
     private readonly PlanColumnsViewModel _planColumns = new();
@@ -42,7 +49,8 @@ public partial class MainWindow : Window
     private Point _headerDragPressPoint;
 
     private MenuItem? _viewColumnsMenu;
-    private List<MenuItem>? _viewColumnMenuItems;
+    private List<object>? _viewColumnMenuItems;
+    private MenuItem? _viewLogMenuItem;
 
     private readonly DispatcherTimer _configSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
 
@@ -54,12 +62,19 @@ public partial class MainWindow : Window
         _layoutGrid = this.FindControl<Grid>("LayoutGrid")!;
         _leftPanel = this.FindControl<Panel>("LeftPanel")!;
         _hamburgerButton = this.FindControl<Button>("HamburgerButton")!;
+        _leftPanelSplitter = this.FindControl<GridSplitter>("LeftPanelSplitter")!;
+        _logPanel = this.FindControl<Grid>("LogPanel")!;
+        _logSplitter = this.FindControl<GridSplitter>("LogSplitter")!;
         _collapseIcon = this.FindControl<Avalonia.Controls.Shapes.Path>("CollapseIcon")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
 
+        var settings = AppSettingsService.Load();
+        _logVisible = settings.LogVisible ?? true;
+        ApplyLogVisibility();
+
         _planColumns.ColumnsChanged += ApplyColumnChanges;
-        _planColumns.LoadFrom(AppSettingsService.Load());
+        _planColumns.LoadFrom(settings);
         ApplyColumnChanges();
 
         _configSaveTimer.Tick += (_, _) => { _configSaveTimer.Stop(); SaveConfigNow(); };
@@ -80,8 +95,21 @@ public partial class MainWindow : Window
         _viewColumnsMenu = this.FindControl<MenuItem>("ViewColumnsMenu");
         if (_viewColumnsMenu is not null)
         {
-            PopulateColumnMenu(_viewColumnsMenu);
-            LanguageService.LanguageChanged += (_, _) => PopulateColumnMenu(_viewColumnsMenu);
+            PopulateViewMenu();
+            LanguageService.LanguageChanged += (_, _) => PopulateViewMenu();
+        }
+
+        if (this.FindControl<TextBlock>("LogTitle") is { } logTitle)
+        {
+            var logContextMenu = new ContextMenu();
+            logTitle.ContextMenu = logContextMenu;
+            logContextMenu.Opened += (_, _) =>
+            {
+                logContextMenu.Items.Clear();
+                var hide = new MenuItem { Header = LanguageService.GetString("Log.Hide") };
+                hide.Click += (_, _) => SetLogVisible(false);
+                logContextMenu.Items.Add(hide);
+            };
         }
     }
 
@@ -94,14 +122,31 @@ public partial class MainWindow : Window
     {
         _leftPanelCollapsed = !_leftPanelCollapsed;
         _leftPanel.IsVisible = !_leftPanelCollapsed;
-        _layoutGrid.ColumnDefinitions[1].Width = _leftPanelCollapsed
-            ? GridLength.Auto
-            : new GridLength(1, GridUnitType.Star);
+        if (_leftPanelCollapsed)
+        {
+            // Remember the current width so it can be restored when re-expanding.
+            _leftPanelExpandedWidth = _layoutGrid.ColumnDefinitions[1].Width;
+            _layoutGrid.ColumnDefinitions[1].Width = GridLength.Auto;
+        }
+        else
+        {
+            _layoutGrid.ColumnDefinitions[1].Width = _leftPanelExpandedWidth;
+        }
+        _leftPanelSplitter.IsVisible = !_leftPanelCollapsed;
         _collapseIcon.Data = _leftPanelCollapsed
             ? Resources["Icon.ArrowRight"] as StreamGeometry
             : Resources["Icon.ArrowLeft"] as StreamGeometry;
         ToolTip.SetTip(_hamburgerButton, LanguageService.GetString(
             _leftPanelCollapsed ? "Input.Expand" : "Input.Collapse"));
+    }
+
+    /// <summary>Remembers the left panel width the user set by dragging the vertical
+    /// splitter, so the collapse/expand toggle restores exactly that width.</summary>
+    private void OnLeftPanelSplitterCompleted(object? sender, VectorEventArgs e)
+    {
+        if (_leftPanelCollapsed)
+            return;
+        _leftPanelExpandedWidth = _layoutGrid.ColumnDefinitions[1].Width;
     }
 
     // ------------------------------------------------------------------
@@ -271,9 +316,53 @@ public partial class MainWindow : Window
     {
         if (_planColumnWidths is null)
             return;
-        var settings = new AppSettings { Language = LanguageService.CurrentLanguage };
+        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible };
         _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
+    }
+
+    // ------------------------------------------------------------------
+    // Console (log) visibility
+    // ------------------------------------------------------------------
+
+    /// <summary>Shows or hides the bottom console panel. Hidden rows are collapsed to
+    /// zero height (and their MinHeight lifted), so the plan sheet gets the full area;
+    /// the menu item acts both ways (checkmark = visible).</summary>
+    private void SetLogVisible(bool visible)
+    {
+        if (_logVisible == visible)
+            return;
+        _logVisible = visible;
+        ApplyLogVisibility();
+        SaveConfigNow();
+    }
+
+    /// <summary>Applies the current <see cref="_logVisible"/> state to the layout and
+    /// to the Configuration → View menu item (called at startup and on toggle).</summary>
+    private void ApplyLogVisibility()
+    {
+        _logPanel.IsVisible = _logVisible;
+        _logSplitter.IsVisible = _logVisible;
+
+        var logRow = _layoutGrid.RowDefinitions[2];
+        if (_logVisible)
+        {
+            logRow.Height = _savedLogRowHeight;
+            logRow.MinHeight = 80;
+        }
+        else
+        {
+            _savedLogRowHeight = logRow.Height;
+            logRow.Height = new GridLength(0);
+            logRow.MinHeight = 0;
+        }
+
+        if (_viewLogMenuItem is not null)
+        {
+            _viewLogMenuItem.Header = LanguageService.GetString(_logVisible ? "Log.Hide" : "Log.Show");
+            if (_viewLogMenuItem.Icon is TextBlock icon)
+                icon.Text = _logVisible ? "✓" : " ";
+        }
     }
 
     // ------------------------------------------------------------------
@@ -486,10 +575,40 @@ public partial class MainWindow : Window
 
     private void PopulateColumnMenu(ItemsControl menu)
     {
-        var items = CreateColumnMenuItems();
-        menu.ItemsSource = items;
-        if (ReferenceEquals(menu, _viewColumnsMenu))
-            _viewColumnMenuItems = items;
+        menu.ItemsSource = CreateColumnMenuItems();
+    }
+
+    /// <summary>Populates the Configuration → View submenu: one toggle per column
+    /// (checkmark = visible) plus the console show/hide toggle.</summary>
+    private void PopulateViewMenu()
+    {
+        if (_viewColumnsMenu is null)
+            return;
+        var items = new List<object>(CreateColumnMenuItems());
+        items.Add(new Separator());
+        items.Add(CreateLogMenuItem());
+        _viewColumnsMenu.ItemsSource = items;
+        _viewColumnMenuItems = items;
+    }
+
+    /// <summary>Builds the "Show/Hide console" toggle for the View submenu. Its header and
+    /// checkmark are refreshed by <see cref="ApplyLogVisibility"/> so it always matches
+    /// the current state (even when the console was hidden from the header context menu).</summary>
+    private MenuItem CreateLogMenuItem()
+    {
+        var item = new MenuItem
+        {
+            Header = LanguageService.GetString(_logVisible ? "Log.Hide" : "Log.Show"),
+            Icon = new TextBlock
+            {
+                Text = _logVisible ? "✓" : " ",
+                MinWidth = 16,
+                TextAlignment = TextAlignment.Center,
+            },
+        };
+        item.Click += (_, _) => SetLogVisible(!_logVisible);
+        _viewLogMenuItem = item;
+        return item;
     }
 
     /// <summary>Mirrors the current visibility into the checkmark icons of the
@@ -501,7 +620,7 @@ public partial class MainWindow : Window
             return;
         foreach (var item in _viewColumnMenuItems)
         {
-            if (item.Tag is int id && item.Icon is TextBlock icon)
+            if (item is MenuItem { Tag: int id } mi && mi.Icon is TextBlock icon)
                 icon.Text = _planColumns.ColumnById(id)?.Visible == true ? "✓" : " ";
         }
     }

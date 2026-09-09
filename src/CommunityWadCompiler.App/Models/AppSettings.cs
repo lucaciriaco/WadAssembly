@@ -20,4 +20,8 @@ public sealed class AppSettings
     /// <summary>Visibility of each physical column (10 values, true = shown). Follows
     /// the columns when they are reordered.</summary>
     public bool[] ColumnVisibility { get; set; } = Array.Empty<bool>();
+
+    /// <summary>Whether the bottom console (log) panel is visible. Nullable so that
+    /// config files saved before this setting existed default to visible.</summary>
+    public bool? LogVisible { get; set; }
 }

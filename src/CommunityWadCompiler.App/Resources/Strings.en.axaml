@@ -57,6 +57,8 @@
 
   <!-- ===== Log ===== -->
   <sys:String x:Key="Log.Title">Log</sys:String>
+  <sys:String x:Key="Log.Hide">Hide console</sys:String>
+  <sys:String x:Key="Log.Show">Show console</sys:String>
 
   <!-- ===== Project Settings window ===== -->
   <sys:String x:Key="ProjectSettings.Title">Project settings</sys:String>

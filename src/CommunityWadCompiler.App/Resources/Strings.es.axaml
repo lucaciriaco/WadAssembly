@@ -57,6 +57,8 @@
 
   <!-- ===== Log ===== -->
   <sys:String x:Key="Log.Title">Registro</sys:String>
+  <sys:String x:Key="Log.Hide">Ocultar consola</sys:String>
+  <sys:String x:Key="Log.Show">Mostrar consola</sys:String>
 
   <!-- ===== Ventana Project Settings ===== -->
   <sys:String x:Key="ProjectSettings.Title">Configuración del proyecto</sys:String>
