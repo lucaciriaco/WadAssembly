@@ -52,6 +52,10 @@ public partial class MainWindow : Window
     private List<object>? _viewColumnMenuItems;
     private MenuItem? _viewLogMenuItem;
 
+    private TextBlock? _themeCheckSystem;
+    private TextBlock? _themeCheckLight;
+    private TextBlock? _themeCheckDark;
+
     private readonly DispatcherTimer _configSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
 
     public MainWindow()
@@ -111,6 +115,11 @@ public partial class MainWindow : Window
                 logContextMenu.Items.Add(hide);
             };
         }
+
+        _themeCheckSystem = this.FindControl<TextBlock>("ThemeCheckSystem");
+        _themeCheckLight = this.FindControl<TextBlock>("ThemeCheckLight");
+        _themeCheckDark = this.FindControl<TextBlock>("ThemeCheckDark");
+        UpdateThemeChecks();
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -316,7 +325,7 @@ public partial class MainWindow : Window
     {
         if (_planColumnWidths is null)
             return;
-        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible };
+        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible, Theme = ThemeService.CurrentTheme };
         _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
     }
@@ -870,6 +879,29 @@ public partial class MainWindow : Window
     private void OnLanguageSpanish(object? sender, RoutedEventArgs e) => LanguageService.SetLanguage(LanguageService.Spanish);
 
     private void OnLanguageEnglish(object? sender, RoutedEventArgs e) => LanguageService.SetLanguage(LanguageService.English);
+
+    private void OnThemeSystem(object? sender, RoutedEventArgs e) => ApplyTheme(ThemeService.System);
+
+    private void OnThemeLight(object? sender, RoutedEventArgs e) => ApplyTheme(ThemeService.Light);
+
+    private void OnThemeDark(object? sender, RoutedEventArgs e) => ApplyTheme(ThemeService.Dark);
+
+    /// <summary>Switches the theme, refreshes the menu checkmark and persists the choice.</summary>
+    private void ApplyTheme(string theme)
+    {
+        ThemeService.SetTheme(theme);
+        UpdateThemeChecks();
+        SaveConfigNow();
+    }
+
+    /// <summary>Marks the active theme with a checkmark in the Configuration → Theme menu.</summary>
+    private void UpdateThemeChecks()
+    {
+        string current = ThemeService.CurrentTheme;
+        if (_themeCheckSystem is { } system) system.Text = current == ThemeService.System ? "✓" : " ";
+        if (_themeCheckLight is { } light) light.Text = current == ThemeService.Light ? "✓" : " ";
+        if (_themeCheckDark is { } dark) dark.Text = current == ThemeService.Dark ? "✓" : " ";
+    }
 
     private void OnAbout(object? sender, RoutedEventArgs e)
     {

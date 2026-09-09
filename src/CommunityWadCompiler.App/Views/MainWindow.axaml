@@ -97,6 +97,26 @@
             </MenuItem.Icon>
           </MenuItem>
         </MenuItem>
+        <MenuItem Header="{DynamicResource Menu.Theme}">
+          <MenuItem.Icon>
+            <Path Data="{StaticResource Icon.View}" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+          </MenuItem.Icon>
+          <MenuItem x:Name="ThemeMenuSystem" Header="{DynamicResource Menu.Theme.System}" Click="OnThemeSystem">
+            <MenuItem.Icon>
+              <TextBlock x:Name="ThemeCheckSystem" Text=" " MinWidth="16" TextAlignment="Center"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem x:Name="ThemeMenuLight" Header="{DynamicResource Menu.Theme.Light}" Click="OnThemeLight">
+            <MenuItem.Icon>
+              <TextBlock x:Name="ThemeCheckLight" Text=" " MinWidth="16" TextAlignment="Center"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem x:Name="ThemeMenuDark" Header="{DynamicResource Menu.Theme.Dark}" Click="OnThemeDark">
+            <MenuItem.Icon>
+              <TextBlock x:Name="ThemeCheckDark" Text=" " MinWidth="16" TextAlignment="Center"/>
+            </MenuItem.Icon>
+          </MenuItem>
+        </MenuItem>
         <MenuItem Header="{DynamicResource Menu.View}" x:Name="ViewColumnsMenu">
           <MenuItem.Icon>
             <Path Data="{StaticResource Icon.View}" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>

@@ -10,6 +10,9 @@ public sealed class AppSettings
     /// so the legacy registry value can be migrated in.</summary>
     public string Language { get; set; } = "";
 
+    /// <summary>UI theme ("system", "light" or "dark"). Empty means "system".</summary>
+    public string Theme { get; set; } = "";
+
     /// <summary>Width of each physical column (10 values, pixels). Follows the columns
     /// when they are reordered.</summary>
     public double[] ColumnWidths { get; set; } = Array.Empty<double>();

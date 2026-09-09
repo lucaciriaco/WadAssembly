@@ -15,6 +15,10 @@
   <sys:String x:Key="Menu.Language">Language</sys:String>
   <sys:String x:Key="Menu.Language.Español">Español</sys:String>
   <sys:String x:Key="Menu.Language.English">English</sys:String>
+  <sys:String x:Key="Menu.Theme">Theme</sys:String>
+  <sys:String x:Key="Menu.Theme.System">System</sys:String>
+  <sys:String x:Key="Menu.Theme.Light">Light</sys:String>
+  <sys:String x:Key="Menu.Theme.Dark">Dark</sys:String>
   <sys:String x:Key="Menu.View">View</sys:String>
   <sys:String x:Key="Menu.Exit">Exit</sys:String>
   <sys:String x:Key="Menu.Help">Help</sys:String>

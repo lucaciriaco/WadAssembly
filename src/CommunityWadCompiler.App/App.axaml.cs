@@ -18,6 +18,8 @@ public partial class App : Application
         {
             // Restore the persisted language, then let an explicit --language= argument win.
             LanguageService.LoadPersistedLanguage();
+            // Restore the persisted theme (system / light / dark).
+            ThemeService.LoadPersistedTheme();
             string? arg = desktop.Args?.FirstOrDefault(a =>
                 a.StartsWith(LanguageArgPrefix, StringComparison.OrdinalIgnoreCase));
             if (arg is not null)
