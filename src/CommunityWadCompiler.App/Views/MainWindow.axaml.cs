@@ -37,6 +37,10 @@ public partial class MainWindow : Window
     private bool _logVisible = true;
     private GridLength _savedLogRowHeight = new(1, GridUnitType.Star);
 
+    private DockPanel _wadHintPanel = null!;
+    private TextBlock _inputHeader = null!;
+    private bool _wadHintVisible = true;
+
     private PlanColumnWidths? _planColumnWidths;
     private readonly PlanColumnsViewModel _planColumns = new();
 
@@ -69,6 +73,8 @@ public partial class MainWindow : Window
         _leftPanelSplitter = this.FindControl<GridSplitter>("LeftPanelSplitter")!;
         _logPanel = this.FindControl<Grid>("LogPanel")!;
         _logSplitter = this.FindControl<GridSplitter>("LogSplitter")!;
+        _wadHintPanel = this.FindControl<DockPanel>("WadHintPanel")!;
+        _inputHeader = this.FindControl<TextBlock>("InputHeader")!;
         _collapseIcon = this.FindControl<Avalonia.Controls.Shapes.Path>("CollapseIcon")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
@@ -76,6 +82,8 @@ public partial class MainWindow : Window
         var settings = AppSettingsService.Load();
         _logVisible = settings.LogVisible ?? true;
         ApplyLogVisibility();
+        _wadHintVisible = settings.ShowWadHint ?? true;
+        ApplyWadHintVisibility();
 
         _planColumns.ColumnsChanged += ApplyColumnChanges;
         _planColumns.LoadFrom(settings);
@@ -102,6 +110,7 @@ public partial class MainWindow : Window
             PopulateViewMenu();
             LanguageService.LanguageChanged += (_, _) => PopulateViewMenu();
         }
+        LanguageService.LanguageChanged += (_, _) => RefreshWadHintTooltip();
 
         if (this.FindControl<TextBlock>("LogTitle") is { } logTitle)
         {
@@ -156,6 +165,37 @@ public partial class MainWindow : Window
         if (_leftPanelCollapsed)
             return;
         _leftPanelExpandedWidth = _layoutGrid.ColumnDefinitions[1].Width;
+    }
+
+    // ------------------------------------------------------------------
+    // Contributed WADs hint
+    // ------------------------------------------------------------------
+
+    /// <summary>Dismisses the "pick a map..." hint under the Contributed WADs header,
+    /// freeing vertical space for the list. It can still be read by hovering the
+    /// header ("Contributed WADs (maps)"), which shows it as a tooltip.</summary>
+    private void OnDismissWadHint(object? sender, RoutedEventArgs e)
+    {
+        if (!_wadHintVisible)
+            return;
+        _wadHintVisible = false;
+        ApplyWadHintVisibility();
+        SaveConfigNow();
+    }
+
+    /// <summary>Applies the hint visibility and manages the tooltip on the header:
+    /// while the hint is visible no tooltip is needed; once dismissed the header
+    /// shows the hint text on hover.</summary>
+    private void ApplyWadHintVisibility()
+    {
+        _wadHintPanel.IsVisible = _wadHintVisible;
+        RefreshWadHintTooltip();
+    }
+
+    private void RefreshWadHintTooltip()
+    {
+        // Keep the tooltip string in sync with the current language.
+        ToolTip.SetTip(_inputHeader, _wadHintVisible ? null : LanguageService.GetString("Input.Hint"));
     }
 
     // ------------------------------------------------------------------
@@ -325,7 +365,7 @@ public partial class MainWindow : Window
     {
         if (_planColumnWidths is null)
             return;
-        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible, Theme = ThemeService.CurrentTheme };
+        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible, Theme = ThemeService.CurrentTheme, ShowWadHint = _wadHintVisible };
         _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
     }

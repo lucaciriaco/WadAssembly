@@ -27,4 +27,8 @@ public sealed class AppSettings
     /// <summary>Whether the bottom console (log) panel is visible. Nullable so that
     /// config files saved before this setting existed default to visible.</summary>
     public bool? LogVisible { get; set; }
+
+    /// <summary>Whether the "pick a map..." hint under the Contributed WADs header is
+    /// shown. Nullable so config files saved before this setting default to visible.</summary>
+    public bool? ShowWadHint { get; set; }
 }

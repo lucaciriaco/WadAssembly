@@ -180,9 +180,19 @@
 
       <!-- Left: input WADs -->
       <DockPanel x:Name="LeftPanel" Grid.Row="0" Grid.Column="1" MinWidth="150" Margin="0,0,8,8">
-        <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Title}" FontWeight="Bold" Margin="0,0,0,2"/>
-        <TextBlock DockPanel.Dock="Top" Text="{DynamicResource Input.Hint}"
-                   Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
+        <TextBlock x:Name="InputHeader" DockPanel.Dock="Top" Text="{DynamicResource Input.Title}"
+                   FontWeight="Bold" Margin="0,0,0,2"/>
+        <DockPanel x:Name="WadHintPanel" DockPanel.Dock="Top" Margin="0,0,0,6">
+          <Button x:Name="WadHintDismiss" DockPanel.Dock="Right" Click="OnDismissWadHint"
+                  Width="18" Height="18" Padding="0" Margin="4,0,0,0"
+                  Background="Transparent" BorderThickness="0" VerticalAlignment="Top"
+                  ToolTip.Tip="{DynamicResource Input.HideHint}">
+            <TextBlock Text="✕" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+          </Button>
+          <TextBlock Text="{DynamicResource Input.Hint}" Foreground="Gray"
+                     TextWrapping="Wrap" Margin="0,1,4,0"/>
+        </DockPanel>
         <WrapPanel DockPanel.Dock="Bottom" ItemSpacing="6" Margin="0,6,0,0">
           <Button Click="OnAddWads">
             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">

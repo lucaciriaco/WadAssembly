@@ -32,6 +32,7 @@
   <!-- ===== Left panel: input WADs ===== -->
   <sys:String x:Key="Input.Title">Contributed WADs (maps)</sys:String>
   <sys:String x:Key="Input.Hint">Pick a map (dropdown if there are several) and drag it into a slot of the sheet.</sys:String>
+  <sys:String x:Key="Input.HideHint">Hide hint</sys:String>
   <sys:String x:Key="Input.AddWads">Add WADs...</sys:String>
   <sys:String x:Key="Input.Remove">Remove</sys:String>
   <sys:String x:Key="Input.MoveUp">Move up</sys:String>

@@ -32,6 +32,7 @@
   <!-- ===== Panel izquierdo: WADs aportados ===== -->
   <sys:String x:Key="Input.Title">WADs aportados (mapas)</sys:String>
   <sys:String x:Key="Input.Hint">Elegí un mapa (dropdown si hay varios) y arrastralo a un slot de la planilla.</sys:String>
+  <sys:String x:Key="Input.HideHint">Ocultar consejo</sys:String>
   <sys:String x:Key="Input.AddWads">Agregar WADs...</sys:String>
   <sys:String x:Key="Input.Remove">Quitar</sys:String>
   <sys:String x:Key="Input.MoveUp">Subir</sys:String>
