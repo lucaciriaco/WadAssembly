@@ -20,6 +20,7 @@
   <sys:String x:Key="Menu.Theme.Light">Light</sys:String>
   <sys:String x:Key="Menu.Theme.Dark">Dark</sys:String>
   <sys:String x:Key="Menu.View">View</sys:String>
+  <sys:String x:Key="Menu.SourcePorts">Source ports...</sys:String>
   <sys:String x:Key="Menu.Exit">Exit</sys:String>
   <sys:String x:Key="Menu.Help">Help</sys:String>
   <sys:String x:Key="Menu.About">About...</sys:String>
@@ -28,6 +29,9 @@
   <sys:String x:Key="Output.Label">Output:</sys:String>
   <sys:String x:Key="Output.Watermark">Path of the compiled .wad (e.g. megawad.wad)</sys:String>
   <sys:String x:Key="Compile">Compile</sys:String>
+  <sys:String x:Key="Compile.Mode">Compile button mode</sys:String>
+  <sys:String x:Key="Compile.Mode.Build">Build</sys:String>
+  <sys:String x:Key="Compile.Mode.BuildRun">Build and run</sys:String>
 
   <!-- ===== Left panel: input WADs ===== -->
   <sys:String x:Key="Input.Title">Contributed WADs (maps)</sys:String>
@@ -80,6 +84,8 @@
   <sys:String x:Key="ProjectSettings.IntermissionMusic">Intermission music</sys:String>
   <sys:String x:Key="ProjectSettings.IntermissionMusic.Watermark">Music played between levels (intermission)</sys:String>
   <sys:String x:Key="ProjectSettings.IntermissionMusic.Pick">Open music picker...</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort">Source port for "Build and run"</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort.Watermark">None — the button only builds</sys:String>
   <sys:String x:Key="ProjectSettings.ResourceWads">Resource WADs (textures / flats)</sys:String>
   <sys:String x:Key="ProjectSettings.AddResources">Add resources...</sys:String>
   <sys:String x:Key="ProjectSettings.FilterToUsed">Only include textures/flats used by the maps</sys:String>
@@ -87,6 +93,19 @@
   <sys:String x:Key="ProjectSettings.IncludeSprites">Include sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, status bar and fonts)</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Collaborators (map authors)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Add collaborator</sys:String>
+
+  <!-- ===== Source Ports window ===== -->
+  <sys:String x:Key="SourcePorts.Title">Source ports</sys:String>
+  <sys:String x:Key="SourcePorts.List">Configured ports</sys:String>
+  <sys:String x:Key="SourcePorts.Add">Add port</sys:String>
+  <sys:String x:Key="SourcePorts.Edit">Edit selected port</sys:String>
+  <sys:String x:Key="SourcePorts.Name">Name</sys:String>
+  <sys:String x:Key="SourcePorts.Name.Watermark">e.g. GZDoom</sys:String>
+  <sys:String x:Key="SourcePorts.Executable">Executable</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Watermark">Path to the source port .exe</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Browse">Browse for executable...</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments">Arguments</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments.Watermark">Optional. e.g. -warp 1 — -iwad and -file are added automatically</sys:String>
 
   <!-- ===== Sky Picker window ===== -->
   <sys:String x:Key="SkyPicker.Title">Select Sky</sys:String>
@@ -149,6 +168,9 @@
   <sys:String x:Key="Log.NeedOutputPath">[ERROR] Set an output path.</sys:String>
   <sys:String x:Key="Log.NoSlot">[ERROR] The map '{0}' from '{1}' has no final slot.</sys:String>
   <sys:String x:Key="Log.Compiling">── Compiling ───────────────────────────────</sys:String>
+  <sys:String x:Key="Log.NoSourcePort">[ERROR] No source port selected. Pick one in Project Settings, or add ports in Configuration → Source ports.</sys:String>
+  <sys:String x:Key="Log.SourcePortMissing">[ERROR] Source port executable not found: {0}</sys:String>
+  <sys:String x:Key="Log.SourcePortLaunched">[INFO] Launched {0} (PID {1}) with the compiled WAD.</sys:String>
 
   <!-- ===== Sheet header (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>

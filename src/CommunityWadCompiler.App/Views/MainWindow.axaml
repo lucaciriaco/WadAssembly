@@ -122,6 +122,11 @@
             <Path Data="{StaticResource Icon.View}" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
           </MenuItem.Icon>
         </MenuItem>
+        <MenuItem Header="{DynamicResource Menu.SourcePorts}" Click="OnSourcePorts">
+          <MenuItem.Icon>
+            <Path Data="{StaticResource Icon.Compile}" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+          </MenuItem.Icon>
+        </MenuItem>
       </MenuItem>
       <MenuItem Header="{DynamicResource Menu.Help}">
         <MenuItem.Icon>
@@ -147,14 +152,21 @@
                Watermark="{DynamicResource Output.Watermark}" VerticalAlignment="Center"/>
       <ProgressBar Grid.Column="3" Width="220" Height="18" IsIndeterminate="True"
                    IsVisible="{Binding IsBusy}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-      <Button Grid.Column="4" HorizontalAlignment="Right"
-              IsDefault="True" Click="OnCompile" MinWidth="120" Margin="8,0,0,0">
-        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Path Data="{StaticResource Icon.Compile}" Width="16" Height="16" Stretch="Uniform"
-                Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
-          <TextBlock Text="{DynamicResource Compile}" VerticalAlignment="Center"/>
-        </StackPanel>
-      </Button>
+      <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right"
+                  VerticalAlignment="Center" Margin="8,0,0,0">
+        <Button IsDefault="True" Click="OnCompile" MinWidth="120">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Data="{StaticResource Icon.Compile}" Width="16" Height="16" Stretch="Uniform"
+                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+            <TextBlock x:Name="CompileButtonText" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="CompileModeButton" Click="OnCompileMode" Width="30" Margin="4,0,0,0"
+                ToolTip.Tip="{DynamicResource Compile.Mode}">
+          <TextBlock Text="&#9662;" VerticalAlignment="Center" HorizontalAlignment="Center"
+                     Margin="0,0,0,2"/>
+        </Button>
+      </StackPanel>
     </Grid>
 
     <Grid x:Name="LayoutGrid" Margin="8" ClipToBounds="True">

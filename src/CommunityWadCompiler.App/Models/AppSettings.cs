@@ -31,4 +31,12 @@ public sealed class AppSettings
     /// <summary>Whether the "pick a map..." hint under the Contributed WADs header is
     /// shown. Nullable so config files saved before this setting default to visible.</summary>
     public bool? ShowWadHint { get; set; }
+
+    /// <summary>Source ports managed from Configuration → Source ports, offered as
+    /// launch targets by "Compile and run".</summary>
+    public List<SourcePortConfig> SourcePorts { get; set; } = new();
+
+    /// <summary>Behavior of the compile button: "build" or "buildandrun".
+    /// Empty defaults to "build", keeping legacy config files working.</summary>
+    public string CompileMode { get; set; } = "build";
 }

@@ -19,6 +19,7 @@ public partial class ProjectSettingsWindow : Window
     private readonly List<string> _origCollaborators = new();
     private readonly string _origIntermissionMusic = "";
     private readonly string _origIntermissionMusicExternalPath = "";
+    private readonly string _origSourcePortPath = "";
 
     public ProjectSettingsWindow()
     {
@@ -42,6 +43,11 @@ public partial class ProjectSettingsWindow : Window
             .ToList();
         _origIntermissionMusic = viewModel.IntermissionMusic;
         _origIntermissionMusicExternalPath = viewModel.IntermissionMusicExternalPath;
+
+        // Refresh the source port options from the app config (in case new ports were
+        // added meanwhile) and remember the current selection for Cancel.
+        _viewModel.RefreshSourcePortOptions(viewModel.SelectedSourcePort?.ExecutablePath);
+        _origSourcePortPath = viewModel.SelectedSourcePort?.ExecutablePath ?? "";
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -63,6 +69,7 @@ public partial class ProjectSettingsWindow : Window
             _viewModel.Collaborators.Add(new CollaboratorEntryViewModel(name));
         _viewModel.IntermissionMusic = _origIntermissionMusic;
         _viewModel.IntermissionMusicExternalPath = _origIntermissionMusicExternalPath;
+        _viewModel.RefreshSourcePortOptions(_origSourcePortPath);
         _viewModel.RebuildSlots();
         Close();
     }

@@ -57,6 +57,22 @@
       </StackPanel>
 
       <StackPanel Spacing="4">
+        <TextBlock Text="{DynamicResource ProjectSettings.SourcePort}" FontWeight="Bold"/>
+        <ComboBox ItemsSource="{Binding SourcePortOptions}"
+                  SelectedItem="{Binding SelectedSourcePort, Mode=TwoWay}"
+                  PlaceholderText="{DynamicResource ProjectSettings.SourcePort.Watermark}"
+                  HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel>
+                <TextBlock Text="{Binding Name}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
         <TextBlock Text="{DynamicResource ProjectSettings.ResourceWads}" FontWeight="Bold"/>
         <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3" MinHeight="120">
           <ListBox x:Name="ResourceWadList" ItemsSource="{Binding ResourceWads}"

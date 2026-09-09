@@ -42,6 +42,10 @@ public sealed class ProjectFileData
 
     /// <summary>Absolute path of an external music file for the intermission.</summary>
     public string? IntermissionMusicExternalPath { get; set; }
+
+    /// <summary>Executable path of the source port used by "Compile and run";
+    /// null when the project is only compiled (not run).</summary>
+    public string? SourcePortPath { get; set; }
 }
 
 public sealed class MapEntryData

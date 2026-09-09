@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using CommunityWadCompiler.App.Models;
@@ -33,6 +34,7 @@ private int _slotCount = 32;
     private int? _dropTargetIndex;
     private string _intermissionMusic = "";
     private string _intermissionMusicExternalPath = "";
+    private SourcePortConfig? _selectedSourcePort;
 
         public MainWindowViewModel()
         {
@@ -166,6 +168,30 @@ private int _slotCount = 32;
             if (SetProperty(ref _intermissionMusicExternalPath, value))
                 OnPropertyChanged(nameof(IntermissionMusicDisplay));
         }
+    }
+
+    /// <summary>Source ports available for "Compile and run", refreshed from the app
+    /// config whenever Project Settings is opened. Shown in the Project Settings.</summary>
+    public ObservableCollection<SourcePortConfig> SourcePortOptions { get; } = new();
+
+    /// <summary>Source port chosen for this project (executable path identifies it,
+    /// also persisted in the project file). Null = the compile button only builds.</summary>
+    public SourcePortConfig? SelectedSourcePort
+    {
+        get => _selectedSourcePort;
+        set => SetProperty(ref _selectedSourcePort, value);
+    }
+
+    /// <summary>Reloads <see cref="SourcePortOptions"/> from the app config and selects
+    /// the port matching <paramref name="preferredPath"/> (a path saved in a project),
+    /// or no port when it no longer exists.</summary>
+    public void RefreshSourcePortOptions(string? preferredPath = null)
+    {
+        SourcePortOptions.Clear();
+        foreach (var port in AppSettingsService.Load().SourcePorts)
+            SourcePortOptions.Add(port);
+        SelectedSourcePort = SourcePortOptions.FirstOrDefault(p =>
+            string.Equals(p.ExecutablePath, preferredPath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>Text shown next to the intermission music field of Project Settings:
@@ -740,6 +766,7 @@ private int _slotCount = 32;
             IncludeSpriteLumps = IncludeSpriteLumps,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
+            SourcePortPath = SelectedSourcePort?.ExecutablePath,
             Maps = SlotRows
                 .Where(r => !r.IsEmpty)
                 .Select(r => new MapEntryData
@@ -794,6 +821,7 @@ private int _slotCount = 32;
         IncludeSpriteLumps = data.IncludeSpriteLumps;
         IntermissionMusic = data.IntermissionMusic ?? "";
         IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
+        RefreshSourcePortOptions(data.SourcePortPath);
 
         foreach (string wadPath in data.WadPaths)
             AddWadsPathOnly(wadPath);
@@ -897,7 +925,7 @@ private int _slotCount = 32;
     // Compile
     // ------------------------------------------------------------------
 
-    public async Task CompileAsync()
+    public async Task CompileAsync(bool runAfterBuild = false)
     {
         if (IsBusy)
             return;
@@ -983,6 +1011,8 @@ private int _slotCount = 32;
         {
             var result = await Task.Run(() => new WadMerger().Merge(request, progress));
             AppendLog(result.ToReport());
+            if (runAfterBuild && result.Success)
+                LaunchSourcePort();
         }
         catch (Exception ex)
         {
@@ -991,6 +1021,61 @@ private int _slotCount = 32;
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>Launches the source port selected for this project with the fresh
+    /// output WAD after a successful "Compile and run". The port config (including
+    /// its custom arguments) is re-read from the app config, so edits made in
+    /// Configuration → Source ports are honored without reopening this project.</summary>
+    private void LaunchSourcePort()
+    {
+        var selected = SelectedSourcePort;
+        if (selected is null)
+        {
+            AppendLog(LanguageService.GetString("Log.NoSourcePort"));
+            return;
+        }
+
+        // Prefer the current config entry: it may have newer arguments than the
+        // options snapshot this project was opened with.
+        var config = AppSettingsService.Load().SourcePorts;
+        var port = selected;
+        if (config.FirstOrDefault(p =>
+                string.Equals(p.ExecutablePath, selected.ExecutablePath, StringComparison.OrdinalIgnoreCase)
+                || (selected.Name.Length > 0 && string.Equals(p.Name, selected.Name, StringComparison.OrdinalIgnoreCase))) is { } fresh)
+            port = fresh;
+
+        if (!File.Exists(port.ExecutablePath))
+        {
+            AppendLog(string.Format(LanguageService.GetString("Log.SourcePortMissing"), port.ExecutablePath));
+            return;
+        }
+
+        var args = new List<string>();
+        if (!string.IsNullOrWhiteSpace(port.Arguments))
+            args.Add(port.Arguments.Trim());
+        if (BaseWadPath is { } baseWad && File.Exists(baseWad))
+            args.Add($"-iwad \"{baseWad}\"");
+        args.Add($"-file \"{OutputPath}\"");
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = port.ExecutablePath,
+            Arguments = string.Join(" ", args),
+            WorkingDirectory = Path.GetDirectoryName(port.ExecutablePath) ?? "",
+            UseShellExecute = false,
+        };
+
+        try
+        {
+            using var process = Process.Start(psi);
+            if (process is not null)
+                AppendLog(string.Format(LanguageService.GetString("Log.SourcePortLaunched"), port.Name, process.Id));
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"[ERROR] {ex.Message}");
         }
     }
 

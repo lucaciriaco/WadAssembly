@@ -20,6 +20,7 @@
   <sys:String x:Key="Menu.Theme.Light">Claro</sys:String>
   <sys:String x:Key="Menu.Theme.Dark">Oscuro</sys:String>
   <sys:String x:Key="Menu.View">Vista</sys:String>
+  <sys:String x:Key="Menu.SourcePorts">Source ports (puertos de juego)…</sys:String>
   <sys:String x:Key="Menu.Exit">Salir</sys:String>
   <sys:String x:Key="Menu.Help">Ayuda</sys:String>
   <sys:String x:Key="Menu.About">Acerca de...</sys:String>
@@ -28,6 +29,9 @@
   <sys:String x:Key="Output.Label">Salida:</sys:String>
   <sys:String x:Key="Output.Watermark">Ruta del .wad compilado (ej. megawad.wad)</sys:String>
   <sys:String x:Key="Compile">Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode">Modo del botón Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode.Build">Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode.BuildRun">Compilar y ejecutar</sys:String>
 
   <!-- ===== Panel izquierdo: WADs aportados ===== -->
   <sys:String x:Key="Input.Title">WADs aportados (mapas)</sys:String>
@@ -80,6 +84,8 @@
   <sys:String x:Key="ProjectSettings.IntermissionMusic">Música de intermisión</sys:String>
   <sys:String x:Key="ProjectSettings.IntermissionMusic.Watermark">Música que suena entre niveles (intermisión)</sys:String>
   <sys:String x:Key="ProjectSettings.IntermissionMusic.Pick">Abrir selector de música...</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort">Source port para "Compilar y ejecutar"</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort.Watermark">Ninguno — el botón solo compila</sys:String>
   <sys:String x:Key="ProjectSettings.ResourceWads">WAD de recursos (texturas / flats)</sys:String>
   <sys:String x:Key="ProjectSettings.AddResources">Agregar recursos...</sys:String>
   <sys:String x:Key="ProjectSettings.FilterToUsed">Solo incluir texturas/flats usados por los mapas</sys:String>
@@ -87,6 +93,19 @@
   <sys:String x:Key="ProjectSettings.IncludeSprites">Incluir sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, statusbar y fuentes)</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
+
+  <!-- ===== Ventana Source Ports ===== -->
+  <sys:String x:Key="SourcePorts.Title">Source ports (puertos de juego)</sys:String>
+  <sys:String x:Key="SourcePorts.List">Puertos configurados</sys:String>
+  <sys:String x:Key="SourcePorts.Add">Agregar puerto</sys:String>
+  <sys:String x:Key="SourcePorts.Edit">Editar puerto seleccionado</sys:String>
+  <sys:String x:Key="SourcePorts.Name">Nombre</sys:String>
+  <sys:String x:Key="SourcePorts.Name.Watermark">Ej. GZDoom</sys:String>
+  <sys:String x:Key="SourcePorts.Executable">Ejecutable</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Watermark">Ruta al .exe del source port</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Browse">Buscar ejecutable...</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments">Argumentos</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments.Watermark">Opcional. Ej. -iwarp 1 — se agregan -iwad y -file automáticamente</sys:String>
 
   <!-- ===== Ventana Sky Picker ===== -->
   <sys:String x:Key="SkyPicker.Title">Seleccionar Sky</sys:String>
@@ -149,6 +168,9 @@
   <sys:String x:Key="Log.NeedOutputPath">[ERROR] Definí la ruta de salida.</sys:String>
   <sys:String x:Key="Log.NoSlot">[ERROR] El mapa '{0}' de '{1}' no tiene slot final.</sys:String>
   <sys:String x:Key="Log.Compiling">── Compilando ───────────────────────────────</sys:String>
+  <sys:String x:Key="Log.NoSourcePort">[ERROR] Sin source port seleccionado. Elegí uno en Configuración del proyecto, o agregá puertos en Configuración → Source ports.</sys:String>
+  <sys:String x:Key="Log.SourcePortMissing">[ERROR] No se encontró el ejecutable del source port: {0}</sys:String>
+  <sys:String x:Key="Log.SourcePortLaunched">[INFO] Ejecutando {0} (PID {1}) con el WAD compilado.</sys:String>
 
   <!-- ===== Encabezado de la planilla (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>

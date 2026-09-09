@@ -20,6 +20,9 @@ public partial class MainWindow : Window
     private const string MapSourceFormat = "MapSource";
     private const string ColumnHeaderFormat = "ColumnHeaderSource";
 
+    private const string BuildMode = "build";
+    private const string BuildRunMode = "buildandrun";
+
     private readonly MainWindowViewModel _viewModel = new();
 
     private Grid _headerGrid = null!;
@@ -59,6 +62,12 @@ public partial class MainWindow : Window
     private TextBlock? _themeCheckSystem;
     private TextBlock? _themeCheckLight;
     private TextBlock? _themeCheckDark;
+
+    private string _compileMode = BuildMode;
+    private readonly List<MenuItem> _compileModeItems = new();
+    private TextBlock _compileModeBuildCheck = null!;
+    private TextBlock _compileModeBuildRunCheck = null!;
+    private TextBlock? _compileButtonText;
 
     private readonly DispatcherTimer _configSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
 
@@ -129,6 +138,27 @@ public partial class MainWindow : Window
         _themeCheckLight = this.FindControl<TextBlock>("ThemeCheckLight");
         _themeCheckDark = this.FindControl<TextBlock>("ThemeCheckDark");
         UpdateThemeChecks();
+
+        _compileMode = settings.CompileMode == BuildRunMode ? BuildRunMode : BuildMode;
+        _compileButtonText = this.FindControl<TextBlock>("CompileButtonText");
+        if (this.FindControl<Button>("CompileModeButton") is { } modeButton)
+        {
+            var modeMenu = new ContextMenu();
+            modeButton.ContextMenu = modeMenu;
+            // The items are rebuilt (with fresh headers/checks) on language change.
+            Action populateMenu = () =>
+            {
+                modeMenu.Items.Clear();
+                RebuildCompileModeMenu();
+                foreach (var item in _compileModeItems)
+                    modeMenu.Items.Add(item);
+            };
+            populateMenu();
+            LanguageService.LanguageChanged += (_, _) => populateMenu();
+        }
+        LanguageService.LanguageChanged += (_, _) => UpdateCompileButtonText();
+        UpdateCompileButtonText();
+        UpdateCompileModeChecks();
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -365,7 +395,14 @@ public partial class MainWindow : Window
     {
         if (_planColumnWidths is null)
             return;
-        var settings = new AppSettings { Language = LanguageService.CurrentLanguage, LogVisible = _logVisible, Theme = ThemeService.CurrentTheme, ShowWadHint = _wadHintVisible };
+        // Reload from disk and only touch the fields this window owns, so other
+        // settings persisted elsewhere (e.g. the source port list) are never clobbered.
+        var settings = AppSettingsService.Load();
+        settings.Language = LanguageService.CurrentLanguage;
+        settings.LogVisible = _logVisible;
+        settings.Theme = ThemeService.CurrentTheme;
+        settings.ShowWadHint = _wadHintVisible;
+        settings.CompileMode = _compileMode;
         _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
     }
@@ -876,7 +913,79 @@ public partial class MainWindow : Window
     // Compile
     // ------------------------------------------------------------------
 
-    private async void OnCompile(object? sender, RoutedEventArgs e) => await _viewModel.CompileAsync();
+    private async void OnCompile(object? sender, RoutedEventArgs e)
+        => await _viewModel.CompileAsync(runAfterBuild: _compileMode == BuildRunMode);
+
+    // ------------------------------------------------------------------
+    // Compile mode dropdown (Build / Build and run, ZDL-style)
+    // ------------------------------------------------------------------
+
+    /// <summary>Shows the mode dropdown next to the compile button.</summary>
+    private void OnCompileMode(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { ContextMenu: { } menu } button)
+            menu.Open(button);
+    }
+
+    /// <summary>Persists the compile-button behavior ("build" or "buildandrun").</summary>
+    private void SetCompileMode(string mode)
+    {
+        if (_compileMode == mode)
+            return;
+        _compileMode = mode;
+        var settings = AppSettingsService.Load();
+        settings.CompileMode = mode;
+        AppSettingsService.Save(settings);
+        UpdateCompileButtonText();
+        UpdateCompileModeChecks();
+    }
+
+    /// <summary>Makes the compile button label reflect the active mode
+    /// ("Compile" vs "Compile and run"), following the current language.</summary>
+    private void UpdateCompileButtonText()
+    {
+        if (_compileButtonText is null)
+            return;
+        _compileButtonText.Text = LanguageService.GetString(
+            _compileMode == BuildRunMode ? "Compile.Mode.BuildRun" : "Compile");
+    }
+
+    /// <summary>Builds the two mode entries; headers follow the current language.</summary>
+    private void RebuildCompileModeMenu()
+    {
+        _compileModeItems.Clear();
+        _compileModeBuildCheck = CreateCompileModeItem(run: false);
+        _compileModeBuildRunCheck = CreateCompileModeItem(run: true);
+        UpdateCompileModeChecks();
+    }
+
+    private TextBlock CreateCompileModeItem(bool run)
+    {
+        var check = new TextBlock
+        {
+            Text = " ",
+            MinWidth = 16,
+            TextAlignment = TextAlignment.Center,
+        };
+        var item = new MenuItem
+        {
+            Header = LanguageService.GetString(run ? "Compile.Mode.BuildRun" : "Compile.Mode.Build"),
+            Icon = check,
+        };
+        var mode = run ? BuildRunMode : BuildMode;
+        item.Click += (_, _) => SetCompileMode(mode);
+        _compileModeItems.Add(item);
+        return check;
+    }
+
+    /// <summary>Mirrors the active mode into the checkmarks of the two dropdown entries.</summary>
+    private void UpdateCompileModeChecks()
+    {
+        if (_compileModeBuildCheck is null)
+            return;
+        _compileModeBuildCheck.Text = _compileMode == BuildMode ? "✓" : " ";
+        _compileModeBuildRunCheck.Text = _compileMode == BuildRunMode ? "✓" : " ";
+    }
 
     // ------------------------------------------------------------------
     // Menu
@@ -912,6 +1021,12 @@ public partial class MainWindow : Window
     {
         var settings = new ProjectSettingsWindow(_viewModel);
         settings.ShowDialog(this);
+    }
+
+    private async void OnSourcePorts(object? sender, RoutedEventArgs e)
+    {
+        var window = new SourcePortsWindow();
+        await window.ShowDialog(this);
     }
 
     private void OnExit(object? sender, RoutedEventArgs e) => Close();
