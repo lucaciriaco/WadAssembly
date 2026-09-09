@@ -11,6 +11,9 @@ namespace CommunityWadCompiler.App.ViewModels;
 /// via <see cref="ApplyTo"/>.</summary>
 public sealed class PlanColumnsViewModel
 {
+    /// <summary>Total number of plan-sheet columns.</summary>
+    public const int ColumnCount = 10;
+
     public static readonly IReadOnlyList<(int Id, string TitleKey, double Width)> Presets =
         new (int, string, double)[]
         {
@@ -23,6 +26,7 @@ public sealed class PlanColumnsViewModel
             (7, "Header.Sky", 100),
             (8, "Header.Author", 124),
             (4, "Header.Status", 100),
+            (9, "Header.Notes", 130),
         };
 
     public ObservableCollection<PlanColumnViewModel> Columns { get; } = new();
@@ -56,7 +60,7 @@ public sealed class PlanColumnsViewModel
         return -1;
     }
 
-    /// <summary>Column ids in current UI order (9 values).</summary>
+    /// <summary>Column ids in current UI order (<see cref="ColumnCount"/> values).</summary>
     public int[] Order => Columns.Select(c => c.Id).ToArray();
 
     /// <summary>Moves the column at <paramref name="from"/> to <paramref name="to"/>.
@@ -85,10 +89,12 @@ public sealed class PlanColumnsViewModel
         {
             if (IsValidColumnOrder(settings.ColumnOrder))
                 ApplyOrder(settings.ColumnOrder!);
+            else
+                ApplyOrder(MigrateColumnOrder(settings.ColumnOrder));
 
-            if (settings.ColumnWidths is { Length: 9 } widths)
+            if (settings.ColumnWidths is { Length: ColumnCount } widths)
             {
-                for (int i = 0; i < 9; i++)
+                for (int i = 0; i < ColumnCount; i++)
                 {
                     var column = Columns[i];
                     if (widths[i] > 0)
@@ -96,9 +102,9 @@ public sealed class PlanColumnsViewModel
                 }
             }
 
-            if (settings.ColumnVisibility is { Length: 9 } visibility)
+            if (settings.ColumnVisibility is { Length: ColumnCount } visibility)
             {
-                for (int i = 0; i < 9; i++)
+                for (int i = 0; i < ColumnCount; i++)
                     Columns[i].Visible = visibility[i];
             }
             else
@@ -137,13 +143,26 @@ public sealed class PlanColumnsViewModel
             .Where(c => c is not null)
             .Cast<PlanColumnViewModel>()
             .ToList();
-        if (reordered.Count != 9)
+        if (reordered.Count != ColumnCount)
             return;
         Columns.Clear();
         foreach (var column in reordered)
             Columns.Add(column);
     }
 
+    /// <summary>Upgrades an order saved by an older version (9 columns): keeps the saved
+    /// relative order and appends the missing column (the notes column id 9) at the end.</summary>
+    private static int[] MigrateColumnOrder(int[]? order)
+    {
+        if (order is { Length: ColumnCount - 1 }
+            && order.Distinct().Count() == ColumnCount - 1
+            && order.All(i => i is >= 0 and < ColumnCount))
+        {
+            return order.Append(Enumerable.Range(0, ColumnCount).First(i => !order.Contains(i))).ToArray();
+        }
+        return Enumerable.Range(0, ColumnCount).ToArray();
+    }
+
     private static bool IsValidColumnOrder(int[]? order)
-        => order is { Length: 9 } && order.Distinct().Count() == 9 && order.All(i => i is >= 0 and <= 8);
+        => order is { Length: ColumnCount } && order.Distinct().Count() == ColumnCount && order.All(i => i is >= 0 and < ColumnCount);
 }

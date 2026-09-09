@@ -239,7 +239,7 @@ public partial class MainWindow : Window
             return;
 
         var definitions = _headerGrid.ColumnDefinitions;
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < _planColumns.Columns.Count; i++)
         {
             var column = _planColumns.ColumnAt(i);
             if (column.Visible)
@@ -412,7 +412,7 @@ public partial class MainWindow : Window
                 case GridSplitter splitter:
                 {
                     int pos = Grid.GetColumn(splitter);
-                    if (pos is >= 1 and <= 8)
+                    if (pos >= 1 && pos < _planColumns.Columns.Count)
                     {
                         bool leftVisible = _planColumns.ColumnAt(pos - 1).Visible;
                         bool rightVisible = _planColumns.ColumnAt(pos).Visible;
@@ -424,7 +424,7 @@ public partial class MainWindow : Window
                 case Border border when border.Classes.Contains("divider"):
                 {
                     int pos = Grid.GetColumn(border);
-                    if (pos is >= 1 and <= 8)
+                    if (pos >= 1 && pos < _planColumns.Columns.Count)
                         border.IsVisible = _planColumns.ColumnAt(pos).Visible;
                     break;
                 }
@@ -552,6 +552,18 @@ public partial class MainWindow : Window
             row.SkyScroll = picker.SkyScroll;
             row.Sky2Scroll = picker.Sky2Scroll;
         }
+    }
+
+    /// <summary>Opens the notes editor for the slot whose row button was clicked.</summary>
+    private async void OnEditNotes(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.DataContext is not SlotRowViewModel row)
+            return;
+
+        var notes = new NotesWindow(row.SlotName, row.Notes);
+        await notes.ShowDialog(this);
+        if (notes.Accepted)
+            row.Notes = notes.Notes;
     }
 
     private void OnSlotDragOver(object? sender, DragEventArgs e)

@@ -45,6 +45,12 @@
   <sys:String x:Key="Header.Music">Música</sys:String>
   <sys:String x:Key="Header.Sky">Sky</sys:String>
   <sys:String x:Key="Header.Author">Autor</sys:String>
+  <sys:String x:Key="Header.Notes">Notas adicionales</sys:String>
+
+  <!-- ===== Ventana de notas ===== -->
+  <sys:String x:Key="Notes.Title">Notas adicionales</sys:String>
+  <sys:String x:Key="Notes.SlotLabel">Notas del slot {0}</sys:String>
+  <sys:String x:Key="Notes.Placeholder">Notas...</sys:String>
 
   <!-- ===== Menú contextual de fila ===== -->
   <sys:String x:Key="Row.ClearFields">Borrar todos los campos</sys:String>

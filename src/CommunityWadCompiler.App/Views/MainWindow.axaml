@@ -232,6 +232,7 @@
                   <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW6, Source={StaticResource PlanColWidths}}"/>
                   <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW7, Source={StaticResource PlanColWidths}}"/>
                   <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW8, Source={StaticResource PlanColWidths}}"/>
+                  <ColumnDefinition Width="{Binding C9, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW9, Source={StaticResource PlanColWidths}}"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Tag="0" Grid.Column="0" Text="{DynamicResource Header.Slot}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Tag="1" Grid.Column="1" Text="{DynamicResource Header.Wad}" FontWeight="Bold" Margin="4,0,4,0"/>
@@ -242,6 +243,7 @@
                 <TextBlock Tag="6" Grid.Column="6" Text="{DynamicResource Header.Music}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Tag="7" Grid.Column="7" Text="{DynamicResource Header.Sky}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <TextBlock Tag="8" Grid.Column="8" Text="{DynamicResource Header.Author}" FontWeight="Bold" Margin="4,0,4,0"/>
+                <TextBlock Tag="9" Grid.Column="9" Text="{DynamicResource Header.Notes}" FontWeight="Bold" Margin="4,0,4,0"/>
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
                               Background="Transparent" Focusable="False" Cursor="SizeWestEast"
@@ -274,6 +276,10 @@
                               HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
                               Background="Transparent" Focusable="False" Cursor="SizeWestEast"
                               DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
+                <GridSplitter Grid.Column="9" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent"
+                              HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="6" Margin="-3,0,0,0"
+                              Background="Transparent" Focusable="False" Cursor="SizeWestEast"
+                              DragDelta="OnColumnResized" DragCompleted="OnColumnResized"/>
                 <Border Grid.Column="1" Classes="divider"/>
                 <Border Grid.Column="2" Classes="divider"/>
                 <Border Grid.Column="3" Classes="divider"/>
@@ -282,6 +288,7 @@
                 <Border Grid.Column="6" Classes="divider"/>
                 <Border Grid.Column="7" Classes="divider"/>
                 <Border Grid.Column="8" Classes="divider"/>
+                <Border Grid.Column="9" Classes="divider"/>
               </Grid>
               <!-- Rows -->
               <ItemsControl x:Name="RowsControl" ItemsSource="{Binding SlotRows}"
@@ -307,6 +314,7 @@
                           <ColumnDefinition Width="{Binding C6, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW6, Source={StaticResource PlanColWidths}}"/>
                           <ColumnDefinition Width="{Binding C7, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW7, Source={StaticResource PlanColWidths}}"/>
                           <ColumnDefinition Width="{Binding C8, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW8, Source={StaticResource PlanColWidths}}"/>
+                          <ColumnDefinition Width="{Binding C9, Source={StaticResource PlanColWidths}}" MinWidth="{Binding MinW9, Source={StaticResource PlanColWidths}}"/>
                         </Grid.ColumnDefinitions>
                         <Grid.ContextMenu>
                           <ContextMenu>
@@ -348,6 +356,11 @@
                             Click="OnPickSky" Margin="4,0,4,0"/>
                         <TextBox Tag="8" Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"
                                  MinWidth="120" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
+                        <Button Tag="9" Grid.Column="9" Click="OnEditNotes" MinWidth="90"
+                            Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                            Margin="4,0,4,0">
+                          <TextBlock Text="{Binding NotesDisplay}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                        </Button>
                       </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

@@ -758,6 +758,7 @@ private int _slotCount = 32;
                     EnableSky2 = r.EnableSky2,
                     Author = r.Author,
                     Status = r.Status,
+                    Notes = r.Notes,
                 })
                 .ToList(),
         };
@@ -821,6 +822,7 @@ private int _slotCount = 32;
                 EnableSky2 = m.EnableSky2,
                 Author = m.Author ?? "",
                 Status = m.Status ?? "",
+                Notes = m.Notes ?? "",
                 MusicOptions = AvailableMusicLumps,
             });
         }

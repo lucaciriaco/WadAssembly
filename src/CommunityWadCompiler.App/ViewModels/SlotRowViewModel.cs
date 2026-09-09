@@ -24,6 +24,7 @@ public sealed class SlotRowViewModel : ObservableObject
     private double _skyScroll;
     private double _sky2Scroll;
     private bool _enableSky2;
+    private string _notes = "";
     private string _author = "";
     private string _status = "";
     private bool _isDropTarget;
@@ -185,6 +186,29 @@ public sealed class SlotRowViewModel : ObservableObject
         get => _author;
         set => SetProperty(ref _author, value);
     }
+    /// <summary>Additional free-text notes for this slot (visible in the grid, stored in
+    /// the project JSON; not written to the generated PWAD).</summary>
+    public string Notes
+    {
+        get => _notes;
+        set
+        {
+            if (SetProperty(ref _notes, value))
+                OnPropertyChanged(nameof(NotesDisplay));
+        }
+    }
+
+    /// <summary>Text shown by the notes button: a single-line preview of the notes, or
+    /// the localized placeholder while the slot has no notes.</summary>
+    public string NotesDisplay
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Notes))
+                return CommunityWadCompiler.App.Services.LanguageService.GetString("Notes.Placeholder");
+            return Notes.Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ');
+        }
+    }
 
     /// <summary>Progress status of the map (TODO/WIP/DONE/FIX), written as a comment in the MAPINFO.</summary>
     public string Status
@@ -211,6 +235,7 @@ public sealed class SlotRowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(MusicDisplay));
         OnPropertyChanged(nameof(SkyDisplay));
+        OnPropertyChanged(nameof(NotesDisplay));
     }
 
     /// <summary>Background brush of the row: transparent normally, blue while this row is

@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CommunityWadCompiler.App.Views.NotesWindow"
+        Title="{DynamicResource Notes.Title}"
+        Width="520" Height="420" MinWidth="360" MinHeight="260"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+  <DockPanel Margin="12">
+
+    <TextBlock x:Name="NotesHeader" DockPanel.Dock="Top"
+               FontWeight="Bold" Margin="0,0,0,8" TextTrimming="CharacterEllipsis"/>
+
+    <!-- Buttons: docked bottom before the fill area so they are always visible -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button Content="{DynamicResource Accept}" IsDefault="True" Click="OnAccept" MinWidth="90"/>
+      <Button Content="{DynamicResource Cancel}" IsCancel="True" Click="OnCancel" MinWidth="90"/>
+    </StackPanel>
+
+    <!-- Notes editor (last child: fills the remaining space) -->
+    <TextBox x:Name="NotesBox" AcceptsReturn="True" TextWrapping="Wrap"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             FontFamily="Consolas, Courier New"/>
+  </DockPanel>
+</Window>

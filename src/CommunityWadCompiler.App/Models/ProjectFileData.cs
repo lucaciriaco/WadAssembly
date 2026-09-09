@@ -69,6 +69,9 @@ public sealed class MapEntryData
     /// <summary>Progress status of the map (TODO/WIP/DONE/FIX), written as a comment in the MAPINFO.</summary>
     public string? Status { get; set; }
 
+    /// <summary>Additional free-text notes for this map (project metadata only).</summary>
+    public string? Notes { get; set; }
+
     public string? SkyName { get; set; }
 
     /// <summary>Optional second sky layer name (sky2 in MAPINFO); empty when disabled.</summary>
