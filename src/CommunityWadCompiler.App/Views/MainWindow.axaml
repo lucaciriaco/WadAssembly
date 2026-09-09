@@ -143,7 +143,7 @@
       <Button Grid.Row="0" Grid.Column="0" x:Name="HamburgerButton" Click="OnToggleLeftPanel"
               Width="30" Height="30" Margin="0,2,6,0" VerticalAlignment="Top" Background="Transparent"
               ToolTip.Tip="{DynamicResource Input.Collapse}">
-        <Path x:Name="CollapseIcon" Data="{StaticResource Icon.ArrowRight}" Width="18" Height="18" Stretch="Uniform"
+        <Path x:Name="CollapseIcon" Data="{StaticResource Icon.ArrowLeft}" Width="18" Height="18" Stretch="Uniform"
               Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
       </Button>
 

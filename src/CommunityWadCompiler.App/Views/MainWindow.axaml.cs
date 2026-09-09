@@ -88,8 +88,8 @@ public partial class MainWindow : Window
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
     /// <summary>Toggles the left "contributed WADs" panel: collapses it into the narrow
-    /// toggle strip, giving the full width to the maps/slots grid. The arrow points left
-    /// while collapsed (the panel rests on the left) and right when open.</summary>
+    /// toggle strip, giving the full width to the maps/slots grid. The arrow points
+    /// right while collapsed (clicking expands) and left while open (clicking collapses).</summary>
     private void OnToggleLeftPanel(object? sender, RoutedEventArgs e)
     {
         _leftPanelCollapsed = !_leftPanelCollapsed;
@@ -98,8 +98,8 @@ public partial class MainWindow : Window
             ? GridLength.Auto
             : new GridLength(1, GridUnitType.Star);
         _collapseIcon.Data = _leftPanelCollapsed
-            ? Resources["Icon.ArrowLeft"] as StreamGeometry
-            : Resources["Icon.ArrowRight"] as StreamGeometry;
+            ? Resources["Icon.ArrowRight"] as StreamGeometry
+            : Resources["Icon.ArrowLeft"] as StreamGeometry;
         ToolTip.SetTip(_hamburgerButton, LanguageService.GetString(
             _leftPanelCollapsed ? "Input.Expand" : "Input.Collapse"));
     }
