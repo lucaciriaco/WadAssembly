@@ -1,3 +1,4 @@
+using CommunityWadCompiler.Core.Localization;
 using CommunityWadCompiler.Core.WadFormat;
 
 namespace CommunityWadCompiler.Core.Textures;
@@ -40,7 +41,7 @@ public sealed class TextureMerger
         {
             if (wad.FindLast("TEXTURE1") is null && wad.FindLast("TEXTURE2") is null)
                 return; // nothing to merge from this WAD
-            _warnings.Add($"{wad.SourcePath}: contiene TEXTUREx sin PNAMES; se intenta resolver por nombre.");
+            _warnings.Add(CoreMessages.Get("Merge.TextureWithoutPnames", wad.SourcePath ?? ""));
         }
 
         int[] remap = MapPatchTable(pnamesLump);
@@ -89,7 +90,7 @@ public sealed class TextureMerger
             if (_textureIndex.ContainsKey(def.Name))
             {
                 _skippedTextures++;
-                _warnings.Add($"Textura '{def.Name}' duplicada; se mantiene la primera definición.");
+                _warnings.Add(CoreMessages.Get("Merge.TextureDuplicate", def.Name));
                 continue;
             }
 
@@ -117,7 +118,7 @@ public sealed class TextureMerger
                 }
                 else
                 {
-                    _warnings.Add($"Textura '{def.Name}': índice de patch {patch.PatchIndex} fuera de rango.");
+                    _warnings.Add(CoreMessages.Get("Merge.PatchIndexOutOfRange", def.Name, patch.PatchIndex));
                     newIndex = 0;
                 }
 

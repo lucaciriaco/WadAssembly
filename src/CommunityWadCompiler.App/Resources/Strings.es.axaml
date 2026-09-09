@@ -172,6 +172,60 @@
   <sys:String x:Key="Log.SourcePortMissing">[ERROR] No se encontró el ejecutable del source port: {0}</sys:String>
   <sys:String x:Key="Log.SourcePortLaunched">[INFO] Ejecutando {0} (PID {1}) con el WAD compilado.</sys:String>
 
+  <!-- ===== Mensajes de consola del merge (CoreMessages) ===== -->
+  <sys:String x:Key="Merge.OpenBaseWad">Abriendo WAD base...</sys:String>
+  <sys:String x:Key="Merge.NoBaseWad">  (sin WAD base)</sys:String>
+  <sys:String x:Key="Merge.OpenInputs">Abriendo WADs de entrada...</sys:String>
+  <sys:String x:Key="Merge.OpenResources">Abriendo WADs de recursos...</sys:String>
+  <sys:String x:Key="Merge.NoResourceWad">  (sin WAD de recursos)</sys:String>
+  <sys:String x:Key="Merge.ScanMusic">Escaneando lumps de música (MUS/MIDI)...</sys:String>
+  <sys:String x:Key="Merge.MusicFound">  - {0} lump(s) de música detectados.</sys:String>
+  <sys:String x:Key="Merge.DetectMaps">Detectando mapas...</sys:String>
+  <sys:String x:Key="Merge.AnalyzeUsage">Analizando texturas/flats usados por los mapas...</sys:String>
+  <sys:String x:Key="Merge.UsageFound">  - {0} texturas de pared y {1} flats detectados.</sys:String>
+  <sys:String x:Key="Merge.MergeTextures">Fusionando texturas (PNAMES/TEXTURE1/TEXTURE2)...</sys:String>
+  <sys:String x:Key="Merge.ExcludedTextures">  {0} textura(s) excluidas por no usarse.</sys:String>
+  <sys:String x:Key="Merge.Assemble">Ensamblando WAD de salida...</sys:String>
+  <sys:String x:Key="Merge.CopyingMap">  Copiando {0} -> {1}</sys:String>
+  <sys:String x:Key="Merge.MapNoSlot">Mapa '{0}' de '{1}' no tiene slot asignado; se omite.</sys:String>
+  <sys:String x:Key="Merge.DuplicateSlot">Dos mapas se asignaron al slot '{0}'. Revisá las asignaciones.</sys:String>
+  <sys:String x:Key="Merge.MapInfoGenerated">MAPINFO generado para {0} mapa(s).</sys:String>
+  <sys:String x:Key="Merge.MapInfoSkipped">Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.</sys:String>
+  <sys:String x:Key="Merge.ZdoomTexturesDropped">Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.</sys:String>
+  <sys:String x:Key="Merge.MusicRenamed">Música '{0}' (de '{1}') renombrada a '{2}'.</sys:String>
+  <sys:String x:Key="Merge.MusicNotInWads">Música '{0}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).</sys:String>
+  <sys:String x:Key="Merge.IntermissionMusicAdded">Música de intermisión '{0}' añadida desde '{1}'.</sys:String>
+  <sys:String x:Key="Merge.IntermissionMusicMissing">Música de intermisión '{0}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicAdded">Música externa '{0}' copiada desde '{1}'.</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicMissing">Música externa '{0}': archivo no encontrado '{1}'.</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicUnsupported">Música externa '{0}': extensión '{1}' no soportada.</sys:String>
+  <sys:String x:Key="Merge.SkyMissing">Textura de sky '{0}' no se encontró en los WADs de recursos; el MAPINFO la referencia igualmente.</sys:String>
+  <sys:String x:Key="Merge.TextureWithoutPnames">{0}: contiene TEXTUREx sin PNAMES; se intenta resolver por nombre.</sys:String>
+  <sys:String x:Key="Merge.TextureDuplicate">Textura '{0}' duplicada; se mantiene la primera definición.</sys:String>
+  <sys:String x:Key="Merge.PatchIndexOutOfRange">Textura '{0}': índice de patch {1} fuera de rango.</sys:String>
+  <sys:String x:Key="Merge.TextureLumpTooShort">Lump vacío o demasiado corto para ser TEXTUREx.</sys:String>
+  <sys:String x:Key="Merge.InvalidTextureCount">Número de texturas inválido ({0}).</sys:String>
+  <sys:String x:Key="Merge.MalformedTexture">Textura #{0} (offset {1}) mal formada; se omite.</sys:String>
+  <sys:String x:Key="Merge.WadReadFailed">No se pudo leer '{0}': {1}</sys:String>
+  <sys:String x:Key="Merge.WadTooSmall">El archivo es demasiado pequeño para ser un WAD.</sys:String>
+  <sys:String x:Key="Merge.UnknownHeader">Cabecera de WAD desconocida '{0}' (se esperaba IWAD o PWAD).</sys:String>
+  <sys:String x:Key="Merge.InvalidLumpDirectory">Directorio de lumps inválido o fuera de rango.</sys:String>
+  <sys:String x:Key="Merge.LumpOutOfBounds">El lump '{0}' apunta fuera del archivo.</sys:String>
+
+  <!-- ===== Informe de compilación (Report) ===== -->
+  <sys:String x:Key="Report.Success">COMPILADO OK ({0}s)</sys:String>
+  <sys:String x:Key="Report.Failed">COMPILACIÓN FALLIDA</sys:String>
+  <sys:String x:Key="Report.Output">  Salida: {0} ({1} bytes)</sys:String>
+  <sys:String x:Key="Report.Maps">  Mapas: {0}</sys:String>
+  <sys:String x:Key="Report.Lumps">  Lumps copiados: {0} | Duplicados omitidos: {1}</sys:String>
+  <sys:String x:Key="Report.Patches">  Parches: {0} | Texturas: {1} | Texturas duplicadas omitidas: {2}</sys:String>
+  <sys:String x:Key="Report.TexturesExcluded">  Texturas sin uso excluidas: {0}</sys:String>
+  <sys:String x:Key="Report.Flats">  Flats copiados del WAD de recursos: {0}</sys:String>
+  <sys:String x:Key="Report.Music">  Lumps de música copiados: {0}</sys:String>
+  <sys:String x:Key="Log.ReportError">[ERROR] {0}</sys:String>
+  <sys:String x:Key="Log.ReportWarning">[AVISO] {0}</sys:String>
+  <sys:String x:Key="Log.ReportInfo">[INFO] {0}</sys:String>
+
   <!-- ===== Encabezado de la planilla (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
   <sys:String x:Key="Header.EmptyTitle">Mapas y slots finales (editable)</sys:String>

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using CommunityWadCompiler.App.Models;
@@ -1010,7 +1011,7 @@ private int _slotCount = 32;
         try
         {
             var result = await Task.Run(() => new WadMerger().Merge(request, progress));
-            AppendLog(result.ToReport());
+            AppendLog(BuildReport(result));
             if (runAfterBuild && result.Success)
                 LaunchSourcePort();
         }
@@ -1082,6 +1083,35 @@ private int _slotCount = 32;
     // ------------------------------------------------------------------
     // Log
     // ------------------------------------------------------------------
+
+    /// <summary>Builds the localized compile report from a merge result.</summary>
+    private string BuildReport(MergeResult result)
+    {
+        var sb = new StringBuilder();
+        string elapsed = result.Elapsed.TotalSeconds.ToString("F1", CultureInfo.InvariantCulture);
+        sb.AppendLine(result.Success
+            ? string.Format(LanguageService.GetString("Report.Success"), elapsed)
+            : LanguageService.GetString("Report.Failed"));
+        if (result.OutputPath is not null)
+            sb.AppendLine(string.Format(LanguageService.GetString("Report.Output"),
+                result.OutputPath, result.OutputBytes.ToString("N0", CultureInfo.InvariantCulture)));
+        sb.AppendLine(string.Format(LanguageService.GetString("Report.Maps"), result.MapsAdded));
+        sb.AppendLine(string.Format(LanguageService.GetString("Report.Lumps"), result.LumpsCopied, result.DuplicatesSkipped));
+        sb.AppendLine(string.Format(LanguageService.GetString("Report.Patches"), result.PatchesMerged, result.TexturesMerged, result.TexturesDuplicated));
+        if (result.TexturesExcluded > 0)
+            sb.AppendLine(string.Format(LanguageService.GetString("Report.TexturesExcluded"), result.TexturesExcluded));
+        if (result.FlatsCopied > 0)
+            sb.AppendLine(string.Format(LanguageService.GetString("Report.Flats"), result.FlatsCopied));
+        if (result.MusicCopied > 0)
+            sb.AppendLine(string.Format(LanguageService.GetString("Report.Music"), result.MusicCopied));
+        foreach (string e in result.Errors)
+            sb.AppendLine(string.Format(LanguageService.GetString("Log.ReportError"), e));
+        foreach (string w in result.Warnings)
+            sb.AppendLine(string.Format(LanguageService.GetString("Log.ReportWarning"), w));
+        foreach (string i in result.Info)
+            sb.AppendLine(string.Format(LanguageService.GetString("Log.ReportInfo"), i));
+        return sb.ToString();
+    }
 
     public void AppendLog(string line)
     {

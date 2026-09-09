@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using CommunityWadCompiler.App.Resources;
+using CommunityWadCompiler.Core.Localization;
 
 namespace CommunityWadCompiler.App.Services;
 
@@ -21,6 +22,11 @@ public static class LanguageService
 
     private static string _current = English;
     private static bool _loaded;
+
+    /// <summary>Snapshot of the Core console messages translated for the current language.
+    /// Composed on the UI thread when the dictionaries reload; served from worker threads
+    /// (the merge pipeline) so Avalonia resources are never touched off the UI thread.</summary>
+    private static Dictionary<string, string> _activeCore = new(StringComparer.Ordinal);
 
     /// <summary>Current two-letter language code ("en" or "es").</summary>
     public static string CurrentLanguage => _current;
@@ -65,6 +71,18 @@ public static class LanguageService
         return key;
     }
 
+    /// <summary>Looks up a localized string by key, using <paramref name="fallback"/> when
+    /// the key is not present (used by Core's message resolver). Core messages are resolved
+    /// through the <see cref="_activeCore"/> snapshot built on the UI thread; everything else
+    /// falls back to the live Avalonia resources.</summary>
+    public static string GetString(string key, string fallback)
+    {
+        if (_activeCore.TryGetValue(key, out string? cached))
+            return cached;
+        string value = GetString(key);
+        return value == key ? fallback : value;
+    }
+
     private static void SaveLanguage(string language)
     {
         var settings = AppSettingsService.Load();
@@ -101,5 +119,21 @@ public static class LanguageService
             : new Strings_es();
         Application.Current.Resources.MergedDictionaries.Clear();
         Application.Current.Resources.MergedDictionaries.Add(dictionary);
+        RebuildCoreSnapshot();
+    }
+
+    /// <summary>Translates every Core console message for the current language. Runs on the
+    /// UI thread (Avalonia resource lookups) and swaps the snapshot atomically so worker
+    /// threads always read a complete, consistent picture.</summary>
+    private static void RebuildCoreSnapshot()
+    {
+        var next = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string key in CoreMessages.Keys)
+        {
+            string value = GetString(key);
+            if (value != key)
+                next[key] = value;
+        }
+        _activeCore = next;
     }
 }

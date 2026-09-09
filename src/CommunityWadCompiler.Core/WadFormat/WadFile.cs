@@ -1,4 +1,5 @@
 using System.Text;
+using CommunityWadCompiler.Core.Localization;
 
 namespace CommunityWadCompiler.Core.WadFormat;
 
@@ -49,7 +50,7 @@ public sealed class WadFile : IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            throw new WadException($"No se pudo leer '{path}': {ex.Message}", path, ex);
+            throw new WadException(CoreMessages.Get("Merge.WadReadFailed", path, ex.Message), path, ex);
         }
 
         return Parse(data, path);
@@ -59,21 +60,21 @@ public sealed class WadFile : IDisposable
     public static WadFile Parse(byte[] data, string? sourcePath = null)
     {
         if (data.Length < 12)
-            throw new WadException("El archivo es demasiado pequeño para ser un WAD.", sourcePath);
+            throw new WadException(CoreMessages.Get("Merge.WadTooSmall"), sourcePath);
 
         string magic = Encoding.ASCII.GetString(data, 0, 4);
         WadType type = magic switch
         {
             "IWAD" => WadType.IWad,
             "PWAD" => WadType.PWad,
-            _ => throw new WadException($"Cabecera de WAD desconocida '{magic}' (se esperaba IWAD o PWAD).", sourcePath),
+            _ => throw new WadException(CoreMessages.Get("Merge.UnknownHeader", magic), sourcePath),
         };
 
         int numLumps = BitConverter.ToInt32(data, 4);
         int dirOffset = BitConverter.ToInt32(data, 8);
 
         if (numLumps < 0 || dirOffset < 0 || dirOffset + numLumps * 16L > data.Length)
-            throw new WadException("Directorio de lumps inválido o fuera de rango.", sourcePath);
+            throw new WadException(CoreMessages.Get("Merge.InvalidLumpDirectory"), sourcePath);
 
         var wad = new WadFile(data, type, sourcePath);
 
@@ -85,7 +86,7 @@ public sealed class WadFile : IDisposable
             string name = ReadLumpName(data, entry + 8);
 
             if (filePos < 0 || filePos + size > data.Length)
-                throw new WadException($"El lump '{name}' apunta fuera del archivo.", sourcePath);
+                throw new WadException(CoreMessages.Get("Merge.LumpOutOfBounds", name), sourcePath);
 
             wad._lumps.Add(new Lump(name, filePos, size, wad));
         }

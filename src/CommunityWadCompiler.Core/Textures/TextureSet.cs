@@ -1,5 +1,7 @@
 namespace CommunityWadCompiler.Core.Textures;
 
+using CommunityWadCompiler.Core.Localization;
+
 /// <summary>
 /// Serializes and deserializes a TEXTURE1/TEXTURE2 lump in the classic Doom format.
 ///
@@ -27,14 +29,14 @@ public sealed class TextureSet
         var result = new TextureSet();
         if (data.Length < 4)
         {
-            result.Warnings.Add("Lump vacío o demasiado corto para ser TEXTUREx.");
+            result.Warnings.Add(CoreMessages.Get("Merge.TextureLumpTooShort"));
             return result;
         }
 
         int count = BitConverter.ToInt32(data, 0);
         if (count < 0 || 4L + count * 4L > data.Length)
         {
-            result.Warnings.Add($"Número de texturas inválido ({count}).");
+            result.Warnings.Add(CoreMessages.Get("Merge.InvalidTextureCount", count));
             return result;
         }
 
@@ -45,7 +47,7 @@ public sealed class TextureSet
             if (def is not null)
                 result.Textures.Add(def);
             else
-                result.Warnings.Add($"Textura #{i} (offset {offset}) mal formada; se omite.");
+                result.Warnings.Add(CoreMessages.Get("Merge.MalformedTexture", i, offset));
         }
 
         return result;

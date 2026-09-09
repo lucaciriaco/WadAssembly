@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using CommunityWadCompiler.Core.Localization;
 using CommunityWadCompiler.Core.Maps;
 using CommunityWadCompiler.Core.Music;
 using CommunityWadCompiler.Core.Textures;
@@ -194,28 +195,28 @@ public sealed class WadMerger
 
         try
         {
-            Report("Abriendo WAD base...");
+            Report(CoreMessages.Get("Merge.OpenBaseWad"));
             WadFile? baseWad = LoadOptional(request.BaseWadPath, Report);
 
-            Report("Abriendo WADs de entrada...");
+            Report(CoreMessages.Get("Merge.OpenInputs"));
             var inputs = new List<WadFile>(request.InputWadPaths.Count);
             foreach (string path in request.InputWadPaths)
                 inputs.Add(WadFile.Open(path));
 
-            Report("Abriendo WADs de recursos...");
+            Report(CoreMessages.Get("Merge.OpenResources"));
             var resources = new List<WadFile>(request.ResourceWadPaths.Count);
             foreach (string path in request.ResourceWadPaths)
                 resources.Add(WadFile.Open(path));
             if (resources.Count == 0)
-                Report("  (sin WAD de recursos)");
+                Report(CoreMessages.Get("Merge.NoResourceWad"));
 
-            Report("Escaneando lumps de música (MUS/MIDI)...");
+            Report(CoreMessages.Get("Merge.ScanMusic"));
             var musicByName = MusicLumpDetector.CollectAcrossWads(inputs.Concat<WadFile>(resources))
                 .ToDictionary(c => c.FinalName, c => (c.WadPath, c.OriginalName), StringComparer.Ordinal);
             if (musicByName.Count > 0)
-                Report($"  - {musicByName.Count} lump(s) de música detectados.");
+                Report(CoreMessages.Get("Merge.MusicFound", musicByName.Count));
 
-            Report("Detectando mapas...");
+            Report(CoreMessages.Get("Merge.DetectMaps"));
             var assignments = BuildAssignments(inputs, request, Warn);
 
             // Which textures/flats do the merged maps need? Needed only when resource
@@ -223,23 +224,23 @@ public sealed class WadMerger
             UsedTextures? usage = null;
             if (resources.Count > 0 && request.Options.FilterToUsedResources)
             {
-                Report("Analizando texturas/flats usados por los mapas...");
+                Report(CoreMessages.Get("Merge.AnalyzeUsage"));
                 usage = AnalyzeUsage(assignments);
                 UnionAnimationLumpUsage(inputs, resources, usage);
-                Report($"  - {usage.Walls.Count} texturas de pared y {usage.Flats.Count} flats detectados.");
+                Report(CoreMessages.Get("Merge.UsageFound", usage.Walls.Count, usage.Flats.Count));
             }
 
-            Report("Fusionando texturas (PNAMES/TEXTURE1/TEXTURE2)...");
+            Report(CoreMessages.Get("Merge.MergeTextures"));
             IReadOnlyList<WadFile> textureSources = resources.Count > 0 ? resources : inputs;
             var textures = MergeTextures(baseWad, textureSources, request.Options);
             if (usage is not null)
             {
                 int excluded = textures.ApplyUsageFilter(usage.Walls);
                 _result.TexturesExcluded = excluded;
-                Report($"  {excluded} textura(s) excluidas por no usarse.");
+                Report(CoreMessages.Get("Merge.ExcludedTextures", excluded));
             }
 
-            Report("Ensamblando WAD de salida...");
+            Report(CoreMessages.Get("Merge.Assemble"));
             string outputPath = BuildOutput(
                 request, inputs, resources, assignments, textures, usage, musicByName, baseWad, Report, Warn);
 
@@ -264,7 +265,7 @@ public sealed class WadMerger
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            report("  (sin WAD base)");
+            report(CoreMessages.Get("Merge.NoBaseWad"));
             return null;
         }
         return WadFile.Open(path);
@@ -328,13 +329,13 @@ public sealed class WadMerger
 
                 if (final is null)
                 {
-                    warn($"Mapa '{map.OriginalName}' de '{wadPath}' no tiene slot asignado; se omite.");
+                    warn(CoreMessages.Get("Merge.MapNoSlot", map.OriginalName, wadPath ?? ""));
                     continue;
                 }
 
                 if (!seenFinals.Add(final))
                 {
-                    throw new InvalidOperationException($"Dos mapas se asignaron al slot '{final}'. Revisá las asignaciones.");
+                    throw new InvalidOperationException(CoreMessages.Get("Merge.DuplicateSlot", final));
                 }
 
                 result.Add(info ?? new AssignmentInfo(map, final, null, null, "sky1", null, null, null, null, 0, 0));
@@ -465,7 +466,7 @@ public sealed class WadMerger
         {
             builder.AddLump("MAPINFO", Encoding.UTF8.GetBytes(mapInfoText));
             outputNames.Add("MAPINFO");
-            _result.Info.Add($"MAPINFO generado para {mapInfoCount} mapa(s).");
+            _result.Info.Add(CoreMessages.Get("Merge.MapInfoGenerated", mapInfoCount));
         }
 
         // 1. Merged texture scaffold.
@@ -512,15 +513,15 @@ public sealed class WadMerger
                 baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true);
 
         if (mapInfoText is not null && mapInfoSeen)
-            warn("Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.");
+            warn(CoreMessages.Get("Merge.MapInfoSkipped"));
 
         if (zdoomTexturesSeen)
-            warn("Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.");
+            warn(CoreMessages.Get("Merge.ZdoomTexturesDropped"));
 
         // 3. Maps in slot order.
         foreach (var a in assignments)
         {
-            report($"  Copiando {a.Map.OriginalName} -> {a.FinalName}");
+            report(CoreMessages.Get("Merge.CopyingMap", a.Map.OriginalName, a.FinalName));
             var lumps = a.Map.Wad.Lumps;
             for (int i = a.Map.StartIndex; i < a.Map.EndIndex; i++)
             {
@@ -552,12 +553,12 @@ public sealed class WadMerger
                 _result.MusicCopied++;
                 if (!string.Equals(m, src.OriginalName, StringComparison.Ordinal))
                 {
-                    _result.Info.Add($"Música '{src.OriginalName}' (de '{Path.GetFileName(src.WadPath)}') renombrada a '{m}'.");
+                    _result.Info.Add(CoreMessages.Get("Merge.MusicRenamed", src.OriginalName, Path.GetFileName(src.WadPath), m));
                 }
             }
             else if (warnedMusic.Add(m))
             {
-                warn($"Música '{m}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).");
+                warn(CoreMessages.Get("Merge.MusicNotInWads", m));
             }
         }
 
@@ -575,11 +576,11 @@ public sealed class WadMerger
                 builder.AddLump(intermissionLump, musicLump.ReadAll());
                 outputNames.Add(intermissionLump);
                 _result.MusicCopied++;
-                _result.Info.Add($"Música de intermisión '{intermissionLump}' añadida desde '{Path.GetFileName(src.WadPath)}'.");
+                _result.Info.Add(CoreMessages.Get("Merge.IntermissionMusicAdded", intermissionLump, Path.GetFileName(src.WadPath)));
             }
             else if (warnedMusic.Add(intermissionLump))
             {
-                warn($"Música de intermisión '{intermissionLump}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).");
+                warn(CoreMessages.Get("Merge.IntermissionMusicMissing", intermissionLump));
             }
         }
 
@@ -598,14 +599,14 @@ public sealed class WadMerger
 
                 if (!File.Exists(filePath))
                 {
-                    warn($"Música externa '{lumpName}': archivo no encontrado '{filePath}'.");
+                    warn(CoreMessages.Get("Merge.ExternalMusicMissing", lumpName, filePath));
                     continue;
                 }
 
                 string ext = Path.GetExtension(filePath);
                 if (!validExts.Contains(ext))
                 {
-                    warn($"Música externa '{lumpName}': extensión '{ext}' no soportada.");
+                    warn(CoreMessages.Get("Merge.ExternalMusicUnsupported", lumpName, ext));
                     continue;
                 }
 
@@ -613,7 +614,7 @@ public sealed class WadMerger
                 builder.AddLump(lumpName, data);
                 outputNames.Add(lumpName);
                 _result.MusicCopied++;
-                _result.Info.Add($"Música externa '{lumpName}' copiada desde '{Path.GetFileName(filePath)}'.");
+                _result.Info.Add(CoreMessages.Get("Merge.ExternalMusicAdded", lumpName, Path.GetFileName(filePath)));
             }
         }
 
@@ -646,7 +647,7 @@ public sealed class WadMerger
                 }
                 if (!copied && warnedSky.Add(skyName))
                 {
-                    warn($"Textura de sky '{skyName}' no se encontró en los WADs de recursos; el MAPINFO la referencia igualmente.");
+                    warn(CoreMessages.Get("Merge.SkyMissing", skyName));
                 }
             }
         }
