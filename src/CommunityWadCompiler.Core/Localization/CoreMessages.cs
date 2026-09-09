@@ -70,5 +70,14 @@ public static class CoreMessages
         ["Merge.UnknownHeader"] = "Cabecera de WAD desconocida '{0}' (se esperaba IWAD o PWAD).",
         ["Merge.InvalidLumpDirectory"] = "Directorio de lumps inválido o fuera de rango.",
         ["Merge.LumpOutOfBounds"] = "El lump '{0}' apunta fuera del archivo.",
+
+        // MAPINFO header/notes comments written into the generated lump.
+        ["MapInfo.HeaderLine"] = "// MAPINFO generado automáticamente por Community Wad Compiler",
+        ["MapInfo.Project"] = "// Proyecto: {0}",
+        ["MapInfo.Version"] = "// Versión: {0}",
+        ["MapInfo.Compiled"] = "// Compilado: {0}",
+        ["MapInfo.Author"] = "// Autor: {0}",
+        ["MapInfo.Status"] = "// Estado: {0}",
+        ["MapInfo.LastModified"] = "// Última modificación: {0}",
     };
 }

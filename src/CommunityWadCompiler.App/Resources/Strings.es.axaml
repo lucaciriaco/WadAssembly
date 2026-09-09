@@ -212,6 +212,15 @@
   <sys:String x:Key="Merge.InvalidLumpDirectory">Directorio de lumps inválido o fuera de rango.</sys:String>
   <sys:String x:Key="Merge.LumpOutOfBounds">El lump '{0}' apunta fuera del archivo.</sys:String>
 
+  <!-- ===== Notas/cabecera del MAPINFO (MapInfo) ===== -->
+  <sys:String x:Key="MapInfo.HeaderLine">// MAPINFO generado automáticamente por Community Wad Compiler</sys:String>
+  <sys:String x:Key="MapInfo.Project">// Proyecto: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Version">// Versión: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Compiled">// Compilado: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Author">// Autor: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Status">// Estado: {0}</sys:String>
+  <sys:String x:Key="MapInfo.LastModified">// Última modificación: {0}</sys:String>
+
   <!-- ===== Informe de compilación (Report) ===== -->
   <sys:String x:Key="Report.Success">COMPILADO OK ({0}s)</sys:String>
   <sys:String x:Key="Report.Failed">COMPILACIÓN FALLIDA</sys:String>

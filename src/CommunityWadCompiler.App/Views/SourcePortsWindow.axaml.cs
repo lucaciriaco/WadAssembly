@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -15,17 +16,18 @@ public partial class SourcePortsWindow : Window
     /// <summary>True when the list was confirmed with Aceptar.</summary>
     public bool Accepted { get; private set; }
 
-    private readonly List<SourcePortConfig> _working = new();
+    private readonly ObservableCollection<SourcePortConfig> _working = new();
 
     public SourcePortsWindow()
     {
         InitializeComponent();
-        _working.AddRange(AppSettingsService.Load().SourcePorts.Select(p => new SourcePortConfig
-        {
-            Name = p.Name,
-            ExecutablePath = p.ExecutablePath,
-            Arguments = p.Arguments,
-        }));
+        foreach (var p in AppSettingsService.Load().SourcePorts)
+            _working.Add(new SourcePortConfig
+            {
+                Name = p.Name,
+                ExecutablePath = p.ExecutablePath,
+                Arguments = p.Arguments,
+            });
         var list = this.FindControl<ListBox>("PortList")!;
         list.ItemsSource = _working;
         if (_working.Count > 0)
@@ -46,8 +48,13 @@ public partial class SourcePortsWindow : Window
 
     private void OnRemove(object? sender, RoutedEventArgs e)
     {
-        if (PortListControl.SelectedItem is SourcePortConfig port)
-            _working.Remove(port);
+        var list = PortListControl;
+        var index = list.SelectedIndex;
+        if (index < 0 || index >= _working.Count)
+            return;
+        _working.RemoveAt(index);
+        if (_working.Count > 0)
+            list.SelectedIndex = Math.Min(index, _working.Count - 1);
     }
 
     private async void OnBrowseExecutable(object? sender, RoutedEventArgs e)
