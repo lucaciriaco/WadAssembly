@@ -230,7 +230,10 @@ public sealed class WadMerger
         string? SkyName,
         string? Author,
         string? Status,
-        string? LastModified);
+        string? LastModified,
+        string? Sky2Name,
+        double SkyScroll,
+        double Sky2Scroll);
 
     private static IReadOnlyList<AssignmentInfo> BuildAssignments(
         List<WadFile> inputs,
@@ -263,7 +266,10 @@ public sealed class WadMerger
                         assignment.SkyName,
                         assignment.Author,
                         assignment.Status,
-                        assignment.LastModified);
+                        assignment.LastModified,
+                        assignment.Sky2Name,
+                        assignment.SkyScroll,
+                        assignment.Sky2Scroll);
                 }
                 else if (request.Options.AutoAssignMaps)
                     final = $"MAP{autoCounter++:D2}";
@@ -279,7 +285,7 @@ public sealed class WadMerger
                     throw new InvalidOperationException($"Dos mapas se asignaron al slot '{final}'. Revisá las asignaciones.");
                 }
 
-                result.Add(info ?? new AssignmentInfo(map, final, null, null, "sky1", null, null, null));
+                result.Add(info ?? new AssignmentInfo(map, final, null, null, "sky1", null, null, null, null, 0, 0));
             }
         }
 
@@ -424,13 +430,16 @@ public sealed class WadMerger
         foreach (string t in textures.Warnings)
             warn(t);
 
-        // Collect sky texture names needed by assignments (from MAPINFO sky1)
+        // Collect sky texture names needed by assignments (from MAPINFO sky1/sky2)
         var neededSkyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var a in assignments)
         {
             string sky = (a.SkyName ?? "sky1").Trim();
             if (sky.Length > 0)
                 neededSkyNames.Add(sky);
+            string sky2 = (a.Sky2Name ?? "").Trim();
+            if (sky2.Length > 0)
+                neededSkyNames.Add(sky2);
         }
 
         // 2. Non-map lumps from the inputs, deduplicated (first wins).
@@ -860,12 +869,14 @@ bool included = usage is null
         {
             string name = (a.LevelName ?? "").Trim();
             string music = (a.MusicName ?? "").Trim();
-            string sky = (a.SkyName ?? "sky1").Trim();
+            string sky = (a.SkyName ?? "").Trim();
+            string sky2 = (a.Sky2Name ?? "").Trim();
             string authorComment = (a.Author ?? "").Trim();
             string status = (a.Status ?? "").Trim();
             string modified = (a.LastModified ?? "").Trim();
             if (name.Length == 0 && music.Length == 0
-                && authorComment.Length == 0 && status.Length == 0 && modified.Length == 0)
+                && authorComment.Length == 0 && status.Length == 0 && modified.Length == 0
+                && sky.Length == 0 && sky2.Length == 0)
                 continue;
 
             count++;
@@ -880,12 +891,21 @@ bool included = usage is null
             if (music.Length > 0)
                 sb.AppendLine($"    music = \"{SanitizeMapInfoString(music).Replace(" ", "")}\"");
             if (sky.Length > 0)
-                sb.AppendLine($"    sky1 = \"{SanitizeMapInfoString(sky).Replace(" ", "")}\"");
+                sb.AppendLine($"    sky1 = \"{SanitizeMapInfoString(sky).Replace(" ", "")}\"{SkySpeedSuffix(a.SkyScroll)}");
+            if (sky2.Length > 0)
+                sb.AppendLine($"    sky2 = \"{SanitizeMapInfoString(sky2).Replace(" ", "")}\"{SkySpeedSuffix(a.Sky2Scroll)}");
             sb.AppendLine("}");
         }
 
         return count == 0 && intermission.Length == 0 ? (null, 0) : (sb.ToString(), count);
     }
+
+    /// <summary>ZDoom sky syntax: `sky1 = "SKY1"` plus an optional rotation-speed offset
+    /// (`sky1 = "SKY1", 0.5`). Speed 0 is the engine default and is omitted.</summary>
+    private static string SkySpeedSuffix(double speed)
+        => speed == 0
+            ? ""
+            : $", {speed.ToString("0.##", CultureInfo.InvariantCulture)}";
 
     private static string SanitizeMapInfoString(string value)
         => value.Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");

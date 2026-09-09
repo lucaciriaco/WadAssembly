@@ -801,4 +801,77 @@ var request = new MergeRequest
             Directory.Delete(dir, true);
         }
     }
+
+    [Fact]
+    public void Merge_Sky2AndScroll_WritesBothLayersWithRotationSpeed()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Test Map",
+                        SkyName: "SKY1", Sky2Name: "SKYFOG", SkyScroll: 0.5, Sky2Scroll: 1.25),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+
+            // Both layers with their own rotation speed as the ZDoom sky offset.
+            Assert.Contains("sky1 = \"SKY1\", 0.5", text);
+            Assert.Contains("sky2 = \"SKYFOG\", 1.25", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
+    public void Merge_SkyScrollZero_OmitsRotationOffset()
+    {
+        string dir = TempDir();
+        try
+        {
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+            string output = Path.Combine(dir, "out.wad");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = output,
+                MapAssignments = new[]
+                {
+                    new MapAssignment(map1, "MAP01", "MAP01", "Test Map", SkyName: "SKY1"),
+                },
+                Options = new MergeOptions { AutoAssignMaps = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(output);
+            string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+            Assert.Contains("sky1 = \"SKY1\"", text);
+            Assert.DoesNotContain("sky1 = \"SKY1\",", text);
+            Assert.DoesNotContain("sky2", text);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
 }

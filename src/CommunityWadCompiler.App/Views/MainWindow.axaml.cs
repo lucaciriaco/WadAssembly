@@ -540,11 +540,18 @@ public partial class MainWindow : Window
             return;
 
         var textures = _viewModel.GetSkyTextureNames();
-        var picker = new SkyPickerWindow(textures, row.SkyName ?? "sky1");
+        var picker = new SkyPickerWindow(textures, row.SkyName ?? "sky1",
+            row.EnableSky2, row.Sky2Name, row.SkyScroll, row.Sky2Scroll);
         picker.SetViewModel(_viewModel);
         await picker.ShowDialog(this);
         if (picker.Accepted)
+        {
             row.SkyName = picker.SelectedSkyName;
+            row.Sky2Name = picker.SelectedSky2Name;
+            row.EnableSky2 = picker.Sky2Enabled && picker.SelectedSky2Name.Length > 0;
+            row.SkyScroll = picker.SkyScroll;
+            row.Sky2Scroll = picker.Sky2Scroll;
+        }
     }
 
     private void OnSlotDragOver(object? sender, DragEventArgs e)

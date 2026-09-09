@@ -343,7 +343,7 @@
                         <Button Tag="6" Grid.Column="6" Content="{Binding MusicDisplay}" MinWidth="110"
                             Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                             Click="OnPickMusic" Margin="4,0,4,0"/>
-                        <Button Tag="7" Grid.Column="7" Content="{Binding SkyName}" MinWidth="90"
+                        <Button Tag="7" Grid.Column="7" Content="{Binding SkyDisplay}" MinWidth="90"
                             Padding="8,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                             Click="OnPickSky" Margin="4,0,4,0"/>
                         <TextBox Tag="8" Grid.Column="8" Text="{Binding Author, Mode=TwoWay}"

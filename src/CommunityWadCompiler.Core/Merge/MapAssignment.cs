@@ -12,4 +12,7 @@ public sealed record MapAssignment(
     string? SkyName = null,
     string? Author = null,
     string? Status = null,
-    string? LastModified = null);
+    string? LastModified = null,
+    string? Sky2Name = null,
+    double SkyScroll = 0,
+    double Sky2Scroll = 0);

@@ -70,4 +70,16 @@ public sealed class MapEntryData
     public string? Status { get; set; }
 
     public string? SkyName { get; set; }
+
+    /// <summary>Optional second sky layer name (sky2 in MAPINFO); empty when disabled.</summary>
+    public string? Sky2Name { get; set; }
+
+    /// <summary>Horizontal rotation speed of the sky (MAPINFO sky1/sky2 offset); 0 = static.</summary>
+    public double SkyScroll { get; set; }
+
+    /// <summary>Horizontal rotation speed of the sky2 layer; 0 = static.</summary>
+    public double Sky2Scroll { get; set; }
+
+    /// <summary>True when the second sky layer (Sky2) is enabled for this map.</summary>
+    public bool EnableSky2 { get; set; }
 }

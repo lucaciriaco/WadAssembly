@@ -20,6 +20,10 @@ public sealed class SlotRowViewModel : ObservableObject
     private string _musicName = "";
     private string _musicExternalPath = "";
     private string _skyName = "";
+    private string _sky2Name = "";
+    private double _skyScroll;
+    private double _sky2Scroll;
+    private bool _enableSky2;
     private string _author = "";
     private string _status = "";
     private bool _isDropTarget;
@@ -97,7 +101,69 @@ public sealed class SlotRowViewModel : ObservableObject
     public string SkyName
     {
         get => _skyName;
-        set => SetProperty(ref _skyName, value);
+        set
+        {
+            if (SetProperty(ref _skyName, value))
+                OnPropertyChanged(nameof(SkyDisplay));
+        }
+    }
+
+    /// <summary>Sky texture name for the optional second sky layer (e.g., SKYFOG); used by the generated MAPINFO.</summary>
+    public string Sky2Name
+    {
+        get => _sky2Name;
+        set
+        {
+            if (SetProperty(ref _sky2Name, value))
+                OnPropertyChanged(nameof(SkyDisplay));
+        }
+    }
+
+    /// <summary>Horizontal rotation speed of the sky (0 = static). Persisted in MAPINFO as the sky1/sky2 offset.</summary>
+    public double SkyScroll
+    {
+        get => _skyScroll;
+        set
+        {
+            if (SetProperty(ref _skyScroll, value))
+                OnPropertyChanged(nameof(SkyDisplay));
+        }
+    }
+
+    /// <summary>Horizontal rotation speed of the sky2 layer (0 = static).</summary>
+    public double Sky2Scroll
+    {
+        get => _sky2Scroll;
+        set
+        {
+            if (SetProperty(ref _sky2Scroll, value))
+                OnPropertyChanged(nameof(SkyDisplay));
+        }
+    }
+
+    /// <summary>When true, a second sky layer (Sky2) is written to the MAPINFO.</summary>
+    public bool EnableSky2
+    {
+        get => _enableSky2;
+        set
+        {
+            if (SetProperty(ref _enableSky2, value))
+                OnPropertyChanged(nameof(SkyDisplay));
+        }
+    }
+
+    /// <summary>Text shown by the sky picker button: "SKY1 0.5" with the rotation speed,
+    /// or "SKY1 0.5 / SKY2 0.3" when the second layer is enabled.</summary>
+    public string SkyDisplay
+    {
+        get
+        {
+            string s1 = string.IsNullOrWhiteSpace(SkyName) ? "sky1" : SkyName.Trim();
+            string display = $"{s1}  {SkyScroll:0.##}";
+            if (EnableSky2 && !string.IsNullOrWhiteSpace(Sky2Name))
+                display += $" / {Sky2Name.Trim()}  {Sky2Scroll:0.##}";
+            return display;
+        }
     }
 
     /// <summary>Text shown by the music picker button: the assigned lump, or "Ninguna".</summary>
@@ -139,8 +205,13 @@ public sealed class SlotRowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Raises property-changed for the localized <see cref="MusicDisplay"/> after a language switch.</summary>
-    internal void RefreshLocalizedText() => OnPropertyChanged(nameof(MusicDisplay));
+    /// <summary>Raises property-changed for the localized <see cref="MusicDisplay"/>, and the
+    /// sky display (the number formatting is culture-invariant, but refresh keeps it aligned after a language switch).</summary>
+    internal void RefreshLocalizedText()
+    {
+        OnPropertyChanged(nameof(MusicDisplay));
+        OnPropertyChanged(nameof(SkyDisplay));
+    }
 
     /// <summary>Background brush of the row: transparent normally, blue while this row is
     /// the highlighted drop target of a drag.</summary>

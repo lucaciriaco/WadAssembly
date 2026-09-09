@@ -752,6 +752,10 @@ private int _slotCount = 32;
                     MusicName = r.MusicName,
                     MusicExternalPath = r.MusicExternalPath,
                     SkyName = r.SkyName,
+                    Sky2Name = r.Sky2Name,
+                    SkyScroll = r.SkyScroll,
+                    Sky2Scroll = r.Sky2Scroll,
+                    EnableSky2 = r.EnableSky2,
                     Author = r.Author,
                     Status = r.Status,
                 })
@@ -811,6 +815,10 @@ private int _slotCount = 32;
                 MusicName = m.MusicName ?? "",
                 MusicExternalPath = m.MusicExternalPath ?? "",
                 SkyName = m.SkyName ?? "sky1",
+                Sky2Name = m.Sky2Name ?? "",
+                SkyScroll = m.SkyScroll,
+                Sky2Scroll = m.Sky2Scroll,
+                EnableSky2 = m.EnableSky2,
                 Author = m.Author ?? "",
                 Status = m.Status ?? "",
                 MusicOptions = AvailableMusicLumps,
@@ -921,10 +929,14 @@ private int _slotCount = 32;
 
             string? music = NormalizeMusic(row.MusicName);
             string? sky = string.IsNullOrWhiteSpace(row.SkyName) ? null : row.SkyName.Trim();
+            string? sky2 = row.EnableSky2 && !string.IsNullOrWhiteSpace(row.Sky2Name)
+                ? row.Sky2Name.Trim()
+                : null;
             string? author = string.IsNullOrWhiteSpace(row.Author) ? null : row.Author.Trim();
             string? status = string.IsNullOrWhiteSpace(row.Status) ? null : row.Status.Trim();
             string? lastModified = string.IsNullOrWhiteSpace(row.LastModified) ? null : row.LastModified.Trim();
-            assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName, music, sky, author, status, lastModified));
+            assignments.Add(new MapAssignment(row.WadPath!, row.OriginalName!, final, row.LevelName,
+                music, sky, author, status, lastModified, sky2, row.SkyScroll, row.Sky2Scroll));
         }
 
         var externalMusic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

@@ -88,6 +88,12 @@
   <sys:String x:Key="SkyPicker.PreviewNotAvailable">Preview no disponible (VM no seteado)</sys:String>
   <sys:String x:Key="SkyPicker.NotFound">No se encontró '{0}' en WADs de recursos</sys:String>
   <sys:String x:Key="SkyPicker.UnsupportedFormat">Formato no soportado para preview: {0} ({1} bytes)</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeedLabel">Velocidad de rotación:</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeed2Label">Velocidad sky2:</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeedWatermark">0 = sin rotación</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Check">Usar sky2</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Label">SKYNAME sky2 (opcional):</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Watermark">Ej: SKYFOG, SKYWALL...</sys:String>
 
   <!-- ===== Ventana Music Picker ===== -->
   <sys:String x:Key="MusicPicker.Title">Seleccionar música</sys:String>
