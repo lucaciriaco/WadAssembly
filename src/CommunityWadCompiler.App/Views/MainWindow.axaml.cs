@@ -35,7 +35,7 @@ public partial class MainWindow : Window
     private Grid _logPanel = null!;
     private GridSplitter _logSplitter = null!;
     private bool _logVisible = true;
-    private GridLength _savedLogRowHeight = new(5, GridUnitType.Star);
+    private GridLength _savedLogRowHeight = new(1, GridUnitType.Star);
 
     private PlanColumnWidths? _planColumnWidths;
     private readonly PlanColumnsViewModel _planColumns = new();
