@@ -58,17 +58,33 @@ public sealed class WadMerger
     };
 
     /// <summary>
-    /// Sprite marker names that delimit sprite graphics in a WAD.
+    /// Sprite marker names that delimit sprite, status-bar and font graphics in a WAD.
     /// </summary>
     private static readonly HashSet<string> SpriteMarkerNames = new(StringComparer.Ordinal)
     {
         "S_START", "S_END", "SS_START", "SS_END",
+        "ST_START", "ST_END", "STRT_START", "STRT_END", "FM_START", "FM_END",
     };
 
     /// <summary>
-    /// Collects all sprite lump names from the base WAD (IWAD) that are between
-    /// S_START/S_END or SS_START/SS_END markers. These are the "official" sprite
-    /// names that the engine expects; we'll only copy matching lumps from resources.
+    /// Start markers of the sprite/status-bar/font groups. Used both to collect the
+    /// IWAD sprite names and to include whole groups from resources when
+    /// <see cref="MergeOptions.IncludeSpriteLumps"/> is set.
+    /// </summary>
+    private static readonly HashSet<string> SpriteStartNames = new(StringComparer.Ordinal)
+    {
+        "S_START", "SS_START", "ST_START", "STRT_START", "FM_START",
+    };
+
+    /// <summary>
+    /// Collects the "official" sprite-like names from the base WAD (IWAD):
+    /// - lumps inside marked sprite/status-bar/font groups (S_START..S_END,
+    ///   SS_START..SS_END, ST_START..ST_END, STRT/ FM groups), and
+    /// - lumps NOT inside any marked group in the IWAD (status bar, ammo icons,
+    ///   menu graphics, doomguy faces, ...), which in real IWADs sit unmarked
+    ///   before the S_START marker (DOOM2.WAD: STBAR, STGNUM*, STF*, M_*, ...).
+    /// These are the names the engine expects; we only copy matching lumps from
+    /// resources (including unmarked overrides such as a sprite pack's STBAR).
     /// </summary>
     private static HashSet<string> CollectBaseSpriteNames(WadFile? baseWad)
     {
@@ -81,23 +97,55 @@ public sealed class WadMerger
             .ToList();
 
         string? groupStart = null;
+        string? groupEnd = null;
         for (int i = 0; i < baseWad.Lumps.Count; i++)
         {
             var lump = baseWad.Lumps[i];
             if (mapRanges.Any(r => i >= r.Item1 && i < r.Item2))
                 continue;
 
-            if (SpriteMarkerNames.Contains(lump.Name))
+            // Generic marker-group tracking: any X_START opens a group that ends at its
+            // paired X_END (or the explicit pairing when it differs, e.g. FF_START -> F_END).
+            bool isStart = lump.Name.EndsWith("_START", StringComparison.Ordinal);
+            bool isClose = groupStart is not null && lump.Name == groupEnd;
+            if (isStart || isClose)
             {
-                if (groupStart is null && (lump.Name == "S_START" || lump.Name == "SS_START"))
-                    groupStart = lump.Name;
-                else if (groupStart is not null && lump.Name == MarkerEnds[groupStart])
+                if (isStart)
+                {
+                    if (groupStart is null)
+                    {
+                        groupStart = lump.Name;
+                        groupEnd = MarkerEnds.TryGetValue(lump.Name, out string? explicitEnd)
+                            ? explicitEnd
+                            : lump.Name[..^"_START".Length] + "_END";
+                    }
+                }
+                else
+                {
                     groupStart = null;
+                    groupEnd = null;
+                }
                 continue;
             }
 
+            // Lumps inside a marked group: only the sprite-family groups are "official"
+            // sprite names; flat/patch/texture groups are not.
             if (groupStart is not null)
-                names.Add(lump.Name);
+            {
+                if (SpriteStartNames.Contains(groupStart))
+                    names.Add(lump.Name);
+                continue;
+            }
+
+            // Unmarked top-level lumps of the IWAD (status bar, menu, faces, ...): treat
+            // them as sprite-like graphics so a resource pack can override STBAR, STF*, M_...
+            if (TextureLumpNames.Contains(lump.Name)
+                || PaletteLumpNames.Contains(lump.Name)
+                || MarkerEnds.ContainsKey(lump.Name)
+                || IsMusicLump(lump))
+                continue;
+
+            names.Add(lump.Name);
         }
         return names;
     }
@@ -125,6 +173,10 @@ public sealed class WadMerger
         ["PP_START"] = "PP_END",
         ["T_START"] = "T_END",
         ["S_START"] = "S_END",
+        ["SS_START"] = "SS_END",
+        ["ST_START"] = "ST_END",
+        ["STRT_START"] = "STRT_END",
+        ["FM_START"] = "FM_END",
     };
 
     /// <summary>
@@ -706,22 +758,13 @@ public sealed class WadMerger
                 continue;
             }
 
-            if (skipFromBase.Contains(lump.Name))
-                continue;
-
             // Skip music lumps when copyMusic is false (they'll be copied in section 3.5 if assigned).
             if (!copyMusic && IsMusicLump(lump))
                 continue;
 
-            // Skip sky textures that aren't needed (only copy needed sky from resources).
-            if (neededSkyNames is not null && !neededSkyNames.Contains(lump.Name))
-            {
-                // But still allow the lump if it passes other filters (flats, patches, etc.)
-                // Only skip if it's purely a sky texture not in our needed list.
-                // We'll let the normal filter logic handle this; just don't force-include sky.
-            }
-
-            // Start/end marker handling when filtering.
+            // Start/end marker handling when filtering. This runs BEFORE the base-WAD skip
+            // so that marker groups (S_START/S_END, F_START/F_END, ...) can open in resource
+            // WADs even though the IWAD itself contains the same marker names.
             if (usage is not null)
             {
                 if (MarkerEnds.TryGetValue(lump.Name, out _))
@@ -739,12 +782,32 @@ public sealed class WadMerger
 
             // Filtered resource WAD: keep only graphics the maps reference.
             bool isSpriteGroup = includeSpriteLumps
-                && (groupStart == "S_START" || groupStart == "SS_START");
+                && groupStart is not null
+                && SpriteStartNames.Contains(groupStart);
 
             // When IncludeSpriteLumps is ON, copy lumps that match IWAD sprite names
             // (regardless of whether they're between markers in the resource WAD).
             bool isMatchingBaseSprite = includeSpriteLumps
                 && baseSpriteNames.Contains(lump.Name);
+
+            // With a base IWAD we skip lumps the IWAD already provides (SkipBaseWadResources),
+            // otherwise the PWAD would duplicate them. Sprite content (groups or IWAD-name
+            // matches) is exempt when IncludeSpriteLumps is ON: the user explicitly asked for
+            // the pack's sprite/status-bar/font replacements, including overrides of IWAD lumps.
+            bool isSpriteContent = isSpriteGroup
+                || isMatchingBaseSprite
+                || (includeSpriteLumps && SpriteMarkerNames.Contains(lump.Name));
+
+            if (skipFromBase.Contains(lump.Name) && !isSpriteContent)
+                continue;
+
+            // Skip sky textures that aren't needed (only copy needed sky from resources).
+            if (neededSkyNames is not null && !neededSkyNames.Contains(lump.Name))
+            {
+                // But still allow the lump if it passes other filters (flats, patches, etc.)
+                // Only skip if it's purely a sky texture not in our needed list.
+                // We'll let the normal filter logic handle this; just don't force-include sky.
+            }
 
 bool included = usage is null
                 || isSpriteGroup

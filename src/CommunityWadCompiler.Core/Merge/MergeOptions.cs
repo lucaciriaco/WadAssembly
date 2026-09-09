@@ -39,9 +39,10 @@ public sealed class MergeOptions
     public bool IncludePaletteLumps { get; set; } = true;
 
     /// <summary>
-    /// When <c>true</c>, all sprite lumps (S_START..S_END, SS_START..SS_END) from
-    /// resource WADs are copied to the output. This is independent of the
-    /// <see cref="FilterToUsedResources"/> setting.
+    /// When <c>true</c>, all sprite lumps (S_START..S_END, SS_START..SS_END),
+    /// status-bar graphics (ST_START..ST_END, STRT_START..STRT_END) and fonts
+    /// (FM_START..FM_END) from resource WADs are copied to the output. This is
+    /// independent of the <see cref="FilterToUsedResources"/> setting.
     /// </summary>
     public bool IncludeSpriteLumps { get; set; } = false;
 

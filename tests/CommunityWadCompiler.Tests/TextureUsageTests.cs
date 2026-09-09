@@ -263,6 +263,180 @@ public class TextureUsageTests
     }
 
     // ------------------------------------------------------------------
+    // Pipeline: IncludeSpriteLumps keeps sprites, status-bar and fonts
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void IncludeSpriteLumps_CopiesStatusBarAndSpritesFromResourceWad()
+    {
+        string dir = TempDir();
+        try
+        {
+            string resourceWad = Path.Combine(dir, "resources.wad");
+            string mapWad = Path.Combine(dir, "map.wad");
+            string outputWad = Path.Combine(dir, "out.wad");
+
+            BuildSpriteResourceWad(resourceWad);
+            BuildClassicMapWad(mapWad, "MAP05");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { mapWad },
+                ResourceWadPaths = new[] { resourceWad },
+                OutputPath = outputWad,
+                MapAssignments = new[] { new MapAssignment(mapWad, "MAP05", "MAP05") },
+                Options = new MergeOptions
+                {
+                    AutoAssignMaps = false,
+                    FilterToUsedResources = true,
+                    IncludeSpriteLumps = true,
+                },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(outputWad);
+
+            // Status-bar graphics (ST group) are copied whole with their markers.
+            Assert.NotNull(wad.FindFirst("STBAR"));
+            Assert.NotNull(wad.FindFirst("STGNUM0"));
+            Assert.NotNull(wad.FindFirst("ST_START"));
+            Assert.NotNull(wad.FindFirst("ST_END"));
+            int stStart = wad.Lumps.ToList().FindIndex(l => l.Name == "ST_START");
+            int stBar = wad.Lumps.ToList().FindIndex(l => l.Name == "STBAR");
+            int stEnd = wad.Lumps.ToList().FindIndex(l => l.Name == "ST_END");
+            Assert.True(stStart >= 0 && stStart < stBar && stBar < stEnd);
+
+            // Regular sprites (S group) are copied whole with their markers.
+            Assert.NotNull(wad.FindFirst("TROOA1"));
+            Assert.NotNull(wad.FindFirst("S_START"));
+            Assert.NotNull(wad.FindFirst("S_END"));
+
+            // Fonts (FM group) are copied whole with their markers.
+            Assert.NotNull(wad.FindFirst("FONTA"));
+            Assert.NotNull(wad.FindFirst("FM_START"));
+            Assert.NotNull(wad.FindFirst("FM_END"));
+
+            // The map is still implemented.
+            Assert.NotNull(wad.FindFirst("MAP05"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void WithoutIncludeSpriteLumps_StatusBarIsStillFiltered()
+    {
+        string dir = TempDir();
+        try
+        {
+            string resourceWad = Path.Combine(dir, "resources.wad");
+            string mapWad = Path.Combine(dir, "map.wad");
+            string outputWad = Path.Combine(dir, "out.wad");
+
+            BuildSpriteResourceWad(resourceWad);
+            BuildClassicMapWad(mapWad, "MAP05");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { mapWad },
+                ResourceWadPaths = new[] { resourceWad },
+                OutputPath = outputWad,
+                MapAssignments = new[] { new MapAssignment(mapWad, "MAP05", "MAP05") },
+                Options = new MergeOptions
+                {
+                    AutoAssignMaps = false,
+                    FilterToUsedResources = true,
+                    IncludeSpriteLumps = false,
+                },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(outputWad);
+
+            Assert.Null(wad.FindFirst("STBAR"));
+            Assert.Null(wad.FindFirst("TROOA1"));
+            Assert.Null(wad.FindFirst("FONTA"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void IncludeSpriteLumps_MatchesIwadStatusBarNamesOutsideMarkers()
+    {
+        string dir = TempDir();
+        try
+        {
+            string baseWad = Path.Combine(dir, "base.wad");
+            string resourceWad = Path.Combine(dir, "resources.wad");
+            string mapWad = Path.Combine(dir, "map.wad");
+            string outputWad = Path.Combine(dir, "out.wad");
+
+            // IWAD resembling DOOM2.WAD: the status bar sits UNMARKED before S_START, and the
+            // merge must harvest STBAR/STGNUM0 as sprite-like base names from there.
+            var baseBuilder = new WadBuilder();
+            baseBuilder.AddLump("STBAR", new byte[8]);
+            baseBuilder.AddLump("STGNUM0", new byte[8]);
+            baseBuilder.AddLump("S_START", new byte[0]);
+            baseBuilder.AddLump("TROOA1", new byte[8]);
+            baseBuilder.AddLump("S_END", new byte[0]);
+            baseBuilder.Write(baseWad);
+
+            // Resource WAD where the status-bar lumps are NOT inside markers.
+            var resBuilder = new WadBuilder();
+            resBuilder.AddLump("PNAMES", MakePnames("PATCHA"));
+            resBuilder.AddLump("TEXTURE1", MakeTexture1(MakeTexture("TEX1", 64, 64, (0, 0, 0))));
+            resBuilder.AddLump("P_START", new byte[0]);
+            resBuilder.AddLump("PATCHA", new byte[8]);
+            resBuilder.AddLump("P_END", new byte[0]);
+            resBuilder.AddLump("F_START", new byte[0]);
+            resBuilder.AddLump("FLAT1", new byte[4096]);
+            resBuilder.AddLump("F_END", new byte[0]);
+            resBuilder.AddLump("STBAR", new byte[8]);
+            resBuilder.AddLump("STGNUM0", new byte[8]);
+            resBuilder.AddLump("PLAYPAL", new byte[768]);
+            resBuilder.Write(resourceWad);
+
+            BuildClassicMapWad(mapWad, "MAP05");
+
+            var request = new MergeRequest
+            {
+                BaseWadPath = baseWad,
+                InputWadPaths = new[] { mapWad },
+                ResourceWadPaths = new[] { resourceWad },
+                OutputPath = outputWad,
+                MapAssignments = new[] { new MapAssignment(mapWad, "MAP05", "MAP05") },
+                Options = new MergeOptions
+                {
+                    AutoAssignMaps = false,
+                    FilterToUsedResources = true,
+                    IncludeSpriteLumps = true,
+                },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(outputWad);
+            Assert.NotNull(wad.FindFirst("STBAR"));
+            Assert.NotNull(wad.FindFirst("STGNUM0"));
+            Assert.NotNull(wad.FindFirst("MAP05"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Builders
     // ------------------------------------------------------------------
 
@@ -326,6 +500,33 @@ public class TextureUsageTests
         builder.AddLump("FLAT1", new byte[4096]);
         builder.AddLump("FLAT2", new byte[4096]);
         builder.AddLump("F_END", new byte[0]);
+        builder.AddLump("PLAYPAL", new byte[768]);
+        builder.Write(path);
+    }
+
+    /// <summary>Resource WAD with sprites, status-bar and font groups plus the flats used by the map.</summary>
+    private static void BuildSpriteResourceWad(string path)
+    {
+        var builder = new WadBuilder();
+        builder.AddLump("PNAMES", MakePnames("PATCHA"));
+        builder.AddLump("TEXTURE1", MakeTexture1(
+            MakeTexture("TEX1", 64, 64, (0, 0, 0))));
+        builder.AddLump("P_START", new byte[0]);
+        builder.AddLump("PATCHA", new byte[8]);
+        builder.AddLump("P_END", new byte[0]);
+        builder.AddLump("F_START", new byte[0]);
+        builder.AddLump("FLAT1", new byte[4096]);
+        builder.AddLump("F_END", new byte[0]);
+        builder.AddLump("S_START", new byte[0]);
+        builder.AddLump("TROOA1", new byte[8]);
+        builder.AddLump("S_END", new byte[0]);
+        builder.AddLump("ST_START", new byte[0]);
+        builder.AddLump("STBAR", new byte[8]);
+        builder.AddLump("STGNUM0", new byte[8]);
+        builder.AddLump("ST_END", new byte[0]);
+        builder.AddLump("FM_START", new byte[0]);
+        builder.AddLump("FONTA", new byte[8]);
+        builder.AddLump("FM_END", new byte[0]);
         builder.AddLump("PLAYPAL", new byte[768]);
         builder.Write(path);
     }
