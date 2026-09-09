@@ -64,6 +64,9 @@ public partial class MainWindow : Window
     private TextBlock? _themeCheckLight;
     private TextBlock? _themeCheckDark;
 
+    private TextBlock? _languageCheckSpanish;
+    private TextBlock? _languageCheckEnglish;
+
     private string _compileMode = BuildMode;
     private readonly List<MenuItem> _compileModeItems = new();
     private TextBlock _compileModeBuildCheck = null!;
@@ -143,6 +146,11 @@ public partial class MainWindow : Window
         _themeCheckLight = this.FindControl<TextBlock>("ThemeCheckLight");
         _themeCheckDark = this.FindControl<TextBlock>("ThemeCheckDark");
         UpdateThemeChecks();
+
+        _languageCheckSpanish = this.FindControl<TextBlock>("LanguageCheckSpanish");
+        _languageCheckEnglish = this.FindControl<TextBlock>("LanguageCheckEnglish");
+        UpdateLanguageChecks();
+        LanguageService.LanguageChanged += (_, _) => UpdateLanguageChecks();
 
         _compileMode = settings.CompileMode == BuildRunMode ? BuildRunMode : BuildMode;
         _compileButtonText = this.FindControl<TextBlock>("CompileButtonText");
@@ -1061,6 +1069,14 @@ public partial class MainWindow : Window
         if (_themeCheckSystem is { } system) system.Text = current == ThemeService.System ? "✓" : " ";
         if (_themeCheckLight is { } light) light.Text = current == ThemeService.Light ? "✓" : " ";
         if (_themeCheckDark is { } dark) dark.Text = current == ThemeService.Dark ? "✓" : " ";
+    }
+
+    /// <summary>Marks the active language with a checkmark in the Configuration → Language menu.</summary>
+    private void UpdateLanguageChecks()
+    {
+        string current = LanguageService.CurrentLanguage;
+        if (_languageCheckSpanish is { } spanish) spanish.Text = current == LanguageService.Spanish ? "✓" : " ";
+        if (_languageCheckEnglish is { } english) english.Text = current == LanguageService.English ? "✓" : " ";
     }
 
     private void OnAbout(object? sender, RoutedEventArgs e)
