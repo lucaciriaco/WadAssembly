@@ -91,6 +91,7 @@
   <sys:String x:Key="ProjectSettings.FilterToUsed">Solo incluir texturas/flats usados por los mapas</sys:String>
   <sys:String x:Key="ProjectSettings.IncludePalette">Incluir lumps de paleta (PLAYPAL, COLORMAP, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.IncludeSprites">Incluir sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, statusbar y fuentes)</sys:String>
+  <sys:String x:Key="ProjectSettings.MapInfoNotes">Escribir notas/comentarios en el MAPINFO (autor, estado, fecha de compilación, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
 

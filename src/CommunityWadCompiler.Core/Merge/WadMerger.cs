@@ -907,17 +907,21 @@ bool included = usage is null
         IReadOnlyList<AssignmentInfo> assignments)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CoreMessages.Get("MapInfo.HeaderLine"));
+        bool includeNotes = request.Options.IncludeMapInfoNotes;
+        if (includeNotes)
+        {
+            sb.AppendLine(CoreMessages.Get("MapInfo.HeaderLine"));
 
-        string project = (request.ProjectName ?? "").Trim();
-        string versionPrefix = (request.VersionPrefix ?? "").Trim();
-        if (project.Length > 0)
-            sb.AppendLine(CoreMessages.Get("MapInfo.Project", SanitizeMapInfoString(project)));
-        string fullVersion = versionPrefix.Length > 0
-            ? $"{versionPrefix}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}"
-            : $"{CompilerInfo.Version}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}";
-        sb.AppendLine(CoreMessages.Get("MapInfo.Version", SanitizeMapInfoString(fullVersion)));
-        sb.AppendLine(CoreMessages.Get("MapInfo.Compiled", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)));
+            string project = (request.ProjectName ?? "").Trim();
+            if (project.Length > 0)
+                sb.AppendLine(CoreMessages.Get("MapInfo.Project", SanitizeMapInfoString(project)));
+            string versionPrefix = (request.VersionPrefix ?? "").Trim();
+            string fullVersion = versionPrefix.Length > 0
+                ? $"{versionPrefix}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}"
+                : $"{CompilerInfo.Version}.{DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}";
+            sb.AppendLine(CoreMessages.Get("MapInfo.Version", SanitizeMapInfoString(fullVersion)));
+            sb.AppendLine(CoreMessages.Get("MapInfo.Compiled", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)));
+        }
 
         string intermission = (request.IntermissionMusic ?? "").Trim();
         if (intermission.Length > 0)
@@ -944,12 +948,15 @@ bool included = usage is null
                 continue;
 
             count++;
-            if (authorComment.Length > 0)
-                sb.AppendLine(CoreMessages.Get("MapInfo.Author", SanitizeMapInfoString(authorComment)));
-            if (status.Length > 0)
-                sb.AppendLine(CoreMessages.Get("MapInfo.Status", SanitizeMapInfoString(status)));
-            if (modified.Length > 0)
-                sb.AppendLine(CoreMessages.Get("MapInfo.LastModified", SanitizeMapInfoString(modified)));
+            if (includeNotes)
+            {
+                if (authorComment.Length > 0)
+                    sb.AppendLine(CoreMessages.Get("MapInfo.Author", SanitizeMapInfoString(authorComment)));
+                if (status.Length > 0)
+                    sb.AppendLine(CoreMessages.Get("MapInfo.Status", SanitizeMapInfoString(status)));
+                if (modified.Length > 0)
+                    sb.AppendLine(CoreMessages.Get("MapInfo.LastModified", SanitizeMapInfoString(modified)));
+            }
             sb.AppendLine($"map {a.FinalName} \"{SanitizeMapInfoString(name)}\"");
             sb.AppendLine("{");
             if (music.Length > 0)

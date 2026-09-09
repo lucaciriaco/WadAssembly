@@ -874,4 +874,60 @@ var request = new MergeRequest
             Directory.Delete(dir, true);
         }
     }
+
+    [Fact]
+    public void Merge_MapInfoNotesOff_OmitsCommentLinesButKeepsMapBlocks()
+    {
+        string dir = TempDir();
+        try
+        {
+            string withNotesPath = Path.Combine(dir, "with_notes.wad");
+            string withoutNotesPath = Path.Combine(dir, "without_notes.wad");
+            string map1 = BuildClassicMapWad(dir, "m1.wad", "MAP01");
+
+            var assignment = new MapAssignment(
+                map1, "MAP01", "MAP01", "Arena", "CITY1", "SKY1",
+                "Juan Pérez", "WIP", "01/09/2026 10:00");
+
+            var withNotes = new WadMerger().Merge(new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = withNotesPath,
+                MapAssignments = new[] { assignment },
+                ProjectName = "Proyecto Test",
+                Options = new MergeOptions { AutoAssignMaps = false, IncludeMapInfoNotes = true },
+            });
+            Assert.True(withNotes.Success, string.Join("; ", withNotes.Errors));
+            using (var wad = WadFile.Open(withNotesPath))
+            {
+                string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+                Assert.Contains("// Proyecto: Proyecto Test", text);
+                Assert.Contains("// Autor: Juan Pérez", text);
+                Assert.Contains("// Estado: WIP", text);
+                Assert.Contains("// Última modificación: 01/09/2026 10:00", text);
+                Assert.Contains("map MAP01 \"Arena\"", text);
+            }
+
+            var withoutNotes = new WadMerger().Merge(new MergeRequest
+            {
+                InputWadPaths = new[] { map1 },
+                OutputPath = withoutNotesPath,
+                MapAssignments = new[] { assignment },
+                Options = new MergeOptions { AutoAssignMaps = false, IncludeMapInfoNotes = false },
+            });
+            Assert.True(withoutNotes.Success, string.Join("; ", withoutNotes.Errors));
+            using (var wad = WadFile.Open(withoutNotesPath))
+            {
+                string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
+                Assert.Contains("map MAP01 \"Arena\"", text);
+                Assert.Contains("music = \"CITY1\"", text);
+                Assert.Contains("sky1 = \"SKY1\"", text);
+                Assert.DoesNotContain("//", text);
+            }
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
 }

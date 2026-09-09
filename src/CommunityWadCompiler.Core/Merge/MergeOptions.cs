@@ -52,4 +52,12 @@ public sealed class MergeOptions
     /// input/resource WADs are then skipped with a warning.
     /// </summary>
     public bool GenerateMapInfo { get; set; } = true;
+
+    /// <summary>
+    /// When <c>true</c> (default), the generated MAPINFO carries the human-readable
+    /// notes/comments block (generator header, project name, version, compile date and
+    /// the per-map author/status/last-modification comments). Disable to emit a clean
+    /// MAPINFO lump without any <c>//</c> comment lines.
+    /// </summary>
+    public bool IncludeMapInfoNotes { get; set; } = true;
 }

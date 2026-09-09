@@ -146,6 +146,13 @@ private int _slotCount = 32;
         set => SetProperty(ref _includeSpriteLumps, value);
     }
 
+    private bool _includeMapInfoNotes = true;
+    public bool IncludeMapInfoNotes
+    {
+        get => _includeMapInfoNotes;
+        set => SetProperty(ref _includeMapInfoNotes, value);
+    }
+
     /// <summary>Lump name of the intermission music chosen in Project Settings
     /// (may hold the "no music" sentinel; normalized when compiling).</summary>
     public string IntermissionMusic
@@ -418,6 +425,7 @@ private int _slotCount = 32;
         OutputPath = null;
         AutoAssignMaps = true;
         FilterResourcesToUsed = true;
+        IncludeMapInfoNotes = true;
         ProjectName = "";
         VersionPrefix = "";
         SlotCount = 32;
@@ -760,6 +768,7 @@ private int _slotCount = 32;
             FilterResourcesToUsed = FilterResourcesToUsed,
             IncludePaletteLumps = IncludePaletteLumps,
             IncludeSpriteLumps = IncludeSpriteLumps,
+            IncludeMapInfoNotes = IncludeMapInfoNotes,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             SourcePortPath = SelectedSourcePort?.ExecutablePath,
@@ -815,6 +824,7 @@ private int _slotCount = 32;
         FilterResourcesToUsed = data.FilterResourcesToUsed;
         IncludePaletteLumps = data.IncludePaletteLumps;
         IncludeSpriteLumps = data.IncludeSpriteLumps;
+        IncludeMapInfoNotes = data.IncludeMapInfoNotes;
         IntermissionMusic = data.IntermissionMusic ?? "";
         IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
         RefreshSourcePortOptions(data.SourcePortPath);
@@ -996,6 +1006,7 @@ private int _slotCount = 32;
                 FilterToUsedResources = FilterResourcesToUsed,
                 IncludePaletteLumps = IncludePaletteLumps,
                 IncludeSpriteLumps = IncludeSpriteLumps,
+                IncludeMapInfoNotes = IncludeMapInfoNotes,
             },
         };
 
@@ -1017,6 +1028,15 @@ private int _slotCount = 32;
         finally
         {
             IsBusy = false;
+
+            // The merge runs on a worker thread and transiently holds the whole input /
+            // resource / base WAD buffers plus per-lump copies. Returning the GC's
+            // committed segments to the OS right away keeps the reported memory footprint
+            // (Task Manager) from staying artificially high after a compile. Two passes:
+            // the first frees the mirage, the second reclaims objects resurrected by finalizers.
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
+            GC.WaitForPendingFinalizers();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true);
         }
     }
 

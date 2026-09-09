@@ -36,6 +36,9 @@ public sealed class ProjectFileData
 
     public bool IncludeSpriteLumps { get; set; } = false;
 
+    /// <summary>Writes the human-readable notes/comments block into the generated MAPINFO.</summary>
+    public bool IncludeMapInfoNotes { get; set; } = true;
+
     /// <summary>Lump name of the music played during the intermission screens
     /// between levels; referenced by the generated MAPINFO.</summary>
     public string? IntermissionMusic { get; set; }
