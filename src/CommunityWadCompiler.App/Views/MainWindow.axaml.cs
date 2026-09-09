@@ -37,6 +37,7 @@ public partial class MainWindow : Window
 
     private Grid _logPanel = null!;
     private GridSplitter _logSplitter = null!;
+    private ScrollViewer _logScroller = null!;
     private bool _logVisible = true;
     private GridLength _savedLogRowHeight = new(1, GridUnitType.Star);
 
@@ -82,11 +83,15 @@ public partial class MainWindow : Window
         _leftPanelSplitter = this.FindControl<GridSplitter>("LeftPanelSplitter")!;
         _logPanel = this.FindControl<Grid>("LogPanel")!;
         _logSplitter = this.FindControl<GridSplitter>("LogSplitter")!;
+        _logScroller = this.FindControl<ScrollViewer>("LogScroller")!;
         _wadHintPanel = this.FindControl<DockPanel>("WadHintPanel")!;
         _inputHeader = this.FindControl<TextBlock>("InputHeader")!;
         _collapseIcon = this.FindControl<Avalonia.Controls.Shapes.Path>("CollapseIcon")!;
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
+
+        _viewModel.LogEntries.CollectionChanged += (_, _) =>
+            Dispatcher.UIThread.Post(() => _logScroller.ScrollToEnd());
 
         var settings = AppSettingsService.Load();
         _logVisible = settings.LogVisible ?? true;

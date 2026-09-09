@@ -22,7 +22,6 @@ namespace CommunityWadCompiler.App.ViewModels;
     {
         private string? _baseWadPath;
         private string? _outputPath;
-        private string _logText = "";
         private bool _isBusy;
         private bool _autoAssignMaps = true;
         private bool _filterResourcesToUsed = true;
@@ -270,11 +269,7 @@ private int _slotCount = 32;
             SlotRows[i].IsDropTarget = i == _dropTargetIndex;
     }
 
-    public string LogText
-    {
-        get => _logText;
-        private set => SetProperty(ref _logText, value);
-    }
+    public ObservableCollection<LogEntry> LogEntries { get; } = new();
 
     public WadEntryViewModel? SelectedWad
     {
@@ -429,7 +424,7 @@ private int _slotCount = 32;
         CurrentProjectPath = null;
         IntermissionMusic = "";
         IntermissionMusicExternalPath = "";
-        LogText = "";
+        LogEntries.Clear();
         RebuildSlots();
     }
 
@@ -1115,10 +1110,14 @@ private int _slotCount = 32;
 
     public void AppendLog(string line)
     {
-        var sb = new StringBuilder(LogText);
-        if (sb.Length > 0)
-            sb.AppendLine();
-        sb.Append(line);
-        LogText = sb.ToString();
+        if (LogEntries.Count > 0)
+            LogEntries.Add(LogEntry.Separator);
+        foreach (var part in line.Split('\n'))
+        {
+            var text = part.TrimEnd('\r');
+            if (text.Length == 0)
+                continue;
+            LogEntries.Add(LogEntry.Create(text));
+        }
     }
 }

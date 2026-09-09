@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CommunityWadCompiler.App.ViewModels"
+        xmlns:conv="using:CommunityWadCompiler.App.Converters"
         xmlns:input="using:Avalonia.Input"
         x:Class="CommunityWadCompiler.App.Views.MainWindow"
         Title="Community Wad Compiler"
@@ -10,6 +11,8 @@
 
   <Window.Resources>
     <vm:PlanColumnWidths x:Key="PlanColWidths"/>
+    <conv:LogKindColorConverter x:Key="LogKindColor"/>
+    <conv:LogKindWeightConverter x:Key="LogKindWeight"/>
     <StreamGeometry x:Key="Icon.File">M20 9.50195V8.74985C20 7.50721 18.9926 6.49985 17.75 6.49985H12.0247L9.64368 4.51995C9.23959 4.18393 8.73063 3.99997 8.20509 3.99997H4.24957C3.00724 3.99997 2 5.00686 1.99957 6.24919L1.99561 17.7492C1.99518 18.9921 3.00266 20 4.24561 20H4.27196C4.27607 20 4.28019 20 4.28431 20H18.4693C19.2723 20 19.9723 19.4535 20.167 18.6745L21.9169 11.6765C22.1931 10.5719 21.3577 9.50195 20.2192 9.50195H20ZM4.24957 5.49997H8.20509C8.38027 5.49997 8.54993 5.56129 8.68462 5.6733L11.2741 7.82652C11.4088 7.93852 11.5784 7.99985 11.7536 7.99985H17.75C18.1642 7.99985 18.5 8.33563 18.5 8.74985V9.50195H6.42385C5.39136 9.50195 4.49137 10.2047 4.241 11.2064L3.49684 14.1837L3.49957 6.24971C3.49971 5.8356 3.83546 5.49997 4.24957 5.49997ZM5.69623 11.5701C5.77969 11.2362 6.07969 11.002 6.42385 11.002H20.2192C20.3819 11.002 20.5012 11.1548 20.4617 11.3126L18.7119 18.3107C18.684 18.4219 18.584 18.5 18.4693 18.5H4.28431C4.12167 18.5 4.00233 18.3472 4.04177 18.1894L5.69623 11.5701Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.NewProject">M10.5 8.25C10.5 7.2835 11.2835 6.5 12.25 6.5H24V15.25C24 17.3211 25.6789 19 27.75 19H37.5V39.75C37.5 40.7165 36.7165 41.5 35.75 41.5H24.2608C23.7353 42.4086 23.1029 43.2476 22.3809 44H35.75C38.0972 44 40 42.0972 40 39.75V18.4142C40 17.8175 39.7629 17.2452 39.341 16.8232L27.1768 4.65901C26.7548 4.23705 26.1825 4 25.5858 4H12.25C9.90279 4 8 5.90279 8 8.25V22.9963C8.79632 22.6642 9.63275 22.4091 10.5 22.2402V8.25ZM35.4822 16.5H27.75C27.0596 16.5 26.5 15.9404 26.5 15.25V7.51777L35.4822 16.5Z M24 35C24 41.0751 19.0751 46 13 46C6.92487 46 2 41.0751 2 35C2 28.9249 6.92487 24 13 24C19.0751 24 24 28.9249 24 35ZM14 28C14 27.4477 13.5523 27 13 27C12.4477 27 12 27.4477 12 28V34H6C5.44771 34 5 34.4477 5 35C5 35.5523 5.44771 36 6 36H12V42C12 42.5523 12.4477 43 13 43C13.5523 43 14 42.5523 14 42V36H20C20.5523 36 21 35.5523 21 35C21 34.4477 20.5523 34 20 34H14V28Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.OpenProject">M14.5,2 C15.3284,2 16,2.67157 16,3.5 L16,7.37689 C16,7.49954 15.985,7.62172 15.9552,7.7407 L15,11.5616 L15,14.5 C15,15.3284 14.3284,16 13.5,16 L12,16 L12,16.7425 C12,17.7958 10.9429,18.521 9.96019,18.142 L5.60032,16.4603 C4.63601,16.0884 4,15.1614 4,14.1278 L4,3.5 C4,2.67157 4.67157,2 5.5,2 L14.5,2 Z M5.67994,3.49102 C5.35237,3.36468 5,3.60643 5,3.95753 L5,3.95753 L5,14.1278 C5,14.7479 5.38161,15.3041 5.96019,15.5273 L5.96019,15.5273 L10.3201,17.209 C10.6476,17.3353 11,17.0936 11,16.7425 L11,16.7425 L11,6.57219 C11,5.95206 10.6184,5.39586 10.0398,5.17269 L10.0398,5.17269 Z M14.5,3 L7.18567,3 L10.3997,4.23969 C11.364,4.61164 12,5.53864 12,6.57219 L12,15 L13.5,15 C13.7761,15 14,14.7761 14,14.5 L14,11.5 C14,11.4591 14.005,11.4184 14.0149,11.3787 L14.9851,7.49816 C14.995,7.4585 15,7.41778 15,7.37689 L15,3.5 C15,3.22386 14.7761,3 14.5,3 Z</StreamGeometry>
@@ -441,10 +444,23 @@
       <!-- Log -->
       <Grid x:Name="LogPanel" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" RowDefinitions="Auto,*">
         <TextBlock x:Name="LogTitle" Text="{DynamicResource Log.Title}" FontWeight="Bold" Margin="0,4,0,4"/>
-        <TextBox Grid.Row="1" Text="{Binding LogText, Mode=OneWay}"
-                 IsReadOnly="True" TextWrapping="Wrap"
-                 AcceptsReturn="True" FontFamily="Consolas, Courier New"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <ScrollViewer x:Name="LogScroller" Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding LogEntries}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock FontFamily="Consolas, Courier New" TextWrapping="Wrap">
+                <TextBlock.Inlines>
+                  <Run Text="{Binding Header}"
+                       Foreground="{Binding Kind, Converter={StaticResource LogKindColor}}"
+                       FontWeight="{Binding Kind, Converter={StaticResource LogKindWeight}}"/>
+                  <Run Text="{Binding Rest}"/>
+                </TextBlock.Inlines>
+              </TextBlock>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </Grid>
 
     </Grid>
