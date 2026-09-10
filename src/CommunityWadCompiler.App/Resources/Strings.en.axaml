@@ -172,7 +172,7 @@
   <sys:String x:Key="Log.MapReplaced">[INFO] '{0}' from '{1}' replaced the map of slot {2}</sys:String>
   <sys:String x:Key="Log.MapAssigned">[INFO] '{0}' from '{1}' → slot {2}</sys:String>
   <sys:String x:Key="Log.MapsByAuthorRemoved">[INFO] Maps by author '{0}' removed from the sheet.</sys:String>
-  <sys:String x:Key="Log.MusicRenamed">[INFO] Music renamed due to duplicate name: {0}</sys:String>
+  <sys:String x:Key="Log.MusicRenamed">[INFO] Music renamed due to duplicate name:</sys:String>
   <sys:String x:Key="Log.ProjectSaved">[INFO] Project saved to {0}</sys:String>
   <sys:String x:Key="Log.ProjectReadError">[ERROR] Could not read the project {0}</sys:String>
   <sys:String x:Key="Log.ProjectLoaded">[INFO] Project loaded from {0}</sys:String>

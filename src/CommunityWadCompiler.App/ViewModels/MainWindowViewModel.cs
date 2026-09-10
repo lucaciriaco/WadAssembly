@@ -688,7 +688,8 @@ private int _slotCount = 32;
 
 
             if (renames.Count > 0)
-                AppendLog(string.Format(LanguageService.GetString("Log.MusicRenamed"), string.Join("; ", renames)));
+                AppendLog(LanguageService.GetString("Log.MusicRenamed")
+                    + "\n  - " + string.Join("\n  - ", renames));
         }
         finally
         {
