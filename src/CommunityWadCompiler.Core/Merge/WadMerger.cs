@@ -427,11 +427,33 @@ public sealed class WadMerger
     {
         var merger = new TextureMerger();
 
-        if (baseWad is not null && options.IncludeBaseWadTextures)
-            merger.MergeSource(baseWad);
+        if (options.BaseTexturesOverrideResources)
+        {
+            // Base IWAD first (the engine-compatible default): its definitions win and a
+            // same-named texture from the packs is skipped with a duplicate warning.
+            if (baseWad is not null && options.IncludeBaseWadTextures)
+                merger.MergeSource(baseWad);
 
-        foreach (var wad in textureSources)
-            merger.MergeSource(wad);
+            foreach (var wad in textureSources)
+                merger.MergeSource(wad);
+        }
+        else
+        {
+            // Contributed/resource WADs first: a texture pack may intentionally redefine a
+            // texture that the base IWAD already provides (e.g. a custom SKY1), and that
+            // replacement is the definition that must end up in the merged WAD. Among the
+            // sources themselves the merge order still wins ("first wins", user-controllable
+            // by reordering the resource WADs in the UI).
+            foreach (var wad in textureSources)
+                merger.MergeSource(wad);
+
+            // The base IWAD last, as a fallback seed: it only fills the texture names the
+            // sources do not provide. Intentional replacements (same name) are skipped
+            // silently by the merger (isFallback) instead of being reported as duplicates.
+            if (baseWad is not null && options.IncludeBaseWadTextures)
+                merger.MergeSource(baseWad, isFallback: true);
+        }
+
         // TODO(avanzado): ZDoom "TEXTURES" (text) lump fusion. Today those lumps are
         // dropped from the output with a warning in BuildOutput.
 
@@ -504,13 +526,15 @@ public sealed class WadMerger
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: false);
+                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: false,
+                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources);
 
         foreach (var wad in resources)
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true);
+                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true,
+                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources);
 
         if (mapInfoText is not null && mapInfoSeen)
             warn(CoreMessages.Get("Merge.MapInfoSkipped"));
@@ -692,7 +716,8 @@ public sealed class WadMerger
         HashSet<string> baseSpriteNames,
         bool copyMusic,
         HashSet<string>? neededSkyNames,
-        bool isResourceWad)
+        bool isResourceWad,
+        bool baseTexturesOverrideResources)
     {
         var mapRanges = MapDetector.DetectMaps(wad)
             .Select(m => (m.StartIndex, m.EndIndex))
@@ -791,15 +816,19 @@ public sealed class WadMerger
             bool isMatchingBaseSprite = includeSpriteLumps
                 && baseSpriteNames.Contains(lump.Name);
 
-            // With a base IWAD we skip lumps the IWAD already provides (SkipBaseWadResources),
-            // otherwise the PWAD would duplicate them. Sprite content (groups or IWAD-name
-            // matches) is exempt when IncludeSpriteLumps is ON: the user explicitly asked for
-            // the pack's sprite/status-bar/font replacements, including overrides of IWAD lumps.
+            // Content the user explicitly requested through the sprite settings.
             bool isSpriteContent = isSpriteGroup
                 || isMatchingBaseSprite
                 || (includeSpriteLumps && SpriteMarkerNames.Contains(lump.Name));
 
-            if (skipFromBase.Contains(lump.Name) && !isSpriteContent)
+            // With a base IWAD we skip lumps the IWAD already provides (SkipBaseWadResources),
+            // otherwise the PWAD would duplicate them. Resource WADs are exempt only when the
+            // user chose "resources override the base": then a lump that shares its name with an
+            // IWAD lump is an intentional replacement to be compiled in (e.g. a pack redefining
+            // a flat, patch or sky the IWAD also provides). Sprite content is exempt as before
+            // when IncludeSpriteLumps is ON (the user explicitly asked for the pack's overrides).
+            bool replaceBaseResources = isResourceWad && !baseTexturesOverrideResources;
+            if (skipFromBase.Contains(lump.Name) && !isSpriteContent && !replaceBaseResources)
                 continue;
 
             // Skip sky textures that aren't needed (only copy needed sky from resources).

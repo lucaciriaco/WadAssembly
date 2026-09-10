@@ -152,6 +152,149 @@ public class TextureMergeTests
         }
     }
 
+    [Fact]
+    public void BaseWadTextures_AreSeededButResourceWadOverridesSameName()
+    {
+        string dir = TempDir();
+        try
+        {
+            // Base "IWAD-like" WAD: textures TEX1 (64x64) and TEX2 (base-only), plus a flat FLAT01.
+            string baseWad = Path.Combine(dir, "base.wad");
+            var b = new WadBuilder();
+            b.AddLump("PNAMES", MakePnames("BASEPAT"));
+            b.AddLump("TEXTURE1", MakeTexture1(
+                MakeTexture("TEX1", 64, 64, (0, 0, 0)),
+                MakeTexture("TEX2", 64, 64, (0, 0, 0))));
+            b.AddLump("BASEPAT", new byte[8]);
+            b.AddLump("FLAT01", new byte[8]);
+            b.Write(baseWad);
+
+            // Resource WAD: intentionally redefines TEX1 (128x256) with its own patch,
+            // and replaces the base flat FLAT01 (same name, different content).
+            string resources = Path.Combine(dir, "resources.wad");
+            var r = new WadBuilder();
+            r.AddLump("PNAMES", MakePnames("RESPATCH"));
+            r.AddLump("TEXTURE1", MakeTexture1(MakeTexture("TEX1", 128, 256, (0, 0, 0))));
+            r.AddLump("RESPATCH", new byte[8]);
+            r.AddLump("F_START", new byte[0]);
+            r.AddLump("FLAT01", new byte[8]);
+            r.AddLump("F_END", new byte[0]);
+            r.Write(resources);
+
+            string map = WriteSimpleMapWad(dir, "map.wad", "MAP01", "IGNORED", "IGNORED");
+            string output = Path.Combine(dir, "out.wad");
+            var request = new MergeRequest
+            {
+                BaseWadPath = baseWad,
+                ResourceWadPaths = new[] { resources },
+                InputWadPaths = new[] { map },
+                OutputPath = output,
+                Options = new MergeOptions { FilterToUsedResources = false, BaseTexturesOverrideResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            Assert.True(result.Success, result.Errors.FirstOrDefault());
+            using var outWad = WadFile.Open(output);
+
+            // The resource WAD's TEX1 (replacement) is the one compiled in, not the base's.
+            var textures = TextureSet.Read(outWad.FindFirst("TEXTURE1")!.ReadAll());
+            var tex1 = textures.Textures.Single(t => t.Name == "TEX1");
+            Assert.Equal((short)128, tex1.Width);
+            Assert.Equal((short)256, tex1.Height);
+            Assert.Equal(new[] { 0 }, tex1.Patches.Select(p => p.PatchIndex));
+
+            // Base-only textures are still seeded as a fallback (TEX2 references BASEPAT).
+            var tex2 = textures.Textures.Single(t => t.Name == "TEX2");
+            Assert.Equal(new[] { 1 }, tex2.Patches.Select(p => p.PatchIndex));
+
+            // PNAMES: sources first (RESPATCH=0), base as fallback (BASEPAT=1).
+            var pnames = PnamesList.Read(outWad.FindFirst("PNAMES")!.ReadAll());
+            Assert.Equal(new[] { "RESPATCH", "BASEPAT" }, pnames.Names);
+
+            // Intentional replacement must not be reported as a duplicate warning.
+            Assert.DoesNotContain(result.Warnings, w => w.Contains("TEX1"));
+
+            // Resource graphics with base-same names are compiled in (patch + replaced flat).
+            Assert.NotNull(outWad.FindFirst("RESPATCH"));
+            Assert.NotNull(outWad.FindFirst("FLAT01"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void DefaultBehavior_BaseTexturesWin_AndResourceDuplicatesAreSkipped()
+    {
+        string dir = TempDir();
+        try
+        {
+            string baseWad = Path.Combine(dir, "base.wad");
+            var b = new WadBuilder();
+            b.AddLump("PNAMES", MakePnames("BASEPAT"));
+            b.AddLump("TEXTURE1", MakeTexture1(
+                MakeTexture("TEX1", 64, 64, (0, 0, 0)),
+                MakeTexture("TEX2", 64, 64, (0, 0, 0))));
+            b.AddLump("BASEPAT", new byte[8]);
+            b.AddLump("FLAT01", new byte[8]);
+            b.Write(baseWad);
+
+            // Same resource pack redefining TEX1 and providing a base-named flat.
+            string resources = Path.Combine(dir, "resources.wad");
+            var r = new WadBuilder();
+            r.AddLump("PNAMES", MakePnames("RESPATCH"));
+            r.AddLump("TEXTURE1", MakeTexture1(MakeTexture("TEX1", 128, 256, (0, 0, 0))));
+            r.AddLump("RESPATCH", new byte[8]);
+            r.AddLump("F_START", new byte[0]);
+            r.AddLump("FLAT01", new byte[8]);
+            r.AddLump("F_END", new byte[0]);
+            r.Write(resources);
+
+            string map = WriteSimpleMapWad(dir, "map.wad", "MAP01", "IGNORED", "IGNORED");
+            string output = Path.Combine(dir, "out.wad");
+            var request = new MergeRequest
+            {
+                BaseWadPath = baseWad,
+                ResourceWadPaths = new[] { resources },
+                InputWadPaths = new[] { map },
+                OutputPath = output,
+                // Default options: BaseTexturesOverrideResources = true.
+                Options = new MergeOptions { FilterToUsedResources = false },
+            };
+
+            var result = new WadMerger().Merge(request);
+
+            Assert.True(result.Success, result.Errors.FirstOrDefault());
+            using var outWad = WadFile.Open(output);
+
+            // The base IWAD's TEX1 wins (64x64, BASEPAT at global 0).
+            var textures = TextureSet.Read(outWad.FindFirst("TEXTURE1")!.ReadAll());
+            var tex1 = textures.Textures.Single(t => t.Name == "TEX1");
+            Assert.Equal((short)64, tex1.Width);
+            Assert.Equal((short)64, tex1.Height);
+            Assert.Equal(new[] { 0 }, tex1.Patches.Select(p => p.PatchIndex));
+
+            // PNAMES: base seed first (BASEPAT=0); the resource TEX1 was skipped, but its
+            // patch names still seed PNAMES (unused RESPPATCH stays as a harmless entry).
+            var pnames = PnamesList.Read(outWad.FindFirst("PNAMES")!.ReadAll());
+            Assert.Equal(new[] { "BASEPAT", "RESPATCH" }, pnames.Names);
+
+            // The resource's same-named TEX1 is reported as a duplicate (not silent).
+            Assert.Contains(result.Warnings, w => w.Contains("TEX1"));
+
+            // Base-named resource lumps (FLAT01) are NOT compiled in by default; a new patch
+            // name (RESPATCH) still is (it is not a base-skip candidate).
+            Assert.NotNull(outWad.FindFirst("RESPATCH"));
+            Assert.Null(outWad.FindFirst("FLAT01"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     private static string WriteSimpleMapWad(string dir, string fileName, string mapName, string patchName, string textureName)
     {
         string path = Path.Combine(dir, fileName);

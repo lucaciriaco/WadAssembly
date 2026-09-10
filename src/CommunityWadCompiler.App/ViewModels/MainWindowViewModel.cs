@@ -153,6 +153,16 @@ private int _slotCount = 32;
         set => SetProperty(ref _includeMapInfoNotes, value);
     }
 
+    /// <summary>When true (default), the base IWAD textures win over same-named ones from
+    /// resource WADs (they are skipped). When false, resource textures override the base
+    /// IWAD's (intentional replacements) and the base only fills missing names.</summary>
+    private bool _baseTexturesOverrideResources = true;
+    public bool BaseTexturesOverrideResources
+    {
+        get => _baseTexturesOverrideResources;
+        set => SetProperty(ref _baseTexturesOverrideResources, value);
+    }
+
     /// <summary>Lump name of the intermission music chosen in Project Settings
     /// (may hold the "no music" sentinel; normalized when compiling).</summary>
     public string IntermissionMusic
@@ -426,6 +436,7 @@ private int _slotCount = 32;
         AutoAssignMaps = true;
         FilterResourcesToUsed = true;
         IncludeMapInfoNotes = true;
+        BaseTexturesOverrideResources = true;
         ProjectName = "";
         VersionPrefix = "";
         SlotCount = 32;
@@ -769,6 +780,7 @@ private int _slotCount = 32;
             IncludePaletteLumps = IncludePaletteLumps,
             IncludeSpriteLumps = IncludeSpriteLumps,
             IncludeMapInfoNotes = IncludeMapInfoNotes,
+            BaseTexturesOverrideResources = BaseTexturesOverrideResources,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             SourcePortPath = SelectedSourcePort?.ExecutablePath,
@@ -825,6 +837,7 @@ private int _slotCount = 32;
         IncludePaletteLumps = data.IncludePaletteLumps;
         IncludeSpriteLumps = data.IncludeSpriteLumps;
         IncludeMapInfoNotes = data.IncludeMapInfoNotes;
+        BaseTexturesOverrideResources = data.BaseTexturesOverrideResources;
         IntermissionMusic = data.IntermissionMusic ?? "";
         IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
         RefreshSourcePortOptions(data.SourcePortPath);
@@ -1007,6 +1020,7 @@ private int _slotCount = 32;
                 IncludePaletteLumps = IncludePaletteLumps,
                 IncludeSpriteLumps = IncludeSpriteLumps,
                 IncludeMapInfoNotes = IncludeMapInfoNotes,
+                BaseTexturesOverrideResources = BaseTexturesOverrideResources,
             },
         };
 

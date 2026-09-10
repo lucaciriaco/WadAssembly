@@ -6,7 +6,10 @@ namespace CommunityWadCompiler.Core.Textures;
 /// <summary>
 /// Merges PNAMES + TEXTURE1 + TEXTURE2 from several WADs into a single patch table
 /// and texture set. Patches are deduplicated by name (first occurrence wins); textures
-/// are deduplicated by name (first definition wins, matching engine semantics).
+/// are deduplicated by name (the definition merged first wins). Sources passed with
+/// <see cref="isFallback"/> (e.g. the base IWAD acting as a seed) only fill the names the
+/// earlier sources do not provide: an intentional replacement of a same-named texture is
+/// kept, silently dropped, and not reported as a duplicate.
 /// </summary>
 public sealed class TextureMerger
 {
@@ -34,7 +37,10 @@ public sealed class TextureMerger
     /// Merges every PNAMES/TEXTURE1/TEXTURE2 lump of the given WAD, in that engine order.
     /// </summary>
     /// <param name="wad">Source WAD. Wads without any of these lumps are ignored.</param>
-    public void MergeSource(WadFile wad)
+    /// <param name="isFallback">When <c>true</c>, definitions that duplicate an already-merged
+    /// name are intentional overrides (the earlier source replaced them) and are skipped
+    /// silently — no warning, not counted as duplicates. Patches are still seeded.</param>
+    public void MergeSource(WadFile wad, bool isFallback = false)
     {
         Lump? pnamesLump = wad.FindLast("PNAMES");
         if (pnamesLump is null)
@@ -46,8 +52,8 @@ public sealed class TextureMerger
 
         int[] remap = MapPatchTable(pnamesLump);
 
-        MergeTextureLump(wad, "TEXTURE1", remap);
-        MergeTextureLump(wad, "TEXTURE2", remap);
+        MergeTextureLump(wad, "TEXTURE1", remap, isFallback);
+        MergeTextureLump(wad, "TEXTURE2", remap, isFallback);
     }
 
     private int[] MapPatchTable(Lump? pnamesLump)
@@ -76,7 +82,7 @@ public sealed class TextureMerger
         return remap;
     }
 
-    private void MergeTextureLump(WadFile wad, string lumpName, int[] patchRemap)
+    private void MergeTextureLump(WadFile wad, string lumpName, int[] patchRemap, bool isFallback)
     {
         Lump? lump = wad.FindLast(lumpName);
         if (lump is null)
@@ -89,8 +95,15 @@ public sealed class TextureMerger
         {
             if (_textureIndex.ContainsKey(def.Name))
             {
-                _skippedTextures++;
-                _warnings.Add(CoreMessages.Get("Merge.TextureDuplicate", def.Name));
+                // A fallback definition (e.g. the base IWAD merged as a seed) that
+                // duplicates an already-merged name is the intended override: the earlier
+                // source replaces it. Skip it silently so the user is not warned about a
+                // replacement they explicitly asked for.
+                if (!isFallback)
+                {
+                    _skippedTextures++;
+                    _warnings.Add(CoreMessages.Get("Merge.TextureDuplicate", def.Name));
+                }
                 continue;
             }
 

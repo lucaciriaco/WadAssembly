@@ -98,6 +98,8 @@
                   IsChecked="{Binding IncludeSpriteLumps}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.MapInfoNotes}"
                   IsChecked="{Binding IncludeMapInfoNotes}"/>
+        <CheckBox Content="{DynamicResource ProjectSettings.BaseTexturesOverride}"
+                  IsChecked="{Binding BaseTexturesOverrideResources}"/>
       </StackPanel>
 
       <StackPanel Spacing="4">

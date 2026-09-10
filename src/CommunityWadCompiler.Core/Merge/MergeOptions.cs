@@ -12,14 +12,26 @@ public sealed class MergeOptions
     public bool AutoAssignMaps { get; set; } = true;
 
     /// <summary>
-    /// When <c>true</c> and a base WAD (usually an IWAD) is provided, its texture set
-    /// is used as the seed for the merged TEXTURE1/PNAMES.
+    /// When <c>true</c> (default) the base IWAD textures win over same-named textures from
+    /// the resource/input WADs: the base is merged first and the resource duplicates are
+    /// reported as warnings. When <c>false</c>, the resource WADs are merged first (their
+    /// definitions win, so a pack can intentionally replace an IWAD texture of the same name)
+    /// and the base IWAD only fills the names they do not provide, as a silent fallback.
+    /// </summary>
+    public bool BaseTexturesOverrideResources { get; set; } = true;
+
+    /// <summary>
+    /// When <c>true</c> and a base WAD (usually an IWAD) is provided, its texture set is
+    /// used as the seed/fallback for the merged TEXTURE1/PNAMES (see
+    /// <see cref="BaseTexturesOverrideResources"/> for who wins on same names).
     /// </summary>
     public bool IncludeBaseWadTextures { get; set; } = true;
 
     /// <summary>
     /// When <c>true</c> and a base WAD is provided, lumps already present in the base
-    /// (e.g. IWAD patches/flats) are not copied again into the output.
+    /// (e.g. IWAD patches/flats) are not copied again into the output. Resource WADs are
+    /// exempt when <see cref="BaseTexturesOverrideResources"/> is <c>false</c>: their
+    /// same-named lumps are intentional replacements and are compiled in.
     /// </summary>
     public bool SkipBaseWadResources { get; set; } = true;
 

@@ -39,6 +39,11 @@ public sealed class ProjectFileData
     /// <summary>Writes the human-readable notes/comments block into the generated MAPINFO.</summary>
     public bool IncludeMapInfoNotes { get; set; } = true;
 
+    /// <summary>When true (default) the base IWAD textures win over same-named textures from
+    /// resource WADs; when false, resource textures override the base IWAD's. Old projects
+    /// without the field default to true (the engine-friendly behavior).</summary>
+    public bool BaseTexturesOverrideResources { get; set; } = true;
+
     /// <summary>Lump name of the music played during the intermission screens
     /// between levels; referenced by the generated MAPINFO.</summary>
     public string? IntermissionMusic { get; set; }

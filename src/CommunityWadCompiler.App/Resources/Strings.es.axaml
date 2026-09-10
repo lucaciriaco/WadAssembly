@@ -92,6 +92,7 @@
   <sys:String x:Key="ProjectSettings.IncludePalette">Incluir lumps de paleta (PLAYPAL, COLORMAP, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.IncludeSprites">Incluir sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, statusbar y fuentes)</sys:String>
   <sys:String x:Key="ProjectSettings.MapInfoNotes">Escribir notas/comentarios en el MAPINFO (autor, estado, fecha de compilación, etc.)</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Priorizar texturas del IWAD base sobre las de los WAD de recursos (si está desactivado, las texturas de los recursos reemplazan a las del IWAD)</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
 
