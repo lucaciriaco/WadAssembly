@@ -675,7 +675,9 @@ private int _slotCount = 32;
             foreach (var c in MusicLumpDetector.CollectAcrossWads(opened))
             {
                 if (!string.Equals(c.FinalName, c.OriginalName, StringComparison.Ordinal))
-                    renames.Add($"'{c.OriginalName}' de '{Path.GetFileName(c.WadPath)}' → '{c.FinalName}'");
+                    renames.Add(string.Format(
+                        LanguageService.GetString("Log.MusicRenamedItem"),
+                        c.OriginalName, Path.GetFileName(c.WadPath), c.FinalName));
                 if (seen.Add(c.FinalName))
                     wanted.Add(new MusicLumpInfo(c.FinalName, c.WadPath));
             }
