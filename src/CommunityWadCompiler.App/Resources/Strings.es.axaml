@@ -253,6 +253,5 @@
 
   <!-- ===== Encabezado de la planilla (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
-  <sys:String x:Key="Header.EmptyTitle">Mapas y slots finales (editable)</sys:String>
-  <sys:String x:Key="Header.EditableSuffix"> (editable)</sys:String>
+  <sys:String x:Key="Header.EmptyTitle">Mapas y slots finales</sys:String>
 </ResourceDictionary>

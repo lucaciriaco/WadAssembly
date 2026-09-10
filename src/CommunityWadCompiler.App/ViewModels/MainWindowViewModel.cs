@@ -301,9 +301,10 @@ private int _slotCount = 32;
             string slots = SlotCount > 0 ? string.Format(LanguageService.GetString("Header.SlotsSuffix"), SlotCount) : "";
             if (name.Length == 0 && v.Length == 0 && slots.Length == 0)
                 return LanguageService.GetString("Header.EmptyTitle");
-            string suffix = v.Length > 0 ? $"{v}.xxxxxx" : $"v{CompilerInfo.Version}.xxxxxx";
-            string body = name.Length > 0 ? $"{name} — {suffix}" : suffix;
-            return $"{body}{slots}{LanguageService.GetString("Header.EditableSuffix")}";
+            string body = name.Length > 0 && v.Length > 0
+                ? $"{name} — {v}"
+                : name.Length > 0 ? name : v;
+            return $"{body}{slots}";
         }
     }
 

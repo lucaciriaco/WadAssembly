@@ -253,6 +253,5 @@
 
   <!-- ===== Sheet header (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
-  <sys:String x:Key="Header.EmptyTitle">Maps and final slots (editable)</sys:String>
-  <sys:String x:Key="Header.EditableSuffix"> (editable)</sys:String>
+  <sys:String x:Key="Header.EmptyTitle">Maps and final slots</sys:String>
 </ResourceDictionary>
