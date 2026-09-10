@@ -158,7 +158,18 @@ public sealed class WadMerger
     private static readonly HashSet<string> AlwaysCopyResourceLumps = new(StringComparer.Ordinal)
     {
         "ANIMATED",
+        "ANIMDEFS",
+        "SWITCHES",
     };
+
+    /// <summary>
+    /// Maximum frames a single run declaration may have in the binary ANIMATED lump (and
+    /// that Odamex also enforces when parsing ANIMDEFS). The engines animate the whole
+    /// consecutive span between start and end texture inside TEXTURE1 / the flat directory,
+    /// and store per-animation frame arrays of this fixed size. Longer runs are skipped
+    /// with a warning instead of overflowing those arrays.
+    /// </summary>
+    private const int MaxAnimatedLumpFrames = 32;
 
     /// <summary>
     /// Marker group pairings used to delimit graphics sections in a WAD. The markers are
@@ -233,16 +244,38 @@ public sealed class WadMerger
             Report(CoreMessages.Get("Merge.MergeTextures"));
             IReadOnlyList<WadFile> textureSources = resources.Count > 0 ? resources : inputs;
             var textures = MergeTextures(baseWad, textureSources, request.Options);
+            string? generatedAnimdefs = null;
+            byte[]? generatedAnimated = null;
+            byte[]? generatedSwitches = null;
             if (usage is not null)
             {
+                if (request.Options.ExpandAnimatedTextureRuns
+                    || request.Options.GenerateAnimdefsForAnimatedRuns
+                    || request.Options.GenerateAnimatedLumpForRuns)
+                {
+                    (generatedAnimdefs, generatedAnimated, IReadOnlyList<string> animWarnings) = ExpandAnimatedRuns(
+                        usage, textures, resources,
+                        request.Options.MaxAnimatedTextureFrames,
+                        request.Options.AnimatedRunTics,
+                        request.Options.GenerateAnimdefsForAnimatedRuns,
+                        request.Options.GenerateAnimatedLumpForRuns,
+                        request.Options.AnimatedPrefixes);
+                    foreach (string warning in animWarnings)
+                        Warn(warning);
+                }
+                if (request.Options.GenerateSwitchesLumpForPairs)
+                    KeepSwitchPartners(usage, textures);
                 int excluded = textures.ApplyUsageFilter(usage.Walls);
                 _result.TexturesExcluded = excluded;
                 Report(CoreMessages.Get("Merge.ExcludedTextures", excluded));
+                if (request.Options.GenerateSwitchesLumpForPairs)
+                    generatedSwitches = BuildSwitchesLump(textures.Textures);
             }
 
             Report(CoreMessages.Get("Merge.Assemble"));
             string outputPath = BuildOutput(
-                request, inputs, resources, assignments, textures, usage, musicByName, baseWad, Report, Warn);
+                request, inputs, resources, assignments, textures, usage, musicByName, baseWad,
+                generatedAnimdefs, generatedAnimated, generatedSwitches, Report, Warn);
 
             _result.OutputPath = outputPath;
             _result.OutputBytes = new FileInfo(outputPath).Length;
@@ -419,6 +452,379 @@ public sealed class WadMerger
         usage.Flats.UnionWith(names);
     }
 
+    /// <summary>
+    /// Expands the used wall/flat names to their full numbered runs when the pack animated
+    /// them by consecutive numbering (no ANIMATED/ANIMDEFS lump). Only runs anchored on a name
+    /// the maps actually use are expanded, and only when the run fits within
+    /// <paramref name="maxFrames"/> frames (longer runs are variants sharing a numeric suffix).
+    /// When <paramref name="generateAnimdefs"/> is <c>true</c>, the animdefs part of the result
+    /// is the text of an ANIMDEFS lump declaring one entry per expanded run (walls as
+    /// <c>animatedTexture</c>, flats as <c>animatedFloor</c>, at <paramref name="frameTics"/>
+    /// tics per frame). When <paramref name="generateAnimated"/> is <c>true</c>, the animated
+    /// part of the result is the binary ANIMATED lump (Boom format: 23-byte entries with
+    /// istexture, last-frame name, first-frame name and speed, terminated by 0xFF) built from
+    /// the same runs. Both parts are null when nothing qualifies.
+    /// </summary>
+    private static (string? Animdefs, byte[]? Animated, IReadOnlyList<string> Warnings) ExpandAnimatedRuns(
+        UsedTextures usage,
+        TextureMerger textures,
+        IReadOnlyList<WadFile> resources,
+        int maxFrames,
+        int frameTics,
+        bool generateAnimdefs,
+        bool generateAnimated,
+        string animatedPrefixes)
+    {
+        var warnings = new List<string>();
+        var warned = new HashSet<string>(StringComparer.Ordinal);
+
+        var allowlist = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string part in animatedPrefixes.Split(
+            new[] { ',', ';', '\n', '\r', ' ', '\t' },
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            allowlist.Add(part);
+
+        bool IsAllowedRun(List<string> run) =>
+            allowlist.Count > 0
+            && TrySplitTrailingNumber(run[0], out string prefix, out _)
+            && allowlist.Contains(prefix);
+
+        void WarnOnce(string key, string message)
+        {
+            if (warned.Add(key))
+                warnings.Add(message);
+        }
+
+        void WarnTooLong(List<string> run) =>
+            WarnOnce("TL:" + string.Join("|", run),
+                CoreMessages.Get("Merge.AnimatedRunTooLong", run[0], run[^1], run.Count, MaxAnimatedLumpFrames));
+
+        void WarnNotConsecutive(List<string> run) =>
+            WarnOnce("NC:" + string.Join("|", run),
+                CoreMessages.Get("Merge.AnimatedRunNotConsecutive", run[0], run[^1]));
+
+        var wallNames = new HashSet<string>(
+            textures.Textures.Select(t => t.Name),
+            StringComparer.OrdinalIgnoreCase);
+        List<List<string>> wallRuns = ExpandNumberRuns(usage.Walls, wallNames, maxFrames);
+
+        var flatNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var wad in resources)
+            foreach (var lump in wad.Lumps)
+                if (IsFlatCandidateName(lump.Name))
+                    flatNames.Add(lump.Name);
+        List<List<string>> flatRuns = ExpandNumberRuns(usage.Flats, flatNames, maxFrames);
+
+        if ((generateAnimdefs || generateAnimated) && allowlist.Count == 0)
+            warnings.Add(CoreMessages.Get("Merge.NoAnimatedPrefixes"));
+
+        string? animdefs = null;
+        if (generateAnimdefs)
+        {
+            var sb = new StringBuilder();
+            foreach (List<string> run in wallRuns)
+            {
+                if (!IsAllowedRun(run)) continue;
+                if (run.Count > MaxAnimatedLumpFrames) { WarnTooLong(run); continue; }
+                sb.Append("animatedTexture ").Append(frameTics).Append(", { ")
+                  .Append(string.Join(", ", run)).AppendLine(" }");
+            }
+            foreach (List<string> run in flatRuns)
+            {
+                if (!IsAllowedRun(run)) continue;
+                if (run.Count > MaxAnimatedLumpFrames) { WarnTooLong(run); continue; }
+                sb.Append("animatedFloor ").Append(frameTics).Append(", { ")
+                  .Append(string.Join(", ", run)).AppendLine(" }");
+            }
+            animdefs = sb.Length == 0 ? null : sb.ToString();
+        }
+
+        byte[]? animated = null;
+        if (generateAnimated)
+        {
+            var flatSections = CollectFlatSections(resources);
+            var ms = new MemoryStream();
+            foreach (List<string> run in wallRuns)
+            {
+                if (!IsAllowedRun(run)) continue;
+                if (run.Count > MaxAnimatedLumpFrames) { WarnTooLong(run); continue; }
+                if (!IsConsecutiveWallRun(run, textures)) { WarnNotConsecutive(run); continue; }
+                WriteAnimdefEntry(ms, isTexture: 1, run[^1], run[0], frameTics);
+            }
+            foreach (List<string> run in flatRuns)
+            {
+                if (!IsAllowedRun(run)) continue;
+                if (run.Count > MaxAnimatedLumpFrames) { WarnTooLong(run); continue; }
+                if (!IsConsecutiveFlatRun(run, flatSections)) { WarnNotConsecutive(run); continue; }
+                WriteAnimdefEntry(ms, isTexture: 0, run[^1], run[0], frameTics);
+            }
+            if (ms.Length > 0)
+            {
+                ms.WriteByte(0xFF);
+                animated = ms.ToArray();
+            }
+        }
+
+        return (animdefs, animated, warnings);
+    }
+
+    /// <summary>Writes one 23-byte ANIMATED entry: istexture, endname[9], startname[9], speed (little-endian).</summary>
+    private static void WriteAnimdefEntry(MemoryStream ms, byte isTexture, string lastFrameName, string firstFrameName, int speed)
+    {
+        ms.WriteByte(isTexture);
+        WriteNullPaddedName(ms, lastFrameName, 9);
+        WriteNullPaddedName(ms, firstFrameName, 9);
+        ms.WriteByte((byte)(speed & 0xFF));
+        ms.WriteByte((byte)((speed >> 8) & 0xFF));
+        ms.WriteByte((byte)((speed >> 16) & 0xFF));
+        ms.WriteByte((byte)((speed >> 24) & 0xFF));
+    }
+
+    /// <summary>Writes a name (up to <paramref name="width"/> bytes) padded with nulls.</summary>
+    private static void WriteNullPaddedName(MemoryStream ms, string name, int width)
+    {
+        ReadOnlySpan<byte> bytes = Encoding.ASCII.GetBytes(name);
+        int end = Math.Min(bytes.Length, width);
+        ms.Write(bytes[..end]);
+        for (int i = end; i < width; i++)
+            ms.WriteByte(0);
+    }
+
+    /// <summary>
+    /// True when <paramref name="run"/>'s frames occupy consecutive positions in the merged
+    /// TEXTURE1 list. A classic engine derives the frame count from the index difference of the
+    /// end and start textures inside TEXTURE1, so a non-consecutive run would animate unrelated
+    /// textures in between (or exceed the engine's fixed per-animation frame arrays).
+    /// </summary>
+    private static bool IsConsecutiveWallRun(IReadOnlyList<string> run, TextureMerger textures)
+    {
+        var positions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < textures.Textures.Count; i++)
+            positions.TryAdd(textures.Textures[i].Name, i);
+        if (!positions.TryGetValue(run[0], out int start))
+            return false;
+        for (int i = 1; i < run.Count; i++)
+            if (!positions.TryGetValue(run[i], out int pos) || pos != start + i)
+                return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Collects the ordered flat-lump names inside every F_START/FF_START..F_END group of the
+    /// resource WADs, mirroring how a vanilla engine walks the flat lumps of the merged output.
+    /// </summary>
+    private static List<List<string>> CollectFlatSections(IReadOnlyList<WadFile> resources)
+    {
+        var sections = new List<List<string>>();
+        foreach (var wad in resources)
+        {
+            var current = new List<string>();
+            bool inFlatGroup = false;
+            foreach (var lump in wad.Lumps)
+            {
+                if (!inFlatGroup && (lump.Name == "F_START" || lump.Name == "FF_START"))
+                {
+                    inFlatGroup = true;
+                    current = new List<string>();
+                }
+                else if (inFlatGroup && lump.Name == "F_END")
+                {
+                    inFlatGroup = false;
+                    if (current.Count > 0)
+                        sections.Add(current);
+                }
+                else if (inFlatGroup)
+                {
+                    current.Add(lump.Name);
+                }
+            }
+            if (inFlatGroup && current.Count > 0)
+                sections.Add(current);
+        }
+        return sections;
+    }
+
+    /// <summary>
+    /// True when <paramref name="run"/>'s frames appear as consecutive lumps (ascending, with
+    /// no other flat in between) inside one flat group. Same rationale as
+    /// <see cref="IsConsecutiveWallRun"/>: a flat animation is the whole consecutive lump span
+    /// between the first and last frame.
+    /// </summary>
+    private static bool IsConsecutiveFlatRun(IReadOnlyList<string> run, IReadOnlyList<List<string>> sections)
+    {
+        foreach (List<string> section in sections)
+        {
+            int idx = section.FindIndex(n => string.Equals(n, run[0], StringComparison.OrdinalIgnoreCase));
+            if (idx < 0 || idx + run.Count > section.Count)
+                continue;
+            bool consecutive = true;
+            for (int i = 1; i < run.Count; i++)
+            {
+                if (!string.Equals(section[idx + i], run[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    consecutive = false;
+                    break;
+                }
+            }
+            if (consecutive)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Keeps the partner frame of any used switch texture so that a generated SWITCHES lump
+    /// can reference both. A used <c>SW1xxx</c> wall keeps <c>SW2xxx</c> (and vice versa) when
+    /// the partner exists in the merged texture set. Must run before <see cref="TextureMerger.ApplyUsageFilter"/>.
+    /// </summary>
+    private static void KeepSwitchPartners(UsedTextures usage, TextureMerger textures)
+    {
+        var available = new HashSet<string>(
+            textures.Textures.Select(t => t.Name),
+            StringComparer.OrdinalIgnoreCase);
+        foreach (string name in usage.Walls.ToList())
+        {
+            if (name is not null && name.Length > 3)
+            {
+                if (name.StartsWith("SW1", StringComparison.OrdinalIgnoreCase))
+                {
+                    string partner = "SW2" + name.Substring(3);
+                    if (available.Contains(partner))
+                        usage.Walls.Add(partner);
+                }
+                else if (name.StartsWith("SW2", StringComparison.OrdinalIgnoreCase))
+                {
+                    string partner = "SW1" + name.Substring(3);
+                    if (available.Contains(partner))
+                        usage.Walls.Add(partner);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds a binary SWITCHES lump (Boom format: 20-byte entries with off texture (<c>SW1...</c>),
+    /// on texture (<c>SW2...</c>) and an int16 flag of 0) from the switch pairs present in
+    /// <paramref name="textures"/>. Returns null when there are no complete pairs.
+    /// </summary>
+    private static byte[]? BuildSwitchesLump(IReadOnlyList<TextureDef> textures)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (TextureDef texture in textures)
+            names.Add(texture.Name);
+
+        var suffixes = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (TextureDef texture in textures)
+        {
+            if (texture.Name.Length > 3
+                && texture.Name.StartsWith("SW1", StringComparison.OrdinalIgnoreCase))
+            {
+                string on = "SW2" + texture.Name[3..];
+                if (names.Contains(on))
+                    suffixes.Add(texture.Name[3..]);
+            }
+        }
+        if (suffixes.Count == 0)
+            return null;
+
+        var ms = new MemoryStream();
+        foreach (string suffix in suffixes)
+        {
+            WriteNullPaddedName(ms, "SW1" + suffix, 9);
+            WriteNullPaddedName(ms, "SW2" + suffix, 9);
+            ms.WriteByte(0);
+            ms.WriteByte(0);
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>A lump name that can be an animated flat in a resource WAD.</summary>
+    private static bool IsFlatCandidateName(string name) =>
+        !name.EndsWith("_START", StringComparison.Ordinal) &&
+        !name.EndsWith("_END", StringComparison.Ordinal) &&
+        !TextureLumpNames.Contains(name) &&
+        !PaletteLumpNames.Contains(name);
+
+    /// <summary>
+    /// For every used name that ends in a number, adds the maximal gapless consecutive
+    /// run that contains it (from the available names) when that run has at least 2 frames
+    /// and at most <paramref name="maxFrames"/> frames. Returns each qualifying run as a
+    /// list of names in numeric order.
+    /// </summary>
+    private static List<List<string>> ExpandNumberRuns(
+        HashSet<string> used,
+        IReadOnlySet<string> available,
+        int maxFrames)
+    {
+        var runs = new List<List<string>>();
+        if (maxFrames < 2 || available.Count == 0)
+            return runs;
+
+        var additions = new List<string>();
+        foreach (string anchor in used.ToList())
+        {
+            if (!TrySplitTrailingNumber(anchor, out string prefix, out int anchorNum))
+                continue;
+
+            var members = new List<(string Name, int Num)>();
+            foreach (string cand in available)
+            {
+                if (TrySplitTrailingNumber(cand, out string candPrefix, out int candNum)
+                    && cand.Length == prefix.Length + candNum.ToString().Length
+                    && string.Equals(prefix, candPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    members.Add((cand, candNum));
+                }
+            }
+
+            members.Sort((a, b) => a.Num.CompareTo(b.Num));
+            int idx = members.FindIndex(m => m.Num == anchorNum && string.Equals(m.Name, anchor, StringComparison.OrdinalIgnoreCase));
+            if (idx < 0)
+                continue;
+
+            int lo = idx;
+            while (lo > 0 && members[lo - 1].Num == members[lo].Num - 1)
+                lo--;
+            int hi = idx;
+            while (hi + 1 < members.Count && members[hi + 1].Num == members[hi].Num + 1)
+                hi++;
+
+            int length = hi - lo + 1;
+            if (length < 2 || length > maxFrames)
+                continue;
+
+            var run = new List<string>();
+            for (int k = lo; k <= hi; k++)
+            {
+                run.Add(members[k].Name);
+                additions.Add(members[k].Name);
+            }
+            runs.Add(run);
+        }
+
+        used.UnionWith(additions);
+        return runs;
+    }
+
+    /// <summary>Splits a name into its prefix and trailing number, e.g. "COMPSTA2" -> ("COMPSTA", 2).</summary>
+    private static bool TrySplitTrailingNumber(string name, out string prefix, out int number)
+    {
+        prefix = "";
+        number = 0;
+        int i = name.Length - 1;
+        while (i >= 0 && char.IsDigit(name[i]))
+            i--;
+        int digitsStart = i + 1;
+        if (digitsStart >= name.Length || digitsStart == 0)
+            return false;
+        if (int.TryParse(name.AsSpan(digitsStart), out number))
+        {
+            prefix = name[..digitsStart];
+            return true;
+        }
+        return false;
+    }
+
     // ------------------------------------------------------------------
     // Texture merging
     // ------------------------------------------------------------------
@@ -473,6 +879,9 @@ public sealed class WadMerger
         UsedTextures? usage,
         Dictionary<string, (string WadPath, string OriginalName)> musicByName,
         WadFile? baseWad,
+        string? generatedAnimdefs,
+        byte[]? generatedAnimated,
+        byte[]? generatedSwitches,
         Action<string> report,
         Action<string> warn)
     {
@@ -527,14 +936,40 @@ public sealed class WadMerger
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
                 baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: false,
-                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources);
+                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources,
+                generatedAnimdefs, generatedAnimated, generatedSwitches);
 
         foreach (var wad in resources)
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
                 baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true,
-                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources);
+                baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources,
+                generatedAnimdefs, generatedAnimated, generatedSwitches);
+
+        if (generatedAnimdefs is not null)
+        {
+            if (outputNames.Add("ANIMDEFS"))
+                builder.AddLump("ANIMDEFS", Encoding.UTF8.GetBytes(generatedAnimdefs));
+            _result.Info.Add(CoreMessages.Get("Merge.AnimdefsGenerated",
+                generatedAnimdefs.Split('\n').Count(l => l.Contains('{'))));
+        }
+
+        if (generatedAnimated is not null)
+        {
+            if (outputNames.Add("ANIMATED"))
+                builder.AddLump("ANIMATED", generatedAnimated);
+            _result.Info.Add(CoreMessages.Get("Merge.AnimatedLumpGenerated",
+                (generatedAnimated.Length - 1) / 23));
+        }
+
+        if (generatedSwitches is not null)
+        {
+            if (outputNames.Add("SWITCHES"))
+                builder.AddLump("SWITCHES", generatedSwitches);
+            _result.Info.Add(CoreMessages.Get("Merge.SwitchesLumpGenerated",
+                generatedSwitches.Length / 20));
+        }
 
         if (mapInfoText is not null && mapInfoSeen)
             warn(CoreMessages.Get("Merge.MapInfoSkipped"));
@@ -717,7 +1152,10 @@ public sealed class WadMerger
         bool copyMusic,
         HashSet<string>? neededSkyNames,
         bool isResourceWad,
-        bool baseTexturesOverrideResources)
+        bool baseTexturesOverrideResources,
+        string? generatedAnimdefs,
+        byte[]? generatedAnimated,
+        byte[]? generatedSwitches)
     {
         var mapRanges = MapDetector.DetectMaps(wad)
             .Select(m => (m.StartIndex, m.EndIndex))
@@ -910,6 +1348,54 @@ bool included = usage is null
 
             if (SingleWinningLumps.Contains(lump.Name) && outputNames.Contains(lump.Name))
                 continue;
+
+            // Generated ANIMDEFS: append our entries to the first ANIMDEFS a resource WAD
+            // provides (its text is kept), or add the generated lump alone when none exists.
+            if (isResourceWad && lump.Name == "ANIMDEFS" && generatedAnimdefs is not null)
+            {
+                if (outputNames.Add("ANIMDEFS"))
+                {
+                    string src = Encoding.UTF8.GetString(lump.ReadAll()).TrimEnd();
+                    string combined = src.Length == 0 ? generatedAnimdefs : src + "\n" + generatedAnimdefs;
+                    builder.AddLump("ANIMDEFS", Encoding.UTF8.GetBytes(combined));
+                    _result.LumpsCopied++;
+                }
+                continue;
+            }
+
+            // Generated ANIMATED: append our binary entries to the first ANIMATED a resource
+            // WAD provides (its entries are kept), or add the generated lump alone when none
+            // exists. The 0xFF terminator stays at the very end.
+            if (isResourceWad && lump.Name == "ANIMATED" && generatedAnimated is not null)
+            {
+                if (outputNames.Add("ANIMATED"))
+                {
+                    byte[] src = lump.ReadAll();
+                    int keep = src.Length > 0 && src[^1] == 0xFF ? src.Length - 1 : src.Length;
+                    var merged = new MemoryStream(keep + generatedAnimated.Length);
+                    merged.Write(src, 0, keep);
+                    merged.Write(generatedAnimated, 0, generatedAnimated.Length);
+                    builder.AddLump("ANIMATED", merged.ToArray());
+                    _result.LumpsCopied++;
+                }
+                continue;
+            }
+
+            // Generated SWITCHES: append our entries to the first SWITCHES a resource WAD
+            // provides (its entries are kept), or add the generated lump alone when none exists.
+            if (isResourceWad && lump.Name == "SWITCHES" && generatedSwitches is not null)
+            {
+                if (outputNames.Add("SWITCHES"))
+                {
+                    byte[] src = lump.ReadAll();
+                    var merged = new MemoryStream(src.Length + generatedSwitches.Length);
+                    merged.Write(src, 0, src.Length);
+                    merged.Write(generatedSwitches, 0, generatedSwitches.Length);
+                    builder.AddLump("SWITCHES", merged.ToArray());
+                    _result.LumpsCopied++;
+                }
+                continue;
+            }
 
             if (outputNames.Contains(lump.Name))
             {

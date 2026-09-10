@@ -44,6 +44,35 @@ public sealed class ProjectFileData
     /// without the field default to true (the engine-friendly behavior).</summary>
     public bool BaseTexturesOverrideResources { get; set; } = true;
 
+    /// <summary>When true and filtering to used resources, animated textures numbered
+    /// consecutively (e.g. COMPSTA1..COMPSTA6) are imported whole when the map uses one frame.</summary>
+    public bool ExpandAnimatedTextureRuns { get; set; } = false;
+
+    /// <summary>Maximum frames a numbered texture run may have to be treated as an animation.</summary>
+    public int MaxAnimatedTextureFrames { get; set; } = 8;
+
+    /// <summary>When true, a text ANIMDEFS lump declaring the numbered animated runs used by
+    /// the maps is generated in the output (implies importing the whole runs).</summary>
+    public bool GenerateAnimdefsForAnimatedRuns { get; set; } = false;
+
+    /// <summary>Tics per frame for the generated ANIMDEFS entries (35 tics = 1 second).</summary>
+    public int AnimatedRunTics { get; set; } = 8;
+
+    /// <summary>When true, a binary ANIMATED lump (Boom/MBF format, read by the vanilla
+    /// renderer of Boom-based ports such as Odamex) declaring the numbered animated runs
+    /// used by the maps is generated in the output (implies importing the whole runs).</summary>
+    public bool GenerateAnimatedLumpForRuns { get; set; } = false;
+
+    /// <summary>When true, a binary SWITCHES lump (Boom/MBF format, read by Boom-based
+    /// ports such as Odamex) is generated from the SW1xxx/SW2xxx switch pairs present in
+    /// the merged textures; the partner frame of any used switch is kept too.</summary>
+    public bool GenerateSwitchesLumpForPairs { get; set; } = false;
+
+    /// <summary>Comma/semicolon/newline-separated list of numeric-run prefixes declared as
+    /// animations by the generated ANIMATED/ANIMDEFS lumps (only those prefixes animate;
+    /// variant sets like SKY1/SKY2 stay static).</summary>
+    public string? AnimatedPrefixes { get; set; } = "";
+
     /// <summary>Lump name of the music played during the intermission screens
     /// between levels; referenced by the generated MAPINFO.</summary>
     public string? IntermissionMusic { get; set; }

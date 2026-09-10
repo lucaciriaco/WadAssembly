@@ -100,6 +100,29 @@
                   IsChecked="{Binding IncludeMapInfoNotes}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.BaseTexturesOverride}"
                   IsChecked="{Binding BaseTexturesOverrideResources}"/>
+        <CheckBox Content="{DynamicResource ProjectSettings.AnimatedRuns}"
+                  IsChecked="{Binding ExpandAnimatedTextureRuns}"/>
+        <CheckBox Content="{DynamicResource ProjectSettings.GenerateAnimdefs}"
+                  IsChecked="{Binding GenerateAnimdefsForAnimatedRuns}"/>
+        <CheckBox Content="{DynamicResource ProjectSettings.GenerateAnimated}"
+                  IsChecked="{Binding GenerateAnimatedLumpForRuns}"/>
+        <CheckBox Content="{DynamicResource ProjectSettings.GenerateSwitches}"
+                  IsChecked="{Binding GenerateSwitchesLumpForPairs}"/>
+        <StackPanel Spacing="4" Margin="22,0,0,0">
+          <TextBlock Text="{DynamicResource ProjectSettings.AnimatedPrefixes}" VerticalAlignment="Center"/>
+          <TextBox Text="{Binding AnimatedPrefixes, Mode=TwoWay}" MinWidth="280" AcceptsReturn="True"
+                   MaxHeight="60" TextWrapping="Wrap"/>
+          <TextBlock Text="{DynamicResource ProjectSettings.AnimatedPrefixesHint}"
+                     FontSize="11" TextWrapping="Wrap" Foreground="#909090"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBlock Text="{DynamicResource ProjectSettings.MaxAnimatedFrames}" VerticalAlignment="Center"/>
+          <NumericUpDown Minimum="2" Maximum="99" Increment="1" FormatString="0" Width="110" FontSize="14"
+                         Value="{Binding MaxAnimatedTextureFrames, Mode=TwoWay}"/>
+          <TextBlock Text="{DynamicResource ProjectSettings.AnimatedTics}" VerticalAlignment="Center"/>
+          <NumericUpDown Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110" FontSize="14"
+                         Value="{Binding AnimatedRunTics, Mode=TwoWay}"/>
+        </StackPanel>
       </StackPanel>
 
       <StackPanel Spacing="4">

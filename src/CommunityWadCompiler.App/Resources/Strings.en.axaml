@@ -93,6 +93,16 @@
   <sys:String x:Key="ProjectSettings.IncludeSprites">Include sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, status bar and fonts)</sys:String>
   <sys:String x:Key="ProjectSettings.MapInfoNotes">Write notes/comments into the MAPINFO (author, status, build date, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Prefer base IWAD textures over resource WAD textures (if unchecked, resource textures replace the IWAD's)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedRuns">Import numbered animation runs used by the maps (packs without an ANIMATED/ANIMDEFS lump)</sys:String>
+  <sys:String x:Key="ProjectSettings.MaxAnimatedFrames">Max frames per animated run</sys:String>
+  <sys:String x:Key="ProjectSettings.GenerateAnimdefs">Generate an ANIMDEFS lump for the numbered animated runs so they actually animate (ZDoom-family ports)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateAnimated">Generate a binary ANIMATED lump for the numbered animated runs so they actually animate (Boom-based ports such as Odamex)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateSwitches">Generate a binary SWITCHES lump for the pack's SW1xxx/SW2xxx switches so they work in Boom-based ports such as Odamex</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedTics">Tics per frame (35 = 1 second)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixes">Prefixes to animate (comma-separated)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixesHint">Only runs whose prefixes are listed (e.g. SHAWN, WATR) are declared as animations. Static variants such as SKY1/SKY2 or BIGDOOR1..7 stay static.</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Collaborators (map authors)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Add collaborator</sys:String>
 
@@ -192,6 +202,9 @@
   <sys:String x:Key="Merge.MapNoSlot">Map '{0}' from '{1}' has no slot assigned; it is skipped.</sys:String>
   <sys:String x:Key="Merge.DuplicateSlot">Two maps were assigned to slot '{0}'. Check the assignments.</sys:String>
   <sys:String x:Key="Merge.MapInfoGenerated">MAPINFO generated for {0} map(s).</sys:String>
+  <sys:String x:Key="Merge.AnimdefsGenerated">ANIMDEFS lump generated for {0} numbered animation(s).</sys:String>
+  <sys:String x:Key="Merge.AnimatedLumpGenerated">ANIMATED lump generated for {0} numbered animation(s).</sys:String>
+  <sys:String x:Key="Merge.SwitchesLumpGenerated">SWITCHES lump generated for {0} switch(es).</sys:String>
   <sys:String x:Key="Merge.MapInfoSkipped">Existing MAPINFO/ZMAPINFO lumps from the WADs were skipped; the generated MAPINFO with the names is used.</sys:String>
   <sys:String x:Key="Merge.ZdoomTexturesDropped">ZDoom 'TEXTURES' lumps detected; merging them is not implemented yet and they were dropped.</sys:String>
   <sys:String x:Key="Merge.MusicRenamed">Music '{0}' (from '{1}') renamed to '{2}'.</sys:String>

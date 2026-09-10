@@ -163,6 +163,70 @@ private int _slotCount = 32;
         set => SetProperty(ref _baseTexturesOverrideResources, value);
     }
 
+    /// <summary>When true and filtering to used resources, numbered animation runs used by
+    /// the maps are imported whole (see Core MergeOptions.ExpandAnimatedTextureRuns).</summary>
+    private bool _expandAnimatedTextureRuns;
+    public bool ExpandAnimatedTextureRuns
+    {
+        get => _expandAnimatedTextureRuns;
+        set => SetProperty(ref _expandAnimatedTextureRuns, value);
+    }
+
+    /// <summary>Maximum frames a numbered run may have to be treated as an animation.</summary>
+    private int _maxAnimatedTextureFrames = 8;
+    public int MaxAnimatedTextureFrames
+    {
+        get => _maxAnimatedTextureFrames;
+        set => SetProperty(ref _maxAnimatedTextureFrames, Math.Max(2, value));
+    }
+
+    /// <summary>When true, an ANIMDEFS lump declaring the numbered animated runs used by the
+    /// maps is generated in the output (implies importing the whole runs).</summary>
+    private bool _generateAnimdefsForAnimatedRuns;
+    public bool GenerateAnimdefsForAnimatedRuns
+    {
+        get => _generateAnimdefsForAnimatedRuns;
+        set => SetProperty(ref _generateAnimdefsForAnimatedRuns, value);
+    }
+
+    /// <summary>Tics per frame for the generated ANIMDEFS entries (35 tics = 1 second).</summary>
+    private int _animatedRunTics = 8;
+    public int AnimatedRunTics
+    {
+        get => _animatedRunTics;
+        set => SetProperty(ref _animatedRunTics, Math.Max(1, value));
+    }
+
+    /// <summary>When true, a binary ANIMATED lump (Boom/MBF format, read by the vanilla
+    /// renderer of Boom-based ports such as Odamex) declaring the numbered animated runs
+    /// used by the maps is generated in the output (implies importing the whole runs).</summary>
+    private bool _generateAnimatedLumpForRuns;
+    public bool GenerateAnimatedLumpForRuns
+    {
+        get => _generateAnimatedLumpForRuns;
+        set => SetProperty(ref _generateAnimatedLumpForRuns, value);
+    }
+
+    /// <summary>Comma/semicolon/newline-separated list of numeric-run prefixes declared as
+    /// animations by the generated ANIMATED/ANIMDEFS lumps (only those prefixes animate;
+    /// variant sets like SKY1/SKY2 stay static).</summary>
+    private string _animatedPrefixes = "";
+    public string AnimatedPrefixes
+    {
+        get => _animatedPrefixes;
+        set => SetProperty(ref _animatedPrefixes, value ?? "");
+    }
+
+    /// <summary>When true, a binary SWITCHES lump (Boom/MBF format, read by Boom-based
+    /// ports such as Odamex) is generated from the SW1xxx/SW2xxx switch pairs present in
+    /// the merged textures; the partner frame of any used switch is kept too.</summary>
+    private bool _generateSwitchesLumpForPairs;
+    public bool GenerateSwitchesLumpForPairs
+    {
+        get => _generateSwitchesLumpForPairs;
+        set => SetProperty(ref _generateSwitchesLumpForPairs, value);
+    }
+
     /// <summary>Lump name of the intermission music chosen in Project Settings
     /// (may hold the "no music" sentinel; normalized when compiling).</summary>
     public string IntermissionMusic
@@ -437,6 +501,13 @@ private int _slotCount = 32;
         FilterResourcesToUsed = true;
         IncludeMapInfoNotes = true;
         BaseTexturesOverrideResources = true;
+        ExpandAnimatedTextureRuns = false;
+        MaxAnimatedTextureFrames = 8;
+        GenerateAnimdefsForAnimatedRuns = false;
+        AnimatedRunTics = 8;
+        GenerateAnimatedLumpForRuns = false;
+        GenerateSwitchesLumpForPairs = false;
+        AnimatedPrefixes = "";
         ProjectName = "";
         VersionPrefix = "";
         SlotCount = 32;
@@ -781,6 +852,13 @@ private int _slotCount = 32;
             IncludeSpriteLumps = IncludeSpriteLumps,
             IncludeMapInfoNotes = IncludeMapInfoNotes,
             BaseTexturesOverrideResources = BaseTexturesOverrideResources,
+            ExpandAnimatedTextureRuns = ExpandAnimatedTextureRuns,
+            MaxAnimatedTextureFrames = MaxAnimatedTextureFrames,
+            GenerateAnimdefsForAnimatedRuns = GenerateAnimdefsForAnimatedRuns,
+            AnimatedRunTics = AnimatedRunTics,
+            GenerateAnimatedLumpForRuns = GenerateAnimatedLumpForRuns,
+            GenerateSwitchesLumpForPairs = GenerateSwitchesLumpForPairs,
+            AnimatedPrefixes = AnimatedPrefixes,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             SourcePortPath = SelectedSourcePort?.ExecutablePath,
@@ -838,6 +916,13 @@ private int _slotCount = 32;
         IncludeSpriteLumps = data.IncludeSpriteLumps;
         IncludeMapInfoNotes = data.IncludeMapInfoNotes;
         BaseTexturesOverrideResources = data.BaseTexturesOverrideResources;
+        ExpandAnimatedTextureRuns = data.ExpandAnimatedTextureRuns;
+        MaxAnimatedTextureFrames = Math.Max(2, data.MaxAnimatedTextureFrames);
+        GenerateAnimdefsForAnimatedRuns = data.GenerateAnimdefsForAnimatedRuns;
+        AnimatedRunTics = Math.Max(1, data.AnimatedRunTics);
+        GenerateAnimatedLumpForRuns = data.GenerateAnimatedLumpForRuns;
+        GenerateSwitchesLumpForPairs = data.GenerateSwitchesLumpForPairs;
+        AnimatedPrefixes = data.AnimatedPrefixes ?? "";
         IntermissionMusic = data.IntermissionMusic ?? "";
         IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
         RefreshSourcePortOptions(data.SourcePortPath);
@@ -1021,6 +1106,13 @@ private int _slotCount = 32;
                 IncludeSpriteLumps = IncludeSpriteLumps,
                 IncludeMapInfoNotes = IncludeMapInfoNotes,
                 BaseTexturesOverrideResources = BaseTexturesOverrideResources,
+                ExpandAnimatedTextureRuns = ExpandAnimatedTextureRuns,
+                MaxAnimatedTextureFrames = MaxAnimatedTextureFrames,
+                GenerateAnimdefsForAnimatedRuns = GenerateAnimdefsForAnimatedRuns,
+                AnimatedRunTics = AnimatedRunTics,
+                GenerateAnimatedLumpForRuns = GenerateAnimatedLumpForRuns,
+                GenerateSwitchesLumpForPairs = GenerateSwitchesLumpForPairs,
+                AnimatedPrefixes = AnimatedPrefixes,
             },
         };
 

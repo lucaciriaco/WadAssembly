@@ -93,6 +93,16 @@
   <sys:String x:Key="ProjectSettings.IncludeSprites">Incluir sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, statusbar y fuentes)</sys:String>
   <sys:String x:Key="ProjectSettings.MapInfoNotes">Escribir notas/comentarios en el MAPINFO (autor, estado, fecha de compilación, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Priorizar texturas del IWAD base sobre las de los WAD de recursos (si está desactivado, las texturas de los recursos reemplazan a las del IWAD)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedRuns">Importar las corridas de texturas animadas numeradas usadas por los mapas (packs sin lump ANIMATED/ANIMDEFS)</sys:String>
+  <sys:String x:Key="ProjectSettings.MaxAnimatedFrames">Máximo de frames por corrida animada</sys:String>
+  <sys:String x:Key="ProjectSettings.GenerateAnimdefs">Generar un lump ANIMDEFS para las corridas numeradas animadas para que realmente se animen (motores familia ZDoom)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateAnimated">Generar un lump ANIMATED binario para las corridas numeradas animadas para que realmente se animen (motores basados en Boom como Odamex)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateSwitches">Generar un lump SWITCHES binario para los interruptores SW1xxx/SW2xxx del pack para que funcionen en motores basados en Boom como Odamex</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedTics">Tics por frame (35 = 1 segundo)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixes">Prefijos a animar (separados por coma)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixesHint">Solo las corridas cuyos prefijos figuren aquí (p. ej. SHAWN, WATR) se declaran como animaciones. Las variantes estáticas como SKY1/SKY2 o BIGDOOR1..7 permanecen estáticas.</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
 
@@ -192,6 +202,9 @@
   <sys:String x:Key="Merge.MapNoSlot">Mapa '{0}' de '{1}' no tiene slot asignado; se omite.</sys:String>
   <sys:String x:Key="Merge.DuplicateSlot">Dos mapas se asignaron al slot '{0}'. Revisá las asignaciones.</sys:String>
   <sys:String x:Key="Merge.MapInfoGenerated">MAPINFO generado para {0} mapa(s).</sys:String>
+  <sys:String x:Key="Merge.AnimdefsGenerated">Lump ANIMDEFS generado para {0} animación(es) numerada(s).</sys:String>
+  <sys:String x:Key="Merge.AnimatedLumpGenerated">Lump ANIMATED generado para {0} animación(es) numerada(s).</sys:String>
+  <sys:String x:Key="Merge.SwitchesLumpGenerated">Lump SWITCHES generado para {0} interruptor(es).</sys:String>
   <sys:String x:Key="Merge.MapInfoSkipped">Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.</sys:String>
   <sys:String x:Key="Merge.ZdoomTexturesDropped">Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.</sys:String>
   <sys:String x:Key="Merge.MusicRenamed">Música '{0}' (de '{1}') renombrada a '{2}'.</sys:String>
