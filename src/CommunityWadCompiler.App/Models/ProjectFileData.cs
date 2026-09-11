@@ -73,6 +73,11 @@ public sealed class ProjectFileData
     /// variant sets like SKY1/SKY2 stay static).</summary>
     public string? AnimatedPrefixes { get; set; } = "";
 
+    /// <summary>Target engine chosen in Project Settings: "ZDoom" shows the ANIMDEFS
+    /// generation option, "Boom" shows the SWITCHES/ANIMATED (Boom/MBF) options.
+    /// Old projects without the field default to "Boom".</summary>
+    public string? TargetEngine { get; set; } = "Boom";
+
     /// <summary>Lump name of the music played during the intermission screens
     /// between levels; referenced by the generated MAPINFO.</summary>
     public string? IntermissionMusic { get; set; }

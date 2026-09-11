@@ -93,6 +93,7 @@
   <sys:String x:Key="ProjectSettings.IncludeSprites">Include sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, status bar and fonts)</sys:String>
   <sys:String x:Key="ProjectSettings.MapInfoNotes">Write notes/comments into the MAPINFO (author, status, build date, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Prefer base IWAD textures over resource WAD textures (if unchecked, resource textures replace the IWAD's)</sys:String>
+  <sys:String x:Key="ProjectSettings.TargetEngine">Target engine</sys:String>
   <sys:String x:Key="ProjectSettings.AnimatedRuns">Import numbered animation runs used by the maps (packs without an ANIMATED/ANIMDEFS lump)</sys:String>
   <sys:String x:Key="ProjectSettings.MaxAnimatedFrames">Max frames per animated run</sys:String>
   <sys:String x:Key="ProjectSettings.GenerateAnimdefs">Generate an ANIMDEFS lump for the numbered animated runs so they actually animate (ZDoom-family ports)</sys:String>

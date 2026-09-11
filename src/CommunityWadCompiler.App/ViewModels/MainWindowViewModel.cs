@@ -227,6 +227,31 @@ private int _slotCount = 32;
         set => SetProperty(ref _generateSwitchesLumpForPairs, value);
     }
 
+    /// <summary>Engine choices of the Project Settings combo box ("ZDoom" shows the
+    /// ANIMDEFS option, "Boom" the SWITCHES/ANIMATED ones).</summary>
+    public string[] TargetEngineOptions { get; } = { "ZDoom", "Boom" };
+
+    /// <summary>Target engine of the compiled project; decides which lump-generation
+    /// options are shown in Project Settings.</summary>
+    private string _targetEngine = "Boom";
+    public string TargetEngine
+    {
+        get => _targetEngine;
+        set
+        {
+            string next = string.Equals(value, "ZDoom", StringComparison.Ordinal) ? "ZDoom" : "Boom";
+            if (!SetProperty(ref _targetEngine, next)) return;
+            OnPropertyChanged(nameof(IsZDoomTarget));
+            OnPropertyChanged(nameof(IsBoomTarget));
+        }
+    }
+
+    /// <summary>True while <see cref="TargetEngine"/> is "ZDoom": the ANIMDEFS option is shown.</summary>
+    public bool IsZDoomTarget => TargetEngine == "ZDoom";
+
+    /// <summary>True while <see cref="TargetEngine"/> is "Boom": the SWITCHES/ANIMATED options are shown.</summary>
+    public bool IsBoomTarget => TargetEngine == "Boom";
+
     /// <summary>Lump name of the intermission music chosen in Project Settings
     /// (may hold the "no music" sentinel; normalized when compiling).</summary>
     public string IntermissionMusic
@@ -509,6 +534,7 @@ private int _slotCount = 32;
         GenerateAnimatedLumpForRuns = false;
         GenerateSwitchesLumpForPairs = false;
         AnimatedPrefixes = "";
+        TargetEngine = "Boom";
         ProjectName = "";
         VersionPrefix = "";
         SlotCount = 32;
@@ -863,6 +889,7 @@ private int _slotCount = 32;
             GenerateAnimatedLumpForRuns = GenerateAnimatedLumpForRuns,
             GenerateSwitchesLumpForPairs = GenerateSwitchesLumpForPairs,
             AnimatedPrefixes = AnimatedPrefixes,
+            TargetEngine = TargetEngine,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             SourcePortPath = SelectedSourcePort?.ExecutablePath,
@@ -927,6 +954,7 @@ private int _slotCount = 32;
         GenerateAnimatedLumpForRuns = data.GenerateAnimatedLumpForRuns;
         GenerateSwitchesLumpForPairs = data.GenerateSwitchesLumpForPairs;
         AnimatedPrefixes = data.AnimatedPrefixes ?? "";
+        TargetEngine = data.TargetEngine ?? "Boom";
         IntermissionMusic = data.IntermissionMusic ?? "";
         IntermissionMusicExternalPath = data.IntermissionMusicExternalPath ?? "";
         RefreshSourcePortOptions(data.SourcePortPath);

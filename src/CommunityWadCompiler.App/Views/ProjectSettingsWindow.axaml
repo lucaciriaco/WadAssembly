@@ -100,14 +100,23 @@
                   IsChecked="{Binding IncludeMapInfoNotes}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.BaseTexturesOverride}"
                   IsChecked="{Binding BaseTexturesOverrideResources}"/>
+        <StackPanel Spacing="4" Margin="0,6,0,0">
+          <TextBlock Text="{DynamicResource ProjectSettings.TargetEngine}" FontWeight="Bold"/>
+          <ComboBox ItemsSource="{Binding TargetEngineOptions}"
+                    SelectedItem="{Binding TargetEngine, Mode=TwoWay}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
         <CheckBox Content="{DynamicResource ProjectSettings.AnimatedRuns}"
                   IsChecked="{Binding ExpandAnimatedTextureRuns}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.GenerateAnimdefs}"
-                  IsChecked="{Binding GenerateAnimdefsForAnimatedRuns}"/>
+                  IsChecked="{Binding GenerateAnimdefsForAnimatedRuns}"
+                  IsVisible="{Binding IsZDoomTarget}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.GenerateAnimated}"
-                  IsChecked="{Binding GenerateAnimatedLumpForRuns}"/>
+                  IsChecked="{Binding GenerateAnimatedLumpForRuns}"
+                  IsVisible="{Binding IsBoomTarget}"/>
         <CheckBox Content="{DynamicResource ProjectSettings.GenerateSwitches}"
-                  IsChecked="{Binding GenerateSwitchesLumpForPairs}"/>
+                  IsChecked="{Binding GenerateSwitchesLumpForPairs}"
+                  IsVisible="{Binding IsBoomTarget}"/>
         <StackPanel Spacing="4" Margin="22,0,0,0">
           <TextBlock Text="{DynamicResource ProjectSettings.AnimatedPrefixes}" VerticalAlignment="Center"/>
           <TextBox Text="{Binding AnimatedPrefixes, Mode=TwoWay}" MinWidth="280" AcceptsReturn="True"
