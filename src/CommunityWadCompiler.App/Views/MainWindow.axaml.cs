@@ -929,6 +929,30 @@ public partial class MainWindow : Window
     private async void OnCompile(object? sender, RoutedEventArgs e)
         => await _viewModel.CompileAsync(runAfterBuild: _compileMode == BuildRunMode);
 
+    /// <summary>Keyboard shortcuts for the main window: Ctrl+S saves the project
+    /// (or asks for a path the first time), Ctrl+Shift+S saves as, Ctrl+B compiles
+    /// (respecting the active Build / Build and run mode).</summary>
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            return;
+        switch (e.Key)
+        {
+            case Key.S when e.KeyModifiers.HasFlag(KeyModifiers.Shift):
+                e.Handled = true;
+                OnSaveProjectAs(sender, e);
+                break;
+            case Key.S:
+                e.Handled = true;
+                OnSaveProject(sender, e);
+                break;
+            case Key.B:
+                e.Handled = true;
+                OnCompile(sender, e);
+                break;
+        }
+    }
+
     // ------------------------------------------------------------------
     // Compile mode dropdown (Build / Build and run, ZDL-style)
     // ------------------------------------------------------------------

@@ -7,7 +7,8 @@
         Title="Community Wad Compiler"
         Width="1180" Height="760"
         MinWidth="900" MinHeight="600"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        KeyDown="OnWindowKeyDown">
 
   <Window.Resources>
     <vm:PlanColumnWidths x:Key="PlanColWidths"/>
