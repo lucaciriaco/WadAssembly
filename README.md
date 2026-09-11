@@ -1,4 +1,4 @@
-# CommunityWadCompiler
+# WadAssembly
 
 Herramienta en C# (.NET 8) con interfaz gráfica (Avalonia) para compilar proyectos de
 comunidad de Doom: toma varios `.wad` aportados por distintos autores y genera **un único
