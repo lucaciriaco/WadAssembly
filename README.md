@@ -16,6 +16,10 @@ tests/
 
 ## Features
 
+> **Main goal:** compiling the maps of a community project — several author PWADs, merged
+> into a single ordered WAD — quickly and easily. Everything else in this list is
+> secondary.
+
 - **WAD reader/writer**: parses `IWAD`/`PWAD` (header, directory, lumps), whole-file
   loading and 4-byte-aligned writing.
 - **Map detection**: `E1M1..E4M9`, `MAP01..`, and UDMF maps (TEXTMAP/ENDMAP).
@@ -25,10 +29,12 @@ tests/
 - **Resource merging**: generic lumps deduplicated by name (first occurrence wins);
   option to skip copying resources from the base/IWAD.
 - **Slot assignment**: automatic (`MAP01...`) or manual, editable from the grid.
-- **Animated/switches lump generation**: builds `ANIMATED` (Boom), `SWITCHES` (Boom) or
-  `ANIMDEFS` (ZDoom) depending on the selected **target engine**; animated texture runs
-  can be filtered through an **allowlist of prefixes**, with a 32-frame safety cap to
-  avoid a crash in specs that limit the length of the lump.
+- **Animated/switches lump generation** — <span style="color:gray;font-style:italic">beta</span>:
+  builds `ANIMATED` (Boom), `SWITCHES` (Boom) or `ANIMDEFS` (ZDoom) depending on the
+  selected **target engine**; animated texture runs can be filtered through an
+  **allowlist of prefixes**, with a 32-frame safety cap. <span style="color:gray;font-style:italic">These
+  features are experimental and may not behave perfectly in every scenario. They are
+  secondary; merging the maps correctly is the priority.</span>
 - **Grid filters**: live search across the plan sheet with a per-field search dropdown
   (slot, WAD, level, status, author, music, notes...).
 - **Row colors by status**: TODO/WIP/DONE/FIX tint the whole row background (toggleable).

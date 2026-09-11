@@ -102,6 +102,7 @@
   <sys:String x:Key="ProjectSettings.MapInfoNotes">Escribir notas/comentarios en el MAPINFO (autor, estado, fecha de compilación, etc.)</sys:String>
   <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Priorizar texturas del IWAD base sobre las de los WAD de recursos (si está desactivado, las texturas de los recursos reemplazan a las del IWAD)</sys:String>
   <sys:String x:Key="ProjectSettings.TargetEngine">Motor de destino</sys:String>
+  <sys:String x:Key="ProjectSettings.Beta">beta</sys:String>
   <sys:String x:Key="ProjectSettings.AnimatedRuns">Importar las corridas de texturas animadas numeradas usadas por los mapas (packs sin lump ANIMATED/ANIMDEFS)</sys:String>
   <sys:String x:Key="ProjectSettings.MaxAnimatedFrames">Máximo de frames por corrida animada</sys:String>
   <sys:String x:Key="ProjectSettings.GenerateAnimdefs">Generar un lump ANIMDEFS para las corridas numeradas animadas para que realmente se animen (motores familia ZDoom)</sys:String>
