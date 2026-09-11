@@ -69,6 +69,10 @@
   <sys:String x:Key="Log.Title">Log</sys:String>
   <sys:String x:Key="Log.Hide">Hide console</sys:String>
   <sys:String x:Key="Log.Show">Show console</sys:String>
+  <sys:String x:Key="Log.Search">Search log...</sys:String>
+  <sys:String x:Key="Log.Error">Error</sys:String>
+  <sys:String x:Key="Log.Warning">Warning</sys:String>
+  <sys:String x:Key="Log.Info">Info</sys:String>
 
   <!-- ===== Project Settings window ===== -->
   <sys:String x:Key="ProjectSettings.Title">Project settings</sys:String>

@@ -477,6 +477,92 @@ private int _slotCount = 32;
 
     public ObservableCollection<LogEntry> LogEntries { get; } = new();
 
+    /// <summary>Log lines currently shown by the console: the view binds here so the
+    /// search box and the Error/Warning/Info chips can filter <see cref="LogEntries"/>
+    /// live without touching the full log.</summary>
+    public ObservableCollection<LogEntry> LogFiltered { get; } = new();
+
+    private string _logFilterText = "";
+    public string LogFilterText
+    {
+        get => _logFilterText;
+        set
+        {
+            if (SetProperty(ref _logFilterText, value))
+                ApplyLogFilter();
+        }
+    }
+
+    private bool _logFilterError;
+    public bool LogFilterError
+    {
+        get => _logFilterError;
+        set
+        {
+            if (SetProperty(ref _logFilterError, value))
+                ApplyLogFilter();
+        }
+    }
+
+    private bool _logFilterWarning;
+    public bool LogFilterWarning
+    {
+        get => _logFilterWarning;
+        set
+        {
+            if (SetProperty(ref _logFilterWarning, value))
+                ApplyLogFilter();
+        }
+    }
+
+    private bool _logFilterInfo;
+    public bool LogFilterInfo
+    {
+        get => _logFilterInfo;
+        set
+        {
+            if (SetProperty(ref _logFilterInfo, value))
+                ApplyLogFilter();
+        }
+    }
+
+    /// <summary>True while the log search box or any severity chip is active.</summary>
+    public bool LogFilterActive
+        => LogFilterText.Length > 0 || LogFilterError || LogFilterWarning || LogFilterInfo;
+
+    /// <summary>Recomputes <see cref="LogFiltered"/> from <see cref="LogEntries"/> applying
+    /// the search text (case-insensitive substring over header+rest) and the severity chips.
+    /// With no chip active every severity shows; with any chip active only the selected
+    /// kinds are kept (Plain/Success lines and separators hide too).</summary>
+    private void ApplyLogFilter()
+    {
+        string needle = LogFilterText.Trim();
+        bool anyChip = LogFilterError || LogFilterWarning || LogFilterInfo;
+
+        LogFiltered.Clear();
+        foreach (var entry in LogEntries)
+        {
+            if (anyChip)
+            {
+                bool kindOk = entry.Kind switch
+                {
+                    LogEntryKind.Error => LogFilterError,
+                    LogEntryKind.Warning => LogFilterWarning,
+                    LogEntryKind.Info => LogFilterInfo,
+                    _ => false,
+                };
+                if (!kindOk)
+                    continue;
+            }
+
+            if (needle.Length > 0
+                && (entry.Header + entry.Rest).IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0)
+                continue;
+
+            LogFiltered.Add(entry);
+        }
+    }
+
     public WadEntryViewModel? SelectedWad
     {
         get => _selectedWad;
@@ -642,6 +728,7 @@ private int _slotCount = 32;
         IntermissionMusic = "";
         IntermissionMusicExternalPath = "";
         LogEntries.Clear();
+        LogFiltered.Clear();
         RebuildSlots();
     }
 
@@ -1379,6 +1466,7 @@ private int _slotCount = 32;
                 continue;
             LogEntries.Add(LogEntry.Create(text));
         }
+        ApplyLogFilter();
     }
 }
 

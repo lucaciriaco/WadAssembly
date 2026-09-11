@@ -94,7 +94,7 @@ public partial class MainWindow : Window
         _planColumnWidths = Resources["PlanColWidths"] as PlanColumnWidths;
         DataContext = _viewModel;
 
-        _viewModel.LogEntries.CollectionChanged += (_, _) =>
+        _viewModel.LogFiltered.CollectionChanged += (_, _) =>
             Dispatcher.UIThread.Post(() => _logScroller.ScrollToEnd());
 
         AttachRowFiltering();

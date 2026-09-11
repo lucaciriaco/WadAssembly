@@ -481,10 +481,24 @@
 
       <!-- Log -->
       <Grid x:Name="LogPanel" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" RowDefinitions="Auto,*">
-        <TextBlock x:Name="LogTitle" Text="{DynamicResource Log.Title}" FontWeight="Bold" Margin="0,4,0,4"/>
+        <DockPanel Grid.Row="0" Margin="0,4,0,4">
+          <TextBox DockPanel.Dock="Right" Width="220" VerticalAlignment="Center" Margin="4,0,0,0"
+                   Text="{Binding LogFilterText, Mode=TwoWay}"
+                   Watermark="{DynamicResource Log.Search}"/>
+          <ToggleButton DockPanel.Dock="Right" Padding="10,2" Margin="0,0,6,0" VerticalAlignment="Center"
+                        IsChecked="{Binding LogFilterInfo, Mode=TwoWay}"
+                        Content="{DynamicResource Log.Info}"/>
+          <ToggleButton DockPanel.Dock="Right" Padding="10,2" Margin="0,0,6,0" VerticalAlignment="Center"
+                        IsChecked="{Binding LogFilterWarning, Mode=TwoWay}"
+                        Content="{DynamicResource Log.Warning}"/>
+          <ToggleButton DockPanel.Dock="Right" Padding="10,2" Margin="0,0,6,0" VerticalAlignment="Center"
+                        IsChecked="{Binding LogFilterError, Mode=TwoWay}"
+                        Content="{DynamicResource Log.Error}"/>
+          <TextBlock x:Name="LogTitle" Text="{DynamicResource Log.Title}" FontWeight="Bold" VerticalAlignment="Center"/>
+        </DockPanel>
         <ScrollViewer x:Name="LogScroller" Grid.Row="1"
                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <ItemsControl ItemsSource="{Binding LogEntries}">
+          <ItemsControl ItemsSource="{Binding LogFiltered}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <TextBlock FontFamily="Consolas, Courier New" TextWrapping="Wrap">
