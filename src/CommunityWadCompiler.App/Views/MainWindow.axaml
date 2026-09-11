@@ -292,6 +292,7 @@
             <TextBox x:Name="SlotFilterBox"
                      Text="{Binding SlotFilterText, Mode=TwoWay}"
                      Watermark="{DynamicResource Header.FilterHint}"
+                     VerticalContentAlignment="Center"
                      TextChanged="OnSlotFilterBoxTextChanged"
                      Padding="24,1,6,1"/>
             <Path x:Name="SlotFilterIcon" Data="{StaticResource Icon.Search}" Width="14" Height="14" Stretch="Uniform"
@@ -484,7 +485,8 @@
         <DockPanel Grid.Row="0" Margin="0,4,0,4">
           <TextBox DockPanel.Dock="Right" Width="220" VerticalAlignment="Center" Margin="4,0,0,0"
                    Text="{Binding LogFilterText, Mode=TwoWay}"
-                   Watermark="{DynamicResource Log.Search}"/>
+                   Watermark="{DynamicResource Log.Search}"
+                   VerticalContentAlignment="Center"/>
           <ToggleButton DockPanel.Dock="Right" Padding="10,2" Margin="0,0,6,0" VerticalAlignment="Center"
                         IsChecked="{Binding LogFilterInfo, Mode=TwoWay}"
                         Content="{DynamicResource Log.Info}"/>
