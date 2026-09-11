@@ -352,6 +352,33 @@ public partial class MainWindow : Window
     }
 
     // ------------------------------------------------------------------
+    // Drag & drop: dropping .wad files onto the window adds them as inputs.
+    // ------------------------------------------------------------------
+
+    private void OnWindowDragOver(object? sender, DragEventArgs e)
+        => e.DragEffects = DropHasWadFiles(e) ? DragDropEffects.Copy : DragDropEffects.None;
+
+    private void OnWindowDrop(object? sender, DragEventArgs e)
+    {
+        var wadPaths = e.DataTransfer.TryGetFiles()?
+            .Select(f => f.TryGetLocalPath())
+            .Where(p => IsWadPath(p))
+            .Cast<string>()
+            .ToList();
+        if (wadPaths is { Count: > 0 })
+            _viewModel.AddWads(wadPaths);
+    }
+
+    private static bool DropHasWadFiles(DragEventArgs e)
+        => e.DataTransfer.Contains(DataFormat.File)
+           && (e.DataTransfer.TryGetFiles()?.Any(f => IsWadPath(f.TryGetLocalPath())) ?? false);
+
+    private static bool IsWadPath(string? path)
+        => !string.IsNullOrEmpty(path)
+           && (path!.EndsWith(".wad", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".wad.gz", StringComparison.OrdinalIgnoreCase));
+
+    // ------------------------------------------------------------------
     // Input WAD buttons
     // ------------------------------------------------------------------
 

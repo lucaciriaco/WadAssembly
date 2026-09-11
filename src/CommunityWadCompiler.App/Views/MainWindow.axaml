@@ -8,6 +8,9 @@
         Width="1180" Height="760"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
+        input:DragDrop.AllowDrop="True"
+        input:DragDrop.DragOver="OnWindowDragOver"
+        input:DragDrop.Drop="OnWindowDrop"
         KeyDown="OnWindowKeyDown">
 
   <Window.Resources>
