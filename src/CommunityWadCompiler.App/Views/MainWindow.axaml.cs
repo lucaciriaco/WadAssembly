@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -9,6 +10,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using System.ComponentModel;
+using System.Text;
 using CommunityWadCompiler.App.Models;
 using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
@@ -38,6 +40,8 @@ public partial class MainWindow : Window
 
     private Grid _logPanel = null!;
     private GridSplitter _logSplitter = null!;
+    private MenuItem _openRecentMenu = null!;
+    private readonly List<string> _recentProjects = new();
     private ScrollViewer _logScroller = null!;
     private bool _logVisible = true;
     private GridLength _savedLogRowHeight = new(1, GridUnitType.Star);
@@ -104,6 +108,10 @@ public partial class MainWindow : Window
         ApplyLogVisibility();
         _wadHintVisible = settings.ShowWadHint ?? true;
         ApplyWadHintVisibility();
+        _openRecentMenu = this.FindControl<MenuItem>("OpenRecentMenu")!;
+        _recentProjects.AddRange(settings.RecentProjects);
+        RefreshRecentProjectsMenu(_recentProjects);
+        _openRecentMenu.SubmenuOpened += (_, _) => RefreshRecentProjectsMenu(_recentProjects);
 
         _planColumns.ColumnsChanged += ApplyColumnChanges;
         _planColumns.LoadFrom(settings);
@@ -500,6 +508,7 @@ public partial class MainWindow : Window
         settings.Theme = ThemeService.CurrentTheme;
         settings.ShowWadHint = _wadHintVisible;
         settings.CompileMode = _compileMode;
+        settings.RecentProjects = _recentProjects;
         _planColumns.SaveTo(settings);
         AppSettingsService.Save(settings);
     }
@@ -1146,7 +1155,70 @@ public partial class MainWindow : Window
     private async void OnOpenProject(object? sender, RoutedEventArgs e)
     {
         if (await PickProjectFileAsync(open: true) is { } path)
+        {
             _viewModel.LoadProject(path);
+            AddRecentProject(path);
+        }
+    }
+
+    /// <summary>Pushes a project path to the top of the "Open recent" list (deduped,
+    /// capped, saved) and re-renders the submenu.</summary>
+    private void AddRecentProject(string path)
+    {
+        string full = Path.GetFullPath(path);
+        _recentProjects.RemoveAll(p => string.Equals(p, full, StringComparison.OrdinalIgnoreCase));
+        _recentProjects.Insert(0, full);
+        if (_recentProjects.Count > 8)
+            _recentProjects.RemoveRange(8, _recentProjects.Count - 8);
+        RefreshRecentProjectsMenu(_recentProjects);
+
+        // Persist directly: SaveConfigNow() can early-return before the layout is
+        // ready, which would silently drop the just-opened project from the list.
+        var settings = AppSettingsService.Load();
+        settings.RecentProjects = _recentProjects;
+        AppSettingsService.Save(settings);
+    }
+
+    /// <summary>Rebuilds the File → Open recent submenu items from the given list.</summary>
+    private void RefreshRecentProjectsMenu(IReadOnlyList<string> projects)
+    {
+        _openRecentMenu.Items.Clear();
+        if (projects.Count == 0)
+        {
+            _openRecentMenu.Items.Add(new MenuItem
+            {
+                Header = LanguageService.GetString("Menu.Recent.Empty"),
+                IsEnabled = false,
+            });
+            return;
+        }
+
+        foreach (string path in projects)
+        {
+            var item = new MenuItem { Header = path, Tag = path };
+            item.Click += OnOpenRecentProject;
+            _openRecentMenu.Items.Add(item);
+        }
+    }
+
+    private void OnOpenRecentProject(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: string path })
+            return;
+
+        if (!File.Exists(path))
+        {
+            _recentProjects.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+            RefreshRecentProjectsMenu(_recentProjects);
+            SaveConfigNow();
+            ShowMessage(
+                LanguageService.GetString("Dialog.RecentMissing"),
+                string.Format(LanguageService.GetString("Dialog.RecentMissingText"), path));
+            return;
+        }
+
+        _viewModel.LoadProject(path);
+        AddRecentProject(path);
     }
 
     private async void OnSaveProject(object? sender, RoutedEventArgs e)
@@ -1154,23 +1226,153 @@ public partial class MainWindow : Window
         if (_viewModel.CurrentProjectPath is not null)
         {
             _viewModel.SaveProject(_viewModel.CurrentProjectPath);
+            AddRecentProject(_viewModel.CurrentProjectPath);
         }
         else if (await PickProjectFileAsync(open: false) is { } path)
         {
             _viewModel.SaveProject(path);
+            AddRecentProject(path);
         }
     }
 
     private async void OnSaveProjectAs(object? sender, RoutedEventArgs e)
     {
         if (await PickProjectFileAsync(open: false) is { } path)
+        {
             _viewModel.SaveProject(path);
+            AddRecentProject(path);
+        }
     }
 
     private void OnProjectSettings(object? sender, RoutedEventArgs e)
     {
         var settings = new ProjectSettingsWindow(_viewModel);
         settings.ShowDialog(this);
+    }
+
+    /// <summary>Opens the project summary dialog: a read-only Markdown report of the plan
+    /// sheet (slots, status, authors, notes) ready to paste into a forum post.</summary>
+    private void OnProjectSummary(object? sender, RoutedEventArgs e)
+    {
+        var editor = new TextBox
+        {
+            Text = BuildProjectSummary(),
+            IsReadOnly = true,
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            FontFamily = new FontFamily("Consolas, Courier New"),
+            VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Top,
+        };
+        ScrollViewer.SetVerticalScrollBarVisibility(editor, ScrollBarVisibility.Auto);
+        ScrollViewer.SetHorizontalScrollBarVisibility(editor, ScrollBarVisibility.Auto);
+
+        var window = new Window
+        {
+            Title = LanguageService.GetString("Dialog.ProjectSummary"),
+            Width = 700,
+            Height = 520,
+            MinWidth = 480,
+            MinHeight = 320,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+
+        var copyButton = new Button { Content = LanguageService.GetString("Dialog.Copy"), MinWidth = 180 };
+        var saveButton = new Button { Content = LanguageService.GetString("Dialog.SummarySave"), MinWidth = 180 };
+        var buttons = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 8,
+            Margin = new Thickness(0, 10, 0, 0),
+            Children = { copyButton, saveButton },
+        };
+
+        copyButton.Click += async (_, _) =>
+        {
+            if (window.Clipboard is { } clipboard)
+            {
+                await clipboard.SetTextAsync(editor.Text);
+                string feedback = "\u2713  " + LanguageService.GetString("Dialog.SummaryCopied");
+                copyButton.Content = feedback;
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.6) };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    copyButton.Content = LanguageService.GetString("Dialog.Copy");
+                };
+                timer.Start();
+            }
+        };
+
+        saveButton.Click += async (_, _) =>
+        {
+            var filter = new[] { new FilePickerFileType(LanguageService.GetString("Dialog.SummaryFilter")) { Patterns = new[] { "*.md" } } };
+            var file = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = LanguageService.GetString("Dialog.SummarySave"),
+                SuggestedFileName = LanguageService.GetString("Dialog.SuggestedSummaryName"),
+                DefaultExtension = "md",
+                FileTypeChoices = filter,
+            });
+            if (file?.TryGetLocalPath() is { } path)
+                File.WriteAllText(path, editor.Text);
+        };
+
+        var root = new DockPanel { Margin = new Thickness(16) };
+        DockPanel.SetDock(buttons, Dock.Bottom);
+        root.Children.Add(buttons);
+        root.Children.Add(editor);
+
+        window.Content = root;
+        window.ShowDialog(this);
+    }
+
+    /// <summary>Renders the current plan sheet as a Markdown report: title, project
+    /// metadata and a bullet list with one item per occupied slot.</summary>
+    private string BuildProjectSummary()
+    {
+        var sb = new StringBuilder();
+        string nl = Environment.NewLine;
+
+        string name = string.IsNullOrWhiteSpace(_viewModel.ProjectName) ? "—" : _viewModel.ProjectName.Trim();
+        string prefix = _viewModel.VersionPrefix?.Trim() ?? "";
+        sb.Append("# ").Append(string.IsNullOrWhiteSpace(prefix) ? name : $"{name} — v{prefix}").Append(nl).Append(nl);
+
+        var collaborators = _viewModel.Collaborators
+            .Select(c => c.Name?.Trim())
+            .Where(n => !string.IsNullOrEmpty(n))
+            .ToList();
+
+        var occupied = _viewModel.SlotRows.Where(r => !r.IsEmpty).ToList();
+        sb.Append("**").Append(LanguageService.GetString("Dialog.SummarySlots")).Append(":** ")
+          .Append(occupied.Count).Append(' ').Append(LanguageService.GetString("Dialog.SummaryOf")).Append(' ')
+          .Append(_viewModel.SlotRows.Count)
+          .Append(" · **").Append(LanguageService.GetString("Dialog.SummaryEngine")).Append(":** ")
+          .Append(string.IsNullOrWhiteSpace(_viewModel.TargetEngine) ? "—" : _viewModel.TargetEngine.Trim())
+          .Append(" · **").Append(LanguageService.GetString("Dialog.SummaryAuthors")).Append(":** ")
+          .Append(collaborators.Count == 0 ? "—" : string.Join(", ", collaborators))
+          .Append(nl).Append(nl);
+
+        if (occupied.Count == 0)
+        {
+            sb.Append("> ").Append(LanguageService.GetString("Dialog.SummaryNoMaps")).Append(nl);
+            return sb.ToString();
+        }
+
+        foreach (var row in occupied)
+        {
+            string slot = string.IsNullOrWhiteSpace(row.SlotName) ? "—" : row.SlotName.Trim();
+            string map = string.IsNullOrWhiteSpace(row.LevelName) ? (row.OriginalName ?? "—") : row.LevelName.Trim();
+            string author = string.IsNullOrWhiteSpace(row.Author) ? "—" : row.Author.Trim();
+            string status = string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status.Trim();
+
+            sb.Append("* **").Append(slot).Append("** — ").Append(map)
+              .Append(" — ").Append(author).Append(" — ").Append(status).Append(nl);
+
+            if (!string.IsNullOrWhiteSpace(row.Notes))
+                sb.Append("    * ").Append(row.Notes.Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ').Trim()).Append(nl);
+        }
+
+        return sb.ToString();
     }
 
     private async void OnSourcePorts(object? sender, RoutedEventArgs e)
@@ -1218,10 +1420,16 @@ public partial class MainWindow : Window
 
     private void OnAbout(object? sender, RoutedEventArgs e)
     {
-        var about = new Window
+        ShowMessage(LanguageService.GetString("Dialog.About"), LanguageService.GetString("Dialog.AboutText"));
+    }
+
+    /// <summary>Shows a small modal message box window centered on the main window.</summary>
+    private void ShowMessage(string title, string text)
+    {
+        var window = new Window
         {
-            Title = LanguageService.GetString("Dialog.About"),
-            Width = 420,
+            Title = title,
+            Width = 460,
             Height = 220,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
@@ -1229,9 +1437,9 @@ public partial class MainWindow : Window
             {
                 Margin = new Thickness(16),
                 TextWrapping = TextWrapping.Wrap,
-                Text = LanguageService.GetString("Dialog.AboutText"),
+                Text = text,
             },
         };
-        about.ShowDialog(this);
+        window.ShowDialog(this);
     }
 }

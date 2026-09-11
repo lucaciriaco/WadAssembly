@@ -24,7 +24,11 @@ public static class AppSettingsService
             {
                 var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(ConfigFile));
                 if (settings is not null)
+                {
+                    // Config files saved before RecentProjects existed have a null list.
+                    settings.RecentProjects ??= new();
                     return settings;
+                }
             }
         }
         catch

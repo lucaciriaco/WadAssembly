@@ -39,4 +39,8 @@ public sealed class AppSettings
     /// <summary>Behavior of the compile button: "build" or "buildandrun".
     /// Empty defaults to "build", keeping legacy config files working.</summary>
     public string CompileMode { get; set; } = "build";
+
+    /// <summary>Project files opened/saved recently, most recent first. Only the
+    /// file path is stored; the entries are offered in File → Open recent.</summary>
+    public List<string> RecentProjects { get; set; } = new();
 }

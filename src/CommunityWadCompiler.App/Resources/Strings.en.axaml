@@ -7,9 +7,12 @@
   <sys:String x:Key="Menu.File">File</sys:String>
   <sys:String x:Key="Menu.NewProject">New project</sys:String>
   <sys:String x:Key="Menu.OpenProject">Open project...</sys:String>
+  <sys:String x:Key="Menu.OpenRecent">Open recent</sys:String>
+  <sys:String x:Key="Menu.Recent.Empty">No recent projects</sys:String>
   <sys:String x:Key="Menu.SaveProject">Save project</sys:String>
   <sys:String x:Key="Menu.SaveProjectAs">Save project as...</sys:String>
   <sys:String x:Key="Menu.ProjectSettings">Project settings...</sys:String>
+  <sys:String x:Key="Menu.ProjectSummary">Project summary...</sys:String>
   <sys:String x:Key="Menu.Project">Project</sys:String>
   <sys:String x:Key="Menu.Configuration">Configuration</sys:String>
   <sys:String x:Key="Menu.Language">Language</sys:String>
@@ -167,6 +170,21 @@
   <sys:String x:Key="Dialog.SaveProject">Save project</sys:String>
   <sys:String x:Key="Dialog.SuggestedProjectName">project.json</sys:String>
   <sys:String x:Key="Dialog.About">About</sys:String>
+  <sys:String x:Key="Dialog.RecentMissing">Project unavailable</sys:String>
+  <sys:String x:Key="Dialog.RecentMissingText">The project file no longer exists:
+
+{0}</sys:String>
+  <sys:String x:Key="Dialog.ProjectSummary">Project summary</sys:String>
+  <sys:String x:Key="Dialog.Copy">Copy to clipboard</sys:String>
+  <sys:String x:Key="Dialog.SummarySave">Save as...</sys:String>
+  <sys:String x:Key="Dialog.SummaryFilter">Markdown</sys:String>
+  <sys:String x:Key="Dialog.SuggestedSummaryName">summary.md</sys:String>
+  <sys:String x:Key="Dialog.SummaryCopied">Summary copied to clipboard</sys:String>
+  <sys:String x:Key="Dialog.SummarySlots">Slots</sys:String>
+  <sys:String x:Key="Dialog.SummaryOf">of</sys:String>
+  <sys:String x:Key="Dialog.SummaryEngine">Engine</sys:String>
+  <sys:String x:Key="Dialog.SummaryAuthors">Authors</sys:String>
+  <sys:String x:Key="Dialog.SummaryNoMaps">No maps assigned yet.</sys:String>
   <sys:String x:Key="Dialog.AboutText">Community Wad Compiler&#x0a;&#x0a;Compiles WADs from several authors into a single PWAD.&#x0a;Supports classic Doom and UDMF maps, TEXTURE1/PNAMES merging&#x0a;and resource deduplication.&#x0a;&#x0a;Structure: CommunityWadCompiler.Core library + Avalonia UI.</sys:String>
   <sys:String x:Key="Dialog.PickBaseWad">Select base WAD (IWAD)</sys:String>
   <sys:String x:Key="Dialog.PickWads">Select WADs</sys:String>
