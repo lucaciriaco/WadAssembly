@@ -255,4 +255,14 @@
   <!-- ===== Encabezado de la planilla (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
   <sys:String x:Key="Header.EmptyTitle">Mapas y slots finales</sys:String>
+  <sys:String x:Key="Header.FilterHint">Buscar (slot, mapa, autor, estado...)</sys:String>
+  <sys:String x:Key="Filter.All">Todos los campos</sys:String>
+  <sys:String x:Key="Filter.Slot">Slot</sys:String>
+  <sys:String x:Key="Filter.Wad">WAD</sys:String>
+  <sys:String x:Key="Filter.OriginalMap">Mapa original</sys:String>
+  <sys:String x:Key="Filter.LevelName">Nombre de nivel</sys:String>
+  <sys:String x:Key="Filter.Status">Estado</sys:String>
+  <sys:String x:Key="Filter.Author">Autor</sys:String>
+  <sys:String x:Key="Filter.Music">Música</sys:String>
+  <sys:String x:Key="Filter.Notes">Notas</sys:String>
 </ResourceDictionary>

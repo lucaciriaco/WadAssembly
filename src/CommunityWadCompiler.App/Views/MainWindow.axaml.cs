@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System.ComponentModel;
 using CommunityWadCompiler.App.Models;
 using CommunityWadCompiler.App.Services;
 using CommunityWadCompiler.App.ViewModels;
@@ -96,6 +97,8 @@ public partial class MainWindow : Window
         _viewModel.LogEntries.CollectionChanged += (_, _) =>
             Dispatcher.UIThread.Post(() => _logScroller.ScrollToEnd());
 
+        AttachRowFiltering();
+
         var settings = AppSettingsService.Load();
         _logVisible = settings.LogVisible ?? true;
         ApplyLogVisibility();
@@ -175,6 +178,60 @@ public partial class MainWindow : Window
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    // ------------------------------------------------------------------
+    // Plan sheet filter (search box)
+    // ------------------------------------------------------------------
+
+    /// <summary>Wires the plan-sheet filter: visibility of the row containers follows
+    /// the search text, the row set and each row's own content.</summary>
+    private void AttachRowFiltering()
+    {
+        _viewModel.SlotFilterChanged += ApplyRowFilter;
+        _viewModel.SlotRows.CollectionChanged += (_, e) =>
+        {
+            if (e.NewItems is not null)
+                foreach (SlotRowViewModel row in e.NewItems)
+                    row.PropertyChanged += OnSlotRowPropertyChanged;
+            if (e.OldItems is not null)
+                foreach (SlotRowViewModel row in e.OldItems)
+                    row.PropertyChanged -= OnSlotRowPropertyChanged;
+            ApplyRowFilter();
+        };
+        foreach (var row in _viewModel.SlotRows)
+            row.PropertyChanged += OnSlotRowPropertyChanged;
+    }
+
+    private void OnSlotRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        => ApplyRowFilter();
+
+    /// <summary>Hides the rows that do not match the search text (all tokens must match,
+    /// case-insensitive, within the field chosen by the dropdown). Filtering only toggles
+    /// the container visibility, so row indices stay untouched.</summary>
+    private void ApplyRowFilter()
+    {
+        if (_rowsControl is null)
+            return;
+        string[] tokens = _viewModel.SlotFilterText.Split(
+            (char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(t => t.ToLowerInvariant())
+            .ToArray();
+        string field = _viewModel.SelectedFilterField?.Key ?? "All";
+        for (int i = 0; i < _viewModel.SlotRows.Count; i++)
+        {
+            if (_rowsControl.ContainerFromIndex(i) is { } container)
+                container.IsVisible = MainWindowViewModel.IsSlotMatching(_viewModel.SlotRows[i], field, tokens);
+        }
+    }
+
+    /// <summary>Hides the search-box magnifier once the box has text, showing it again
+    /// when the box is cleared.</summary>
+    private void OnSlotFilterBoxTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (SlotFilterIcon is null)
+            return;
+        SlotFilterIcon.IsVisible = string.IsNullOrEmpty(SlotFilterBox.Text);
+    }
 
     /// <summary>Toggles the left "contributed WADs" panel: collapses it into the narrow
     /// toggle strip, giving the full width to the maps/slots grid. The arrow points
@@ -621,9 +678,13 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Called when a slot row is attached to the visual tree (initial and
-    /// later-realized rows); places its cells at the current column order.</summary>
+    /// later-realized rows); places its cells at the current column order and applies
+    /// the plan-sheet filter so rows realized while a filter is active stay consistent.</summary>
     private void OnRowAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-        => LayoutRowCells(sender as Control);
+    {
+        LayoutRowCells(sender as Control);
+        ApplyRowFilter();
+    }
 
     private void LayoutRowCells(Control? container)
     {

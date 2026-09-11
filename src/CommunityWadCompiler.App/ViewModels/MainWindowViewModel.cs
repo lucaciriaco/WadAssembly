@@ -39,6 +39,7 @@ private int _slotCount = 32;
         public MainWindowViewModel()
         {
             LanguageService.LanguageChanged += OnLanguageChanged;
+            InitSlotFilterFields();
             // Start with placeholder rows so the sheet is visible before any WAD is loaded.
             for (int i = 0; i < _slotCount; i++)
                 SlotRows.Add(new(null, null, false));
@@ -50,6 +51,7 @@ private int _slotCount = 32;
         /// built in code, so their property-changed events must be raised manually.</summary>
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
+            RefreshSlotFilterFieldDisplays();
             foreach (var wad in InputWads)
                 wad.RefreshLocalizedText();
             foreach (var wad in ResourceWads)
@@ -80,6 +82,86 @@ private int _slotCount = 32;
 
         /// <summary>Slot rows of the plan sheet: one row per slot (empty slots included).</summary>
         public ObservableCollection<SlotRowViewModel> SlotRows { get; } = new();
+
+        /// <summary>Free-text filter of the plan sheet (matches slot, map, author, status, ...).
+        /// The view listens to <see cref="SlotFilterChanged"/> and toggles row visibility.</summary>
+        private string _slotFilterText = "";
+        public string SlotFilterText
+        {
+            get => _slotFilterText;
+            set
+            {
+                if (SetProperty(ref _slotFilterText, value ?? ""))
+                    SlotFilterChanged?.Invoke();
+            }
+        }
+
+        /// <summary>Field the search box filters by (selected option of <see cref="SlotFilterFields"/>;
+        /// "All" searches every field). Selecting one re-applies the row filter.</summary>
+        private SlotFilterFieldOption? _selectedFilterField;
+        public SlotFilterFieldOption? SelectedFilterField
+        {
+            get => _selectedFilterField;
+            set
+            {
+                if (!SetProperty(ref _selectedFilterField, value))
+                    return;
+                SlotFilterChanged?.Invoke();
+            }
+        }
+
+        /// <summary>Localized field choices of the plan-sheet search dropdown. Options are
+        /// stable instances (the ComboBox selects by object), only their labels refresh on
+        /// language change.</summary>
+        public ObservableCollection<SlotFilterFieldOption> SlotFilterFields { get; } = new();
+
+        /// <summary>Builds the field dropdown options once and preselects "All fields".</summary>
+        private void InitSlotFilterFields()
+        {
+            SlotFilterFields.Clear();
+            foreach (var (key, resourceKey) in SlotFilterFieldOption.Keys)
+                SlotFilterFields.Add(new SlotFilterFieldOption(key, resourceKey));
+            SelectedFilterField = SlotFilterFields.FirstOrDefault(o => o.Key == "All");
+        }
+
+        /// <summary>Updates the labels of the search-field dropdown after a language change;
+        /// the selection (object) is preserved.</summary>
+        private void RefreshSlotFilterFieldDisplays()
+        {
+            foreach (var option in SlotFilterFields)
+                option.Refresh();
+        }
+
+        /// <summary>True when the row matches every <paramref name="tokens"/> (case-insensitive)
+        /// within the search field identified by <paramref name="field"/>. "All" concatenates
+        /// every searchable field.</summary>
+        public static bool IsSlotMatching(SlotRowViewModel row, string field, string[] tokens)
+        {
+            if (tokens.Length == 0)
+                return true;
+            string? fieldValue = field switch
+            {
+                "SlotName" => row.SlotName,
+                "Wad" => row.WadFileName,
+                "OriginalName" => row.OriginalName,
+                "LevelName" => row.LevelName,
+                "Status" => row.Status,
+                "Author" => row.Author,
+                "Music" => row.MusicDisplay,
+                "Notes" => row.Notes,
+                _ => string.Join(' ', row.SlotName, row.WadFileName, row.OriginalName,
+                    row.LevelName, row.Status, row.Author, row.Notes, row.MusicDisplay),
+            };
+            string haystack = (fieldValue ?? "").ToLowerInvariant();
+            foreach (string token in tokens)
+                if (!haystack.Contains(token, StringComparison.Ordinal))
+                    return false;
+            return true;
+        }
+
+        /// <summary>Raised whenever the filter text changes so the view re-applies the
+        /// visibility of the slot rows (see <see cref="SlotFilterText"/>).</summary>
+        public event Action? SlotFilterChanged;
 
         public ObservableCollection<MusicLumpInfo> AvailableMusicLumps { get; } = new();
 
@@ -1278,4 +1360,45 @@ private int _slotCount = 32;
             LogEntries.Add(LogEntry.Create(text));
         }
     }
+}
+
+/// <summary>One field choice of the plan-sheet search dropdown. Instances are stable so a
+/// ComboBox can select them by object; only <see cref="Display"/> is refreshed on a language
+/// change via <see cref="Refresh"/>.</summary>
+public sealed class SlotFilterFieldOption : ObservableObject
+{
+    /// <summary>Ordered (key, localization-resource) pairs of the searchable fields.</summary>
+    public static readonly (string Key, string ResourceKey)[] Keys =
+    {
+        ("All", "Filter.All"),
+        ("SlotName", "Filter.Slot"),
+        ("Wad", "Filter.Wad"),
+        ("OriginalName", "Filter.OriginalMap"),
+        ("LevelName", "Filter.LevelName"),
+        ("Status", "Filter.Status"),
+        ("Author", "Filter.Author"),
+        ("Music", "Filter.Music"),
+        ("Notes", "Filter.Notes"),
+    };
+
+    public string Key { get; }
+
+    private readonly string _resourceKey;
+
+    private string _display;
+    public string Display
+    {
+        get => _display;
+        private set => SetProperty(ref _display, value);
+    }
+
+    public SlotFilterFieldOption(string key, string resourceKey)
+    {
+        Key = key;
+        _resourceKey = resourceKey;
+        _display = LanguageService.GetString(resourceKey);
+    }
+
+    /// <summary>Re-reads the localized label.</summary>
+    public void Refresh() => Display = LanguageService.GetString(_resourceKey);
 }

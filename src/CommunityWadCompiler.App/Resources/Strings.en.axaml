@@ -255,4 +255,14 @@
   <!-- ===== Sheet header (MapsHeader) ===== -->
   <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
   <sys:String x:Key="Header.EmptyTitle">Maps and final slots</sys:String>
+  <sys:String x:Key="Header.FilterHint">Search (slot, map, author, status...)</sys:String>
+  <sys:String x:Key="Filter.All">All fields</sys:String>
+  <sys:String x:Key="Filter.Slot">Slot</sys:String>
+  <sys:String x:Key="Filter.Wad">WAD</sys:String>
+  <sys:String x:Key="Filter.OriginalMap">Original map</sys:String>
+  <sys:String x:Key="Filter.LevelName">Level name</sys:String>
+  <sys:String x:Key="Filter.Status">Status</sys:String>
+  <sys:String x:Key="Filter.Author">Author</sys:String>
+  <sys:String x:Key="Filter.Music">Music</sys:String>
+  <sys:String x:Key="Filter.Notes">Notes</sys:String>
 </ResourceDictionary>

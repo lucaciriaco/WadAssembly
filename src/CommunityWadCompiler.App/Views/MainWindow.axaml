@@ -34,6 +34,8 @@
     <StreamGeometry x:Key="Icon.MoveDown">M23.7916,15.2664 C24.0788,14.9679 24.0696,14.4931 23.7711,14.206 C23.4726,13.9188 22.9978,13.928 22.7106,14.2265 L14.7511,22.5007 L14.7511,3.74792 C14.7511,3.33371 14.4153,2.99792 14.0011,2.99792 C13.5869,2.99792 13.2511,3.33371 13.2511,3.74793 L13.2511,22.4998 L5.29259,14.2265 C5.00543,13.928 4.53064,13.9188 4.23213,14.206 C3.93361,14.4931 3.9244,14.9679 4.21157,15.2664 L13.2809,24.6944 C13.6743,25.1034 14.3289,25.1034 14.7223,24.6944 L23.7916,15.2664 Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.ArrowLeft">M5.75,3 C5.37030423,3 5.05650904,3.28215388 5.00684662,3.64822944 L5,3.75 L5,20.25 C5,20.6642136 5.33578644,21 5.75,21 C6.12969577,21 6.44349096,20.7178461 6.49315338,20.3517706 L6.5,20.25 L6.5,3.75 C6.5,3.33578644 6.16421356,3 5.75,3 Z M18.7803301,3.21966991 C18.5140635,2.95340335 18.0973998,2.9291973 17.8037883,3.14705176 L17.7196699,3.21966991 L9.46966991,11.4696699 C9.20340335,11.7359365 9.1791973,12.1526002 9.39705176,12.4462117 L9.46966991,12.5303301 L17.7196699,20.7803301 C18.0125631,21.0732233 18.4874369,21.0732233 18.7803301,20.7803301 C19.0465966,20.5140635 19.0708027,20.0973998 18.8529482,19.8037883 L18.7803301,19.7196699 L11.0606602,12 L18.7803301,4.28033009 C19.0732233,3.98743687 19.0732233,3.51256313 18.7803301,3.21966991 Z</StreamGeometry>
     <StreamGeometry x:Key="Icon.ArrowRight">M18.25,3 C18.6296958,3 18.943491,3.28215388 18.9931534,3.64822944 L19,3.75 L19,20.25 C19,20.6642136 18.6642136,21 18.25,21 C17.8703042,21 17.556509,20.7178461 17.5068466,20.3517706 L17.5,20.25 L17.5,3.75 C17.5,3.33578644 17.8357864,3 18.25,3 Z M5.21966991,3.21966991 C5.48593648,2.95340335 5.90260016,2.9291973 6.19621165,3.14705176 L6.28033009,3.21966991 L14.5303301,11.4696699 C14.7965966,11.7359365 14.8208027,12.1526002 14.6029482,12.4462117 L14.5303301,12.5303301 L6.28033009,20.7803301 C5.98743687,21.0732233 5.51256313,21.0732233 5.21966991,20.7803301 C4.95340335,20.5140635 4.9291973,20.0973998 5.14705176,19.8037883 L5.21966991,19.7196699 L12.9393398,12 L5.21966991,4.28033009 C4.9267767,3.98743687 4.9267767,3.51256313 5.21966991,3.21966991 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Filter">M9,18 L15,18 C15.55228475,18 16,18.44771525 16,19 C16,19.51283584 15.61461967,19.93550716 15.11662112,19.99327227 L15,20 L9,20 C8.44771525,20 8,19.55228475 8,19 C8,18.48716416 8.3853803,18.06449284 8.88337887,18.00672773 L9,18 Z M5,12.5 L19,12.5 C19.55228475,12.5 20,12.94771525 20,13.5 C20,14.01283584 19.61461967,14.43550716 19.11662112,14.49327227 L19,14.5 L5,14.5 C4.44771525,14.5 4,14.05228475 4,13.5 C4,12.98716416 4.3853803,12.56449284 4.88337887,12.50672773 L5,12.5 Z M2,7 L22,7 C22.55228475,7 23,7.44771525 23,8 C23,8.51283584 22.61461967,8.93550716 22.11662112,8.99327227 L22,9 L2,9 C1.44771525,9 1,8.55228475 1,8 C1,7.48716416 1.3853803,7.06449284 1.88337887,7.00672773 L2,7 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Search">M19.5312,18.46875 L15.35158,14.28906 C16.40703,13.00885 16.99995,11.37954 16.99804,9.69733 C16.99419,5.61859 13.68878,2.31311 9.61004,2.30922 C5.5313,2.30534 2.22582,5.61075 2.22193,9.68949 C2.21805,13.76823 5.52346,17.07371 9.60222,17.0776 C11.28428,17.07951 12.91371,16.48656 14.19391,15.43111 L18.41406,19.65056 C18.74609,19.9826 19.19916,20.17188 19.67188,20.17188 C20.60709,20.17188 21.375,19.404 21.375,18.46875 C21.375,18.00778 21.184,17.57567 20.85691,17.24759 C20.85577,17.24647 20.85462,17.24535 20.85349,17.24422 C20.73903,17.35376 20.63723,17.47194 20.54693,17.56169 C20.23739,17.87055 19.85705,18.0776 19.5312,18.46875 Z M9.61004,4.55922 C12.44568,4.56226 14.748,6.86459 14.75104,9.70026 C14.75407,12.53589 12.45174,14.83822 9.61611,14.84125 C6.78048,14.84429 4.47815,12.54196 4.47511,9.70633 C4.47208,6.8707 6.77441,4.56837 9.61004,4.55922 Z</StreamGeometry>
   </Window.Resources>
 
   <DockPanel>
@@ -263,8 +265,40 @@
 
       <!-- Right: maps / slots -->
       <DockPanel Grid.Row="0" Grid.Column="3" MinWidth="300" Margin="0,0,0,8">
-        <TextBlock DockPanel.Dock="Top" Text="{Binding MapsHeader}"
-                   FontWeight="Bold" Margin="0,0,0,4"/>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+          <ComboBox DockPanel.Dock="Right" Width="175" VerticalAlignment="Center"
+                    ItemsSource="{Binding SlotFilterFields}"
+                    SelectedItem="{Binding SelectedFilterField, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Display}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+            <ComboBox.SelectionBoxItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Path Data="{StaticResource Icon.Filter}" Width="14" Height="14" Stretch="Uniform"
+                        Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Opacity="0.7"
+                        VerticalAlignment="Center"/>
+                  <TextBlock Text="{Binding Display}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </DataTemplate>
+            </ComboBox.SelectionBoxItemTemplate>
+          </ComboBox>
+          <Grid DockPanel.Dock="Right" Width="200" VerticalAlignment="Center" Margin="0,0,6,0">
+            <TextBox x:Name="SlotFilterBox"
+                     Text="{Binding SlotFilterText, Mode=TwoWay}"
+                     Watermark="{DynamicResource Header.FilterHint}"
+                     TextChanged="OnSlotFilterBoxTextChanged"
+                     Padding="24,1,6,1"/>
+            <Path x:Name="SlotFilterIcon" Data="{StaticResource Icon.Search}" Width="14" Height="14" Stretch="Uniform"
+                  Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Opacity="0.6"
+                  HorizontalAlignment="Left" VerticalAlignment="Center" Margin="7,0,0,0"
+                  IsHitTestVisible="False"/>
+          </Grid>
+          <TextBlock Text="{Binding MapsHeader}"
+                     FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        </DockPanel>
 <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3">
           <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
