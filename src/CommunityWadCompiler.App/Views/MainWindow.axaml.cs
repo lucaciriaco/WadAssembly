@@ -6,10 +6,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 using CommunityWadCompiler.App.Models;
 using CommunityWadCompiler.App.Services;
@@ -1420,7 +1423,133 @@ public partial class MainWindow : Window
 
     private void OnAbout(object? sender, RoutedEventArgs e)
     {
-        ShowMessage(LanguageService.GetString("Dialog.About"), LanguageService.GetString("Dialog.AboutText"));
+        var window = new Window
+        {
+            Title = LanguageService.GetString("Dialog.About"),
+            Width = 460,
+            Height = 280,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            Icon = LoadAppWindowIcon(),
+        };
+
+        var icon = new Image
+        {
+            Source = LoadAppImage(),
+            Width = 48,
+            Height = 48,
+            Margin = new Thickness(0, 0, 12, 0),
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+        };
+
+        var title = new TextBlock
+        {
+            Text = LanguageService.GetString("Dialog.AboutName"),
+            FontSize = 18,
+            FontWeight = FontWeight.Bold,
+        };
+
+        const string githubUrl = "https://github.com/lucaciriaco/WadAssembly";
+        var name = new TextBlock
+        {
+            Text = LanguageService.GetString("Dialog.MadeBy"),
+            Margin = new Thickness(0, 12, 0, 0),
+        };
+
+        var link = new TextBlock
+        {
+            Text = githubUrl,
+            Margin = new Thickness(0, 6, 0, 0),
+            Foreground = Brushes.DodgerBlue,
+            Cursor = new Cursor(StandardCursorType.Hand),
+        };
+        link.PointerPressed += (_, _) =>
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(githubUrl) { UseShellExecute = true });
+            }
+            catch
+            {
+            }
+        };
+
+        var description = new TextBlock
+        {
+            Text = LanguageService.GetString("Dialog.AboutText"),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 8, 0, 0),
+        };
+
+        var text = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Vertical,
+            Children = { title, description, name, link },
+        };
+
+        var root = new DockPanel { Margin = new Thickness(16) };
+        DockPanel.SetDock(icon, Dock.Left);
+        root.Children.Add(icon);
+        root.Children.Add(text);
+
+        window.Content = root;
+        window.ShowDialog(this);
+    }
+
+    /// <summary>Loads the application icon (Sprite-0002.ico) for the window title bar.
+    /// Prefers the file next to the executable; falls back to the embedded resource.</summary>
+    private static WindowIcon? LoadAppWindowIcon()
+    {
+        try
+        {
+            string file = Path.Combine(AppContext.BaseDirectory, "Assets", "Sprite-0002.ico");
+            if (File.Exists(file))
+            {
+                using var disk = File.OpenRead(file);
+                return new WindowIcon(disk);
+            }
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://CommunityWadCompiler.App/Assets/Sprite-0002.ico"));
+            return new WindowIcon(stream);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Loads the About image (Sprite-0002.png) as a bitmap. Prefers the file
+    /// next to the executable; falls back to the embedded resource.</summary>
+    private static Bitmap? LoadAppImage()
+    {
+        try
+        {
+            string file = Path.Combine(AppContext.BaseDirectory, "Assets", "Sprite-0002.png");
+            if (File.Exists(file))
+            {
+                using var disk = File.OpenRead(file);
+                return new Bitmap(disk);
+            }
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri("avares://CommunityWadCompiler.App/Assets/Sprite-0002.png"));
+            return new Bitmap(stream);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>Shows a small modal message box window centered on the main window.</summary>

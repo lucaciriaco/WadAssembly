@@ -4,7 +4,7 @@
         xmlns:conv="using:CommunityWadCompiler.App.Converters"
         xmlns:input="using:Avalonia.Input"
         x:Class="CommunityWadCompiler.App.Views.MainWindow"
-        Title="Community Wad Compiler"
+        Title="WadAssembly"
         Width="1180" Height="760"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"

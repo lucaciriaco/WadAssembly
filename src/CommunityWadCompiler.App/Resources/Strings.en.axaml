@@ -185,7 +185,9 @@
   <sys:String x:Key="Dialog.SummaryEngine">Engine</sys:String>
   <sys:String x:Key="Dialog.SummaryAuthors">Authors</sys:String>
   <sys:String x:Key="Dialog.SummaryNoMaps">No maps assigned yet.</sys:String>
-  <sys:String x:Key="Dialog.AboutText">Community Wad Compiler&#x0a;&#x0a;Compiles WADs from several authors into a single PWAD.&#x0a;Supports classic Doom and UDMF maps, TEXTURE1/PNAMES merging&#x0a;and resource deduplication.&#x0a;&#x0a;Structure: CommunityWadCompiler.Core library + Avalonia UI.</sys:String>
+  <sys:String x:Key="Dialog.AboutName">WadAssembly</sys:String>
+  <sys:String x:Key="Dialog.MadeBy">Made by Luca Ciriaco</sys:String>
+  <sys:String x:Key="Dialog.AboutText">Compiles WADs from several authors into a single PWAD.&#x0a;Supports classic Doom and UDMF maps, TEXTURE1/PNAMES merging&#x0a;and resource deduplication.&#x0a;&#x0a;Structure: CommunityWadCompiler.Core library + Avalonia UI.</sys:String>
   <sys:String x:Key="Dialog.PickBaseWad">Select base WAD (IWAD)</sys:String>
   <sys:String x:Key="Dialog.PickWads">Select WADs</sys:String>
   <sys:String x:Key="Dialog.PickExternalMusic">Select external music file</sys:String>

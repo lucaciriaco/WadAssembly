@@ -7,9 +7,15 @@
     <Nullable>enable</Nullable>
     <RootNamespace>CommunityWadCompiler.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Sprite-0002.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Assets\Sprite-0002.ico" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Assets\Sprite-0002.png" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.20" />
