@@ -334,6 +334,23 @@ private int _slotCount = 32;
     /// <summary>True while <see cref="TargetEngine"/> is "Boom": the SWITCHES/ANIMATED options are shown.</summary>
     public bool IsBoomTarget => TargetEngine == "Boom";
 
+    /// <summary>When true, the plan sheet tints the whole row (TODO/WIP/DONE/FIX) with the
+    /// matching status color. Persisted per project; the toggle is mirrored onto the rows so
+    /// every visible row refreshes immediately.</summary>
+    public bool ColorByStatus
+    {
+        get => SlotRowViewModel.ColorByStatusEnabled;
+        set
+        {
+            if (SlotRowViewModel.ColorByStatusEnabled == value)
+                return;
+            SlotRowViewModel.ColorByStatusEnabled = value;
+            OnPropertyChanged();
+            foreach (var row in SlotRows)
+                row.RefreshStatusColors();
+        }
+    }
+
     /// <summary>Lump name of the intermission music chosen in Project Settings
     /// (may hold the "no music" sentinel; normalized when compiling).</summary>
     public string IntermissionMusic
@@ -617,6 +634,7 @@ private int _slotCount = 32;
         GenerateSwitchesLumpForPairs = false;
         AnimatedPrefixes = "";
         TargetEngine = "Boom";
+        ColorByStatus = false;
         ProjectName = "";
         VersionPrefix = "";
         SlotCount = 32;
@@ -972,6 +990,7 @@ private int _slotCount = 32;
             GenerateSwitchesLumpForPairs = GenerateSwitchesLumpForPairs,
             AnimatedPrefixes = AnimatedPrefixes,
             TargetEngine = TargetEngine,
+            ColorByStatus = ColorByStatus,
             IntermissionMusic = IntermissionMusic,
             IntermissionMusicExternalPath = IntermissionMusicExternalPath,
             SourcePortPath = SelectedSourcePort?.ExecutablePath,
@@ -1083,6 +1102,7 @@ private int _slotCount = 32;
         }
 
         RebuildSlots();
+        ColorByStatus = data.ColorByStatus;
 
         AppendLog(string.Format(LanguageService.GetString("Log.ProjectLoaded"), path));
         CurrentProjectPath = path;

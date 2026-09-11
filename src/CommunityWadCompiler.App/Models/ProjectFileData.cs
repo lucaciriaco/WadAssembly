@@ -78,6 +78,10 @@ public sealed class ProjectFileData
     /// Old projects without the field default to "Boom".</summary>
     public string? TargetEngine { get; set; } = "Boom";
 
+    /// <summary>When true, the plan sheet tints the status cell (TODO/WIP/DONE/FIX)
+    /// with the matching status color.</summary>
+    public bool ColorByStatus { get; set; }
+
     /// <summary>Lump name of the music played during the intermission screens
     /// between levels; referenced by the generated MAPINFO.</summary>
     public string? IntermissionMusic { get; set; }

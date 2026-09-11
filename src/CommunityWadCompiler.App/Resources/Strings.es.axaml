@@ -20,6 +20,7 @@
   <sys:String x:Key="Menu.Theme.Light">Claro</sys:String>
   <sys:String x:Key="Menu.Theme.Dark">Oscuro</sys:String>
   <sys:String x:Key="Menu.View">Vista</sys:String>
+  <sys:String x:Key="Menu.ColorByStatus">Colorear celda por estado</sys:String>
   <sys:String x:Key="Menu.SourcePorts">Source ports (puertos de juego)…</sys:String>
   <sys:String x:Key="Menu.Exit">Salir</sys:String>
   <sys:String x:Key="Menu.Help">Ayuda</sys:String>

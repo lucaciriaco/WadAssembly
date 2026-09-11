@@ -773,9 +773,34 @@ public partial class MainWindow : Window
             return;
         var items = new List<object>(CreateColumnMenuItems());
         items.Add(new Separator());
+        items.Add(CreateStatusColorMenuItem());
         items.Add(CreateLogMenuItem());
         _viewColumnsMenu.ItemsSource = items;
         _viewColumnMenuItems = items;
+    }
+
+    /// <summary>Builds the "Color status cell" toggle for the View submenu. Its header follows
+    /// the current language (the whole submenu is rebuilt on language change) and its checkmark
+    /// mirrors <see cref="MainWindowViewModel.ColorByStatus"/>.</summary>
+    private MenuItem CreateStatusColorMenuItem()
+    {
+        var item = new MenuItem
+        {
+            Header = LanguageService.GetString("Menu.ColorByStatus"),
+            Icon = new TextBlock
+            {
+                Text = _viewModel.ColorByStatus ? "✓" : " ",
+                MinWidth = 16,
+                TextAlignment = TextAlignment.Center,
+            },
+        };
+        item.Click += (_, _) =>
+        {
+            _viewModel.ColorByStatus = !_viewModel.ColorByStatus;
+            if (item.Icon is TextBlock icon)
+                icon.Text = _viewModel.ColorByStatus ? "✓" : " ";
+        };
+        return item;
     }
 
     /// <summary>Builds the "Show/Hide console" toggle for the View submenu. Its header and

@@ -431,12 +431,13 @@
                         <TextBox Tag="3" Grid.Column="3" Text="{Binding LevelName, Mode=TwoWay}"
                                  MinWidth="110" VerticalContentAlignment="Center" Margin="4,0,4,0"/>
                         <ComboBox Tag="4" Grid.Column="4"
-                                  ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
-                                  SelectedItem="{Binding Status, Mode=TwoWay}"
-                                  VerticalAlignment="Center"
-                                  MaxDropDownHeight="220"
-                                  HorizontalContentAlignment="Stretch"
-                                  HorizontalAlignment="Stretch">
+                              ItemsSource="{x:Static vm:SlotRowViewModel.StatusOptions}"
+                              SelectedItem="{Binding Status, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              MaxDropDownHeight="220"
+                              HorizontalContentAlignment="Stretch"
+                              HorizontalAlignment="Stretch"
+                              Background="Transparent">
                           <ComboBox.ItemTemplate>
                             <DataTemplate>
                               <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

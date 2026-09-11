@@ -214,8 +214,25 @@ public sealed class SlotRowViewModel : ObservableObject
     public string Status
     {
         get => _status;
-        set => SetProperty(ref _status, value);
+        set
+        {
+            if (SetProperty(ref _status, value))
+                OnPropertyChanged(nameof(RowBackground));
+        }
     }
+
+    /// <summary>Global toggle of the "color rows by status" plan-sheet preference, so rows
+    /// created after the toggle still honor it without per-row syncing. Mirrors the per-project
+    /// <c>ColorByStatus</c> property of the main view model.</summary>
+    public static bool ColorByStatusEnabled { get; set; }
+
+    private static readonly IBrush TodoBackground = new SolidColorBrush(Color.Parse("#F28B82"));
+    private static readonly IBrush WipBackground = new SolidColorBrush(Color.Parse("#FDD663"));
+    private static readonly IBrush DoneBackground = new SolidColorBrush(Color.Parse("#81C995"));
+    private static readonly IBrush FixBackground = new SolidColorBrush(Color.Parse("#FABE78"));
+
+    /// <summary>Re-evaluates the row background after the global status-color toggle changes.</summary>
+    internal void RefreshStatusColors() => OnPropertyChanged(nameof(RowBackground));
 
     /// <summary>True while this row is the highlighted drop target of a drag operation
     /// (managed by the view model's <c>DropTargetIndex</c>).</summary>
@@ -239,6 +256,24 @@ public sealed class SlotRowViewModel : ObservableObject
     }
 
     /// <summary>Background brush of the row: transparent normally, blue while this row is
-    /// the highlighted drop target of a drag.</summary>
-    public IBrush RowBackground => IsDropTarget ? DropHighlightBackground : NormalBackground;
+    /// the highlighted drop target of a drag, or the status color of the row when
+    /// <see cref="ColorByStatusEnabled"/> and the status is one of TODO/WIP/DONE/FIX.</summary>
+    public IBrush RowBackground
+    {
+        get
+        {
+            if (IsDropTarget)
+                return DropHighlightBackground;
+            if (!ColorByStatusEnabled)
+                return NormalBackground;
+            return Status switch
+            {
+                "TODO" => TodoBackground,
+                "WIP" => WipBackground,
+                "DONE" => DoneBackground,
+                "FIX" => FixBackground,
+                _ => NormalBackground,
+            };
+        }
+    }
 }
