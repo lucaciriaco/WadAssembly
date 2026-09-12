@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WadAssembly.App.Views.SkyPickerWindow"
+        Title="{DynamicResource SkyPicker.Title}"
+        Width="680" Height="640"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+  <DockPanel Margin="12">
+
+    <TextBlock DockPanel.Dock="Top"
+               Text="{DynamicResource SkyPicker.Hint}"
+               TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8"/>
+
+    <!-- Manual entry -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="{DynamicResource SkyPicker.ManualLabel}" FontWeight="Bold"/>
+      <TextBox x:Name="ManualSkyBox" Watermark="{DynamicResource SkyPicker.ManualWatermark}" Text="{Binding ManualSkyName, Mode=TwoWay}"/>
+    </StackPanel>
+
+    <!-- Rotation speed -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="{DynamicResource SkyPicker.RotSpeedLabel}" FontWeight="Bold"/>
+      <TextBox x:Name="RotSpeedBox" Watermark="{DynamicResource SkyPicker.RotSpeedWatermark}" Text="0" Width="160" HorizontalAlignment="Left"/>
+    </StackPanel>
+
+    <!-- Sky2 layer -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <CheckBox x:Name="Sky2Check" Content="{DynamicResource SkyPicker.Sky2Check}" FontWeight="Bold"
+                IsCheckedChanged="OnSky2Toggled"/>
+      <TextBlock x:Name="Sky2Label" Text="{DynamicResource SkyPicker.Sky2Label}" IsVisible="False"/>
+      <TextBox x:Name="Sky2NameBox" Watermark="{DynamicResource SkyPicker.Sky2Watermark}"
+               IsVisible="False" IsEnabled="False" IsHitTestVisible="False"/>
+      <TextBlock x:Name="Sky2RotLabel" Text="{DynamicResource SkyPicker.RotSpeed2Label}" IsVisible="False"/>
+      <TextBox x:Name="Sky2RotBox" Watermark="{DynamicResource SkyPicker.RotSpeedWatermark}" Text="0" Width="160"
+               HorizontalAlignment="Left" IsVisible="False" IsEnabled="False" IsHitTestVisible="False"/>
+    </StackPanel>
+
+    <!-- Search filter -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Spacing="4" Margin="0,0,0,8">
+      <TextBlock Text="{DynamicResource SkyPicker.FilterLabel}" FontWeight="Bold"/>
+      <TextBox x:Name="SearchBox" Watermark="{DynamicResource SkyPicker.FilterWatermark}" TextChanged="OnSearchChanged"/>
+    </StackPanel>
+
+    <!-- Buttons (docked bottom before the fill area so they are always visible) -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button Content="{DynamicResource Accept}" IsDefault="True" Click="OnAccept" MinWidth="90"/>
+      <Button Content="{DynamicResource Cancel}" IsCancel="True" Click="OnCancel" MinWidth="90"/>
+    </StackPanel>
+
+    <!-- Texture list + preview (last child: fills the remaining space) -->
+    <Grid ColumnDefinitions="*,200" Margin="0,8,0,0">
+      <!-- Texture list -->
+      <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
+              VerticalAlignment="Stretch">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{DynamicResource SkyPicker.ListTitle}"
+                     FontWeight="Bold" Margin="4,4,4,0"/>
+          <ListBox x:Name="TextureList"
+                   MaxWidth="440"
+                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                   ScrollViewer.VerticalScrollBarVisibility="Auto"
+                   SelectionChanged="OnSelectionChanged"
+                   DoubleTapped="OnDoubleTapped">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- Preview -->
+      <Border Grid.Column="1" Margin="12,0,0,0" BorderBrush="#808080" BorderThickness="1" CornerRadius="3"
+              Background="#1E1E1E" Padding="8">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="{DynamicResource SkyPicker.Preview}" FontWeight="Bold" Foreground="Gray" Margin="0,0,0,4"/>
+          <Image x:Name="PreviewImage"
+                 Width="192" Height="192"
+                 Stretch="Uniform"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"/>
+          <TextBlock x:Name="PreviewInfo"
+                     DockPanel.Dock="Bottom"
+                     Text="{DynamicResource SkyPicker.PreviewHint}"
+                     FontSize="11" Foreground="Gray"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     Margin="0,8,0,0"/>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+  </DockPanel>
+</Window>

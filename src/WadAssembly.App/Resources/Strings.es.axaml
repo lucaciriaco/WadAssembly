@@ -1,0 +1,294 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    x:Class="WadAssembly.App.Resources.Strings_es">
+
+  <!-- ===== Menú principal ===== -->
+  <sys:String x:Key="Menu.File">Archivo</sys:String>
+  <sys:String x:Key="Menu.NewProject">Nuevo proyecto</sys:String>
+  <sys:String x:Key="Menu.OpenProject">Abrir proyecto...</sys:String>
+  <sys:String x:Key="Menu.OpenRecent">Abrir reciente</sys:String>
+  <sys:String x:Key="Menu.Recent.Empty">Sin proyectos recientes</sys:String>
+  <sys:String x:Key="Menu.SaveProject">Guardar proyecto</sys:String>
+  <sys:String x:Key="Menu.SaveProjectAs">Guardar proyecto como...</sys:String>
+  <sys:String x:Key="Menu.ProjectSettings">Configuración del proyecto...</sys:String>
+  <sys:String x:Key="Menu.ProjectSummary">Resumen del proyecto...</sys:String>
+  <sys:String x:Key="Menu.Project">Proyecto</sys:String>
+  <sys:String x:Key="Menu.Configuration">Configuración</sys:String>
+  <sys:String x:Key="Menu.Language">Idioma</sys:String>
+  <sys:String x:Key="Menu.Language.Español">Español</sys:String>
+  <sys:String x:Key="Menu.Language.English">English</sys:String>
+  <sys:String x:Key="Menu.Theme">Tema</sys:String>
+  <sys:String x:Key="Menu.Theme.System">Sistema</sys:String>
+  <sys:String x:Key="Menu.Theme.Light">Claro</sys:String>
+  <sys:String x:Key="Menu.Theme.Dark">Oscuro</sys:String>
+  <sys:String x:Key="Menu.View">Vista</sys:String>
+  <sys:String x:Key="Menu.ColorByStatus">Colorear celda por estado</sys:String>
+  <sys:String x:Key="Menu.SourcePorts">Source ports (puertos de juego)…</sys:String>
+  <sys:String x:Key="Menu.Exit">Salir</sys:String>
+  <sys:String x:Key="Menu.Help">Ayuda</sys:String>
+  <sys:String x:Key="Menu.About">Acerca de...</sys:String>
+
+  <!-- ===== Barra inferior ===== -->
+  <sys:String x:Key="Output.Label">Salida:</sys:String>
+  <sys:String x:Key="Output.Watermark">Ruta del .wad compilado (ej. megawad.wad)</sys:String>
+  <sys:String x:Key="Compile">Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode">Modo del botón Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode.Build">Compilar</sys:String>
+  <sys:String x:Key="Compile.Mode.BuildRun">Compilar y ejecutar</sys:String>
+
+  <!-- ===== Panel izquierdo: WADs aportados ===== -->
+  <sys:String x:Key="Input.Title">WADs aportados (mapas)</sys:String>
+  <sys:String x:Key="Input.Hint">Elegí un mapa (dropdown si hay varios) y arrastralo a un slot de la planilla.</sys:String>
+  <sys:String x:Key="Input.HideHint">Ocultar consejo</sys:String>
+  <sys:String x:Key="Input.AddWads">Agregar WADs...</sys:String>
+  <sys:String x:Key="Input.Remove">Quitar</sys:String>
+  <sys:String x:Key="Input.MoveUp">Subir</sys:String>
+  <sys:String x:Key="Input.MoveDown">Bajar</sys:String>
+  <sys:String x:Key="Input.Collapse">Colapsar el panel de WADs</sys:String>
+  <sys:String x:Key="Input.Expand">Expandir el panel de WADs</sys:String>
+
+  <!-- ===== Encabezados de la planilla ===== -->
+  <sys:String x:Key="Header.Slot">Slot</sys:String>
+  <sys:String x:Key="Header.Wad">WAD</sys:String>
+  <sys:String x:Key="Header.OriginalMap">Mapa original</sys:String>
+  <sys:String x:Key="Header.LevelName">Nombre del mapa</sys:String>
+  <sys:String x:Key="Header.Status">Estado</sys:String>
+  <sys:String x:Key="Header.LastModified">Última modificación</sys:String>
+  <sys:String x:Key="Header.Music">Música</sys:String>
+  <sys:String x:Key="Header.Sky">Sky</sys:String>
+  <sys:String x:Key="Header.Author">Autor</sys:String>
+  <sys:String x:Key="Header.Notes">Notas adicionales</sys:String>
+
+  <!-- ===== Ventana de notas ===== -->
+  <sys:String x:Key="Notes.Title">Notas adicionales</sys:String>
+  <sys:String x:Key="Notes.SlotLabel">Notas del slot {0}</sys:String>
+  <sys:String x:Key="Notes.Placeholder">Notas...</sys:String>
+
+  <!-- ===== Menú contextual de fila ===== -->
+  <sys:String x:Key="Row.ClearFields">Borrar todos los campos</sys:String>
+
+  <!-- ===== Log ===== -->
+  <sys:String x:Key="Log.Title">Registro</sys:String>
+  <sys:String x:Key="Log.Hide">Ocultar consola</sys:String>
+  <sys:String x:Key="Log.Show">Mostrar consola</sys:String>
+  <sys:String x:Key="Log.Search">Buscar en el log…</sys:String>
+  <sys:String x:Key="Log.Error">Error</sys:String>
+  <sys:String x:Key="Log.Warning">Aviso</sys:String>
+  <sys:String x:Key="Log.Info">Info</sys:String>
+
+  <!-- ===== Ventana Project Settings ===== -->
+  <sys:String x:Key="ProjectSettings.Title">Configuración del proyecto</sys:String>
+  <sys:String x:Key="Accept">Aceptar</sys:String>
+  <sys:String x:Key="Cancel">Cancelar</sys:String>
+  <sys:String x:Key="ProjectSettings.ProjectName">Nombre del proyecto</sys:String>
+  <sys:String x:Key="ProjectSettings.ProjectName.Watermark">Ej. La Hermandad de la Arena</sys:String>
+  <sys:String x:Key="ProjectSettings.Version">Versión (prefijo editable)</sys:String>
+  <sys:String x:Key="ProjectSettings.Version.Watermark">Ej. 1.2.3 — se le agrega automáticamente el sufijo de compilación (1.2.3.145001)</sys:String>
+  <sys:String x:Key="ProjectSettings.SlotCount">Cantidad de slots del PWAD</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseWad">WAD base (IWAD)</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseWad.Watermark">Opcional. DOOM2.WAD como semilla para TEXTURE1/PNAMES.</sys:String>
+  <sys:String x:Key="ProjectSettings.Clear">Limpiar</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic">Música de intermisión</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic.Watermark">Música que suena entre niveles (intermisión)</sys:String>
+  <sys:String x:Key="ProjectSettings.IntermissionMusic.Pick">Abrir selector de música...</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort">Source port para "Compilar y ejecutar"</sys:String>
+  <sys:String x:Key="ProjectSettings.SourcePort.Watermark">Ninguno — el botón solo compila</sys:String>
+  <sys:String x:Key="ProjectSettings.ResourceWads">WAD de recursos (texturas / flats)</sys:String>
+  <sys:String x:Key="ProjectSettings.AddResources">Agregar recursos...</sys:String>
+  <sys:String x:Key="ProjectSettings.FilterToUsed">Solo incluir texturas/flats usados por los mapas</sys:String>
+  <sys:String x:Key="ProjectSettings.IncludePalette">Incluir lumps de paleta (PLAYPAL, COLORMAP, etc.)</sys:String>
+  <sys:String x:Key="ProjectSettings.IncludeSprites">Incluir sprites (S_START..S_END, SS/ST/STRT/FM_START..END: sprites, statusbar y fuentes)</sys:String>
+  <sys:String x:Key="ProjectSettings.MapInfoNotes">Escribir notas/comentarios en el MAPINFO (autor, estado, fecha de compilación, etc.)</sys:String>
+  <sys:String x:Key="ProjectSettings.BaseTexturesOverride">Priorizar texturas del IWAD base sobre las de los WAD de recursos (si está desactivado, las texturas de los recursos reemplazan a las del IWAD)</sys:String>
+  <sys:String x:Key="ProjectSettings.TargetEngine">Motor de destino</sys:String>
+  <sys:String x:Key="ProjectSettings.Beta">beta</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedRuns">Importar las corridas de texturas animadas numeradas usadas por los mapas (packs sin lump ANIMATED/ANIMDEFS)</sys:String>
+  <sys:String x:Key="ProjectSettings.MaxAnimatedFrames">Máximo de frames por corrida animada</sys:String>
+  <sys:String x:Key="ProjectSettings.GenerateAnimdefs">Generar un lump ANIMDEFS para las corridas numeradas animadas para que realmente se animen (motores familia ZDoom)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateAnimated">Generar un lump ANIMATED binario para las corridas numeradas animadas para que realmente se animen (motores basados en Boom como Odamex)</sys:String>
+
+  <sys:String x:Key="ProjectSettings.GenerateSwitches">Generar un lump SWITCHES binario para los interruptores SW1xxx/SW2xxx del pack para que funcionen en motores basados en Boom como Odamex</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedTics">Tics por frame (35 = 1 segundo)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixes">Prefijos a animar (separados por coma)</sys:String>
+  <sys:String x:Key="ProjectSettings.AnimatedPrefixesHint">Solo las corridas cuyos prefijos figuren aquí (p. ej. SHAWN, WATR) se declaran como animaciones. Las variantes estáticas como SKY1/SKY2 o BIGDOOR1..7 permanecen estáticas.</sys:String>
+  <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
+  <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
+
+  <!-- ===== Ventana Source Ports ===== -->
+  <sys:String x:Key="SourcePorts.Title">Source ports (puertos de juego)</sys:String>
+  <sys:String x:Key="SourcePorts.List">Puertos configurados</sys:String>
+  <sys:String x:Key="SourcePorts.Add">Agregar puerto</sys:String>
+  <sys:String x:Key="SourcePorts.Edit">Editar puerto seleccionado</sys:String>
+  <sys:String x:Key="SourcePorts.Name">Nombre</sys:String>
+  <sys:String x:Key="SourcePorts.Name.Watermark">Ej. GZDoom</sys:String>
+  <sys:String x:Key="SourcePorts.Executable">Ejecutable</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Watermark">Ruta al .exe del source port</sys:String>
+  <sys:String x:Key="SourcePorts.Executable.Browse">Buscar ejecutable...</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments">Argumentos</sys:String>
+  <sys:String x:Key="SourcePorts.Arguments.Watermark">Opcional. Ej. -iwarp 1 — se agregan -iwad y -file automáticamente</sys:String>
+
+  <!-- ===== Ventana Sky Picker ===== -->
+  <sys:String x:Key="SkyPicker.Title">Seleccionar Sky</sys:String>
+  <sys:String x:Key="SkyPicker.Hint">Elegí la textura de sky para el mapa. Podés escribir un nombre manual o elegir de la lista de texturas del WAD de recursos.</sys:String>
+  <sys:String x:Key="SkyPicker.ManualLabel">SKYNAME manual:</sys:String>
+  <sys:String x:Key="SkyPicker.ManualWatermark">Ej: SKY1, RSKY1, F_SKY1...</sys:String>
+  <sys:String x:Key="SkyPicker.FilterLabel">Filtrar texturas:</sys:String>
+  <sys:String x:Key="SkyPicker.FilterWatermark">Buscar textura...</sys:String>
+  <sys:String x:Key="SkyPicker.ListTitle">Texturas disponibles en WADs de recursos:</sys:String>
+  <sys:String x:Key="SkyPicker.Preview">Preview</sys:String>
+  <sys:String x:Key="SkyPicker.PreviewHint">Seleccioná una textura para ver preview</sys:String>
+  <sys:String x:Key="SkyPicker.PreviewNotAvailable">Preview no disponible (VM no seteado)</sys:String>
+  <sys:String x:Key="SkyPicker.NotFound">No se encontró '{0}' en WADs de recursos</sys:String>
+  <sys:String x:Key="SkyPicker.UnsupportedFormat">Formato no soportado para preview: {0} ({1} bytes)</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeedLabel">Velocidad de rotación:</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeed2Label">Velocidad sky2:</sys:String>
+  <sys:String x:Key="SkyPicker.RotSpeedWatermark">0 = sin rotación</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Check">Usar sky2</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Label">SKYNAME sky2 (opcional):</sys:String>
+  <sys:String x:Key="SkyPicker.Sky2Watermark">Ej: SKYFOG, SKYWALL...</sys:String>
+
+  <!-- ===== Ventana Music Picker ===== -->
+  <sys:String x:Key="MusicPicker.Title">Seleccionar música</sys:String>
+  <sys:String x:Key="MusicPicker.Hint">Elegí la música del slot o cargá un archivo externo (MIDI/MOD/IT).</sys:String>
+  <sys:String x:Key="MusicPicker.LoadExternal">Cargar archivo externo...</sys:String>
+
+  <!-- ===== Strings varias (display, VM) ===== -->
+  <sys:String x:Key="NoMusic">Ninguna</sys:String>
+  <sys:String x:Key="Wad.Kind.Input">aportado</sys:String>
+  <sys:String x:Key="Wad.Kind.Resources">recursos</sys:String>
+  <sys:String x:Key="Wad.MapCountFormat"> | {0} mapa(s)</sys:String>
+  <sys:String x:Key="Wad.DisplayFormat">{0}   [{1} | {2}]{3}</sys:String>
+  <sys:String x:Key="Music.ExtMark">[ext]</sys:String>
+  <sys:String x:Key="Music.FromWadFormat">{0}   [de {1}]</sys:String>
+
+  <!-- ===== Diálogos de archivo ===== -->
+  <sys:String x:Key="Dialog.PickInputWads">Seleccionar WADs aportados</sys:String>
+  <sys:String x:Key="Dialog.SaveOutputWad">Guardar WAD compilado</sys:String>
+  <sys:String x:Key="Dialog.ProjectFilter">Proyecto Community Wad</sys:String>
+  <sys:String x:Key="Dialog.OpenProject">Abrir proyecto</sys:String>
+  <sys:String x:Key="Dialog.SaveProject">Guardar proyecto</sys:String>
+  <sys:String x:Key="Dialog.SuggestedProjectName">proyecto.json</sys:String>
+  <sys:String x:Key="Dialog.About">Acerca de</sys:String>
+  <sys:String x:Key="Dialog.RecentMissing">Proyecto no disponible</sys:String>
+  <sys:String x:Key="Dialog.RecentMissingText">El archivo del proyecto ya no existe:
+
+{0}</sys:String>
+  <sys:String x:Key="Dialog.ProjectSummary">Resumen del proyecto</sys:String>
+  <sys:String x:Key="Dialog.Copy">Copiar al portapapeles</sys:String>
+  <sys:String x:Key="Dialog.SummarySave">Guardar como...</sys:String>
+  <sys:String x:Key="Dialog.SummaryFilter">Markdown</sys:String>
+  <sys:String x:Key="Dialog.SuggestedSummaryName">resumen.md</sys:String>
+  <sys:String x:Key="Dialog.SummaryCopied">Resumen copiado al portapapeles</sys:String>
+  <sys:String x:Key="Dialog.SummarySlots">Slots</sys:String>
+  <sys:String x:Key="Dialog.SummaryOf">de</sys:String>
+  <sys:String x:Key="Dialog.SummaryEngine">Motor</sys:String>
+  <sys:String x:Key="Dialog.SummaryAuthors">Autores</sys:String>
+  <sys:String x:Key="Dialog.SummaryNoMaps">Todavía no hay mapas asignados.</sys:String>
+  <sys:String x:Key="Dialog.AboutName">WadAssembly</sys:String>
+  <sys:String x:Key="Dialog.MadeBy">Hecho por Luca Ciriaco</sys:String>
+  <sys:String x:Key="Dialog.AboutText">Compila WADs de varios autores en un único PWAD.&#x0a;Soporta mapas Doom clásico y UDMF, fusión de TEXTURE1/PNAMES&#x0a;y deduplicación de recursos.&#x0a;&#x0a;Estructura: librería WadAssembly.Core + UI Avalonia.</sys:String>
+  <sys:String x:Key="Dialog.PickBaseWad">Seleccionar WAD base (IWAD)</sys:String>
+  <sys:String x:Key="Dialog.PickWads">Seleccionar WADs</sys:String>
+  <sys:String x:Key="Dialog.PickExternalMusic">Seleccionar archivo de música externo</sys:String>
+  <sys:String x:Key="Dialog.MusicFilesFilter">Archivos de música</sys:String>
+
+  <!-- ===== Strings del log / mensajes del VM ===== -->
+  <sys:String x:Key="Log.SlotCleared">[INFO] Slot {0} borrado.</sys:String>
+  <sys:String x:Key="Log.MapReplaced">[INFO] '{0}' de '{1}' reemplazó el mapa de slot {2}</sys:String>
+  <sys:String x:Key="Log.MapAssigned">[INFO] '{0}' de '{1}' → slot {2}</sys:String>
+  <sys:String x:Key="Log.MapsByAuthorRemoved">[INFO] Mapas del autor '{0}' eliminados de la planilla.</sys:String>
+  <sys:String x:Key="Log.MusicRenamed">[INFO] Música renombrada por nombre duplicado:</sys:String>
+  <sys:String x:Key="Log.MusicRenamedItem">'{0}' de '{1}' → '{2}'</sys:String>
+  <sys:String x:Key="Log.ProjectSaved">[INFO] Proyecto guardado en {0}</sys:String>
+  <sys:String x:Key="Log.ProjectReadError">[ERROR] No se pudo leer el proyecto {0}</sys:String>
+  <sys:String x:Key="Log.ProjectLoaded">[INFO] Proyecto cargado desde {0}</sys:String>
+  <sys:String x:Key="Log.NeedInputWad">[ERROR] Agregá al menos un WAD de entrada.</sys:String>
+  <sys:String x:Key="Log.NeedOutputPath">[ERROR] Definí la ruta de salida.</sys:String>
+  <sys:String x:Key="Log.NoSlot">[ERROR] El mapa '{0}' de '{1}' no tiene slot final.</sys:String>
+  <sys:String x:Key="Log.Compiling">── Compilando ───────────────────────────────</sys:String>
+  <sys:String x:Key="Log.NoSourcePort">[ERROR] Sin source port seleccionado. Elegí uno en Configuración del proyecto, o agregá puertos en Configuración → Source ports.</sys:String>
+  <sys:String x:Key="Log.SourcePortMissing">[ERROR] No se encontró el ejecutable del source port: {0}</sys:String>
+  <sys:String x:Key="Log.SourcePortLaunched">[INFO] Ejecutando {0} (PID {1}) con el WAD compilado.</sys:String>
+
+  <!-- ===== Mensajes de consola del merge (CoreMessages) ===== -->
+  <sys:String x:Key="Merge.OpenBaseWad">Abriendo WAD base...</sys:String>
+  <sys:String x:Key="Merge.NoBaseWad">  (sin WAD base)</sys:String>
+  <sys:String x:Key="Merge.OpenInputs">Abriendo WADs de entrada...</sys:String>
+  <sys:String x:Key="Merge.OpenResources">Abriendo WADs de recursos...</sys:String>
+  <sys:String x:Key="Merge.NoResourceWad">  (sin WAD de recursos)</sys:String>
+  <sys:String x:Key="Merge.ScanMusic">Escaneando lumps de música (MUS/MIDI)...</sys:String>
+  <sys:String x:Key="Merge.MusicFound">  - {0} lump(s) de música detectados.</sys:String>
+  <sys:String x:Key="Merge.DetectMaps">Detectando mapas...</sys:String>
+  <sys:String x:Key="Merge.AnalyzeUsage">Analizando texturas/flats usados por los mapas...</sys:String>
+  <sys:String x:Key="Merge.UsageFound">  - {0} texturas de pared y {1} flats detectados.</sys:String>
+  <sys:String x:Key="Merge.MergeTextures">Fusionando texturas (PNAMES/TEXTURE1/TEXTURE2)...</sys:String>
+  <sys:String x:Key="Merge.ExcludedTextures">  {0} textura(s) excluidas por no usarse.</sys:String>
+  <sys:String x:Key="Merge.Assemble">Ensamblando WAD de salida...</sys:String>
+  <sys:String x:Key="Merge.CopyingMap">  Copiando {0} -> {1}</sys:String>
+  <sys:String x:Key="Merge.MapNoSlot">Mapa '{0}' de '{1}' no tiene slot asignado; se omite.</sys:String>
+  <sys:String x:Key="Merge.DuplicateSlot">Dos mapas se asignaron al slot '{0}'. Revisá las asignaciones.</sys:String>
+  <sys:String x:Key="Merge.MapInfoGenerated">MAPINFO generado para {0} mapa(s).</sys:String>
+  <sys:String x:Key="Merge.AnimdefsGenerated">Lump ANIMDEFS generado para {0} animación(es) numerada(s).</sys:String>
+  <sys:String x:Key="Merge.AnimatedLumpGenerated">Lump ANIMATED generado para {0} animación(es) numerada(s).</sys:String>
+  <sys:String x:Key="Merge.SwitchesLumpGenerated">Lump SWITCHES generado para {0} interruptor(es).</sys:String>
+  <sys:String x:Key="Merge.MapInfoSkipped">Se omitieron lumps MAPINFO/ZMAPINFO existentes en los WADs; se usa el MAPINFO generado con los nombres.</sys:String>
+  <sys:String x:Key="Merge.ZdoomTexturesDropped">Se detectaron lumps ZDoom 'TEXTURES'; su fusión aún no está implementada y se omitieron.</sys:String>
+  <sys:String x:Key="Merge.MusicRenamed">Música '{0}' (de '{1}') renombrada a '{2}'.</sys:String>
+  <sys:String x:Key="Merge.MusicNotInWads">Música '{0}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).</sys:String>
+  <sys:String x:Key="Merge.IntermissionMusicAdded">Música de intermisión '{0}' añadida desde '{1}'.</sys:String>
+  <sys:String x:Key="Merge.IntermissionMusicMissing">Música de intermisión '{0}' no se encontró en los WADs cargados; el MAPINFO la referencia igualmente (debe existir en el IWAD o idéntica en el motor).</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicAdded">Música externa '{0}' copiada desde '{1}'.</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicMissing">Música externa '{0}': archivo no encontrado '{1}'.</sys:String>
+  <sys:String x:Key="Merge.ExternalMusicUnsupported">Música externa '{0}': extensión '{1}' no soportada.</sys:String>
+  <sys:String x:Key="Merge.SkyMissing">Textura de sky '{0}' no se encontró en los WADs de recursos; el MAPINFO la referencia igualmente.</sys:String>
+  <sys:String x:Key="Merge.TextureWithoutPnames">{0}: contiene TEXTUREx sin PNAMES; se intenta resolver por nombre.</sys:String>
+  <sys:String x:Key="Merge.TextureDuplicate">Textura '{0}' duplicada; se mantiene la primera definición.</sys:String>
+  <sys:String x:Key="Merge.PatchIndexOutOfRange">Textura '{0}': índice de patch {1} fuera de rango.</sys:String>
+  <sys:String x:Key="Merge.TextureLumpTooShort">Lump vacío o demasiado corto para ser TEXTUREx.</sys:String>
+  <sys:String x:Key="Merge.InvalidTextureCount">Número de texturas inválido ({0}).</sys:String>
+  <sys:String x:Key="Merge.MalformedTexture">Textura #{0} (offset {1}) mal formada; se omite.</sys:String>
+  <sys:String x:Key="Merge.WadReadFailed">No se pudo leer '{0}': {1}</sys:String>
+  <sys:String x:Key="Merge.WadTooSmall">El archivo es demasiado pequeño para ser un WAD.</sys:String>
+  <sys:String x:Key="Merge.UnknownHeader">Cabecera de WAD desconocida '{0}' (se esperaba IWAD o PWAD).</sys:String>
+  <sys:String x:Key="Merge.InvalidLumpDirectory">Directorio de lumps inválido o fuera de rango.</sys:String>
+  <sys:String x:Key="Merge.LumpOutOfBounds">El lump '{0}' apunta fuera del archivo.</sys:String>
+
+  <!-- ===== Notas/cabecera del MAPINFO (MapInfo) ===== -->
+  <sys:String x:Key="MapInfo.HeaderLine">// MAPINFO generado automáticamente por Community Wad Compiler</sys:String>
+  <sys:String x:Key="MapInfo.Project">// Proyecto: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Version">// Versión: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Compiled">// Compilado: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Author">// Autor: {0}</sys:String>
+  <sys:String x:Key="MapInfo.Status">// Estado: {0}</sys:String>
+  <sys:String x:Key="MapInfo.LastModified">// Última modificación: {0}</sys:String>
+
+  <!-- ===== Informe de compilación (Report) ===== -->
+  <sys:String x:Key="Report.Success">COMPILADO OK ({0}s)</sys:String>
+  <sys:String x:Key="Report.Failed">COMPILACIÓN FALLIDA</sys:String>
+  <sys:String x:Key="Report.Output">  Salida: {0} ({1} bytes)</sys:String>
+  <sys:String x:Key="Report.Maps">  Mapas: {0}</sys:String>
+  <sys:String x:Key="Report.Lumps">  Lumps copiados: {0} | Duplicados omitidos: {1}</sys:String>
+  <sys:String x:Key="Report.Patches">  Parches: {0} | Texturas: {1} | Texturas duplicadas omitidas: {2}</sys:String>
+  <sys:String x:Key="Report.TexturesExcluded">  Texturas sin uso excluidas: {0}</sys:String>
+  <sys:String x:Key="Report.Flats">  Flats copiados del WAD de recursos: {0}</sys:String>
+  <sys:String x:Key="Report.Music">  Lumps de música copiados: {0}</sys:String>
+  <sys:String x:Key="Log.ReportError">[ERROR] {0}</sys:String>
+  <sys:String x:Key="Log.ReportWarning">[AVISO] {0}</sys:String>
+  <sys:String x:Key="Log.ReportInfo">[INFO] {0}</sys:String>
+
+  <!-- ===== Encabezado de la planilla (MapsHeader) ===== -->
+  <sys:String x:Key="Header.SlotsSuffix"> · {0} slots</sys:String>
+  <sys:String x:Key="Header.EmptyTitle">Mapas y slots finales</sys:String>
+  <sys:String x:Key="Header.FilterHint">Buscar (slot, mapa, autor, estado...)</sys:String>
+  <sys:String x:Key="Filter.All">Todos los campos</sys:String>
+  <sys:String x:Key="Filter.Slot">Slot</sys:String>
+  <sys:String x:Key="Filter.Wad">WAD</sys:String>
+  <sys:String x:Key="Filter.OriginalMap">Mapa original</sys:String>
+  <sys:String x:Key="Filter.LevelName">Nombre de nivel</sys:String>
+  <sys:String x:Key="Filter.Status">Estado</sys:String>
+  <sys:String x:Key="Filter.Author">Autor</sys:String>
+  <sys:String x:Key="Filter.Music">Música</sys:String>
+  <sys:String x:Key="Filter.Notes">Notas</sys:String>
+</ResourceDictionary>

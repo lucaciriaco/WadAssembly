@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WadAssembly.App.Views.SourcePortsWindow"
+        Title="{DynamicResource SourcePorts.Title}"
+        Width="620" Height="560"
+        MinWidth="500" MinHeight="440"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="14">
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button Content="{DynamicResource Accept}" IsDefault="True" MinWidth="96" Click="OnAccept"/>
+      <Button Content="{DynamicResource Cancel}" MinWidth="96" Click="OnCancel"/>
+    </StackPanel>
+
+    <StackPanel Spacing="12">
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="{DynamicResource SourcePorts.List}" FontWeight="Bold"/>
+        <Border BorderBrush="#808080" BorderThickness="1" CornerRadius="3" MinHeight="120">
+          <ListBox x:Name="PortList" MaxHeight="170">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding ExecutablePath}" Foreground="Gray"
+                             TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Button Content="{DynamicResource SourcePorts.Add}" Click="OnAdd"/>
+          <Button Content="{DynamicResource Input.Remove}" Click="OnRemove"/>
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="{DynamicResource SourcePorts.Edit}" FontWeight="Bold"/>
+        <StackPanel Spacing="4">
+          <TextBlock Text="{DynamicResource SourcePorts.Name}"/>
+          <TextBox Text="{Binding SelectedItem.Name, ElementName=PortList, Mode=TwoWay}"
+                   Watermark="{DynamicResource SourcePorts.Name.Watermark}"/>
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Text="{DynamicResource SourcePorts.Executable}"/>
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+            <TextBox Grid.Column="0" Text="{Binding SelectedItem.ExecutablePath, ElementName=PortList, Mode=TwoWay}"
+                     Watermark="{DynamicResource SourcePorts.Executable.Watermark}"/>
+            <Button Grid.Column="1" Content="..." Click="OnBrowseExecutable" MinWidth="48"
+                    ToolTip.Tip="{DynamicResource SourcePorts.Executable.Browse}"/>
+            <Button Grid.Column="2" Content="{DynamicResource ProjectSettings.Clear}" Click="OnClearExecutable"/>
+          </Grid>
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Text="{DynamicResource SourcePorts.Arguments}"/>
+          <TextBox Text="{Binding SelectedItem.Arguments, ElementName=PortList, Mode=TwoWay}"
+                   Watermark="{DynamicResource SourcePorts.Arguments.Watermark}"/>
+        </StackPanel>
+      </StackPanel>
+
+    </StackPanel>
+  </DockPanel>
+</Window>

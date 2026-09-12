@@ -8,10 +8,10 @@ the maps placed in their final slots, merged resources and deduplicated textures
 
 ```
 src/
-  CommunityWadCompiler.Core/   Library: WAD format, maps, texture merging, pipeline
-  CommunityWadCompiler.App/    Avalonia UI (main window, view models)
+  WadAssembly.Core/   Library: WAD format, maps, texture merging, pipeline
+  WadAssembly.App/    Avalonia UI (main window, view models)
 tests/
-  CommunityWadCompiler.Tests/  Roundtrip, map detection and merging tests
+  WadAssembly.Tests/  Roundtrip, map detection and merging tests
 ```
 
 ## Features
@@ -64,8 +64,8 @@ tests/
 Requires: .NET 8 SDK.
 
 ```
-dotnet build CommunityWadCompiler.sln
-dotnet run --project src/CommunityWadCompiler.App
+dotnet build WadAssembly.sln
+dotnet run --project src/WadAssembly.App
 ```
 
 ## Quick start

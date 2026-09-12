@@ -1,0 +1,53 @@
+namespace WadAssembly.Core.Merge;
+
+/// <summary>
+/// Named inputs for a single compile run.
+/// </summary>
+public sealed class MergeRequest
+{
+    /// <summary>
+    /// Optional base WAD (typically DOOM.WAD / DOOM2.WAD) whose texture definitions
+    /// seed the merged texture set and whose resources are not re-copied.
+    /// </summary>
+    public string? BaseWadPath { get; init; }
+
+    /// <summary>Add-on WADs contributed by community members, in merge order.</summary>
+    public IReadOnlyList<string> InputWadPaths { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Optional resource WADs (texture/flat packs). When provided, the merged
+    /// PNAMES/TEXTURE1/TEXTURE2 and the flat/patch lumps come from these WADs.
+    /// </summary>
+    public IReadOnlyList<string> ResourceWadPaths { get; init; } = Array.Empty<string>();
+
+    /// <summary>Output WAD path.</summary>
+    public string? OutputPath { get; init; }
+
+    /// <summary>Explicit map slot assignments (empty means assign automatically).</summary>
+    public IReadOnlyList<MapAssignment> MapAssignments { get; init; } = Array.Empty<MapAssignment>();
+
+    /// <summary>Optional project name, written as a comment in the generated MAPINFO.</summary>
+    public string? ProjectName { get; init; }
+
+    /// <summary>
+    /// Optional editable version prefix (e.g. "1.2.3") stamped into the MAPINFO
+    /// before the automatic compile timestamp.
+    /// </summary>
+    public string? VersionPrefix { get; init; }
+
+    public MergeOptions Options { get; init; } = new();
+
+    /// <summary>
+    /// External music files chosen by the user: lump name → absolute file path.
+    /// These are copied verbatim into the output WAD and referenced by MAPINFO.
+    /// Supported extensions: .mid, .mod, .it, .xm, .s3m.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? ExternalMusicFiles { get; init; }
+
+    /// <summary>
+    /// Lump name of the music played during the intermission screens (between levels).
+    /// Copied into the output WAD when found and written as a
+    /// <c>gameinfo { intermissionmusic ... }</c> block in the generated MAPINFO.
+    /// </summary>
+    public string? IntermissionMusic { get; init; }
+}
