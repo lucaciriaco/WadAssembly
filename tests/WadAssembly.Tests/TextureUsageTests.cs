@@ -1,3 +1,4 @@
+using System.Text;
 using WadAssembly.Core.Maps;
 using WadAssembly.Core.Merge;
 using WadAssembly.Core.Textures;
@@ -362,6 +363,70 @@ public class TextureUsageTests
             Assert.Null(wad.FindFirst("STBAR"));
             Assert.Null(wad.FindFirst("TROOA1"));
             Assert.Null(wad.FindFirst("FONTA"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void NoResourcesImported_WhenEveryIncludeOptionOff_OnlyMapsAndMapInfo()
+    {
+        string dir = TempDir();
+        try
+        {
+            string resourceWad = Path.Combine(dir, "resources.wad");
+            string mapWad = Path.Combine(dir, "map.wad");
+            string outputWad = Path.Combine(dir, "out.wad");
+
+            BuildSpriteResourceWad(resourceWad);
+            BuildClassicMapWad(mapWad, "MAP05");
+
+            var request = new MergeRequest
+            {
+                InputWadPaths = new[] { mapWad },
+                ResourceWadPaths = new[] { resourceWad },
+                OutputPath = outputWad,
+                MapAssignments = new[] { new MapAssignment(mapWad, "MAP05", "MAP05", LevelName: "MAP05") },
+                Options = new MergeOptions
+                {
+                    AutoAssignMaps = false,
+                    FilterToUsedResources = false,
+                    IncludePaletteLumps = false,
+                    IncludeSpriteLumps = false,
+                },
+            };
+
+            var result = new WadMerger().Merge(request);
+            Assert.True(result.Success, string.Join("; ", result.Errors));
+
+            using var wad = WadFile.Open(outputWad);
+
+            // Sprites, status bar and fonts are excluded.
+            Assert.Null(wad.FindFirst("STBAR"));
+            Assert.Null(wad.FindFirst("STGNUM0"));
+            Assert.Null(wad.FindFirst("TROOA1"));
+            Assert.Null(wad.FindFirst("FONTA"));
+            Assert.Null(wad.FindFirst("S_START"));
+            Assert.Null(wad.FindFirst("ST_START"));
+            Assert.Null(wad.FindFirst("FM_START"));
+
+            // Palette lumps are not implemented.
+            Assert.Null(wad.FindFirst("PLAYPAL"));
+
+            // No textures, flats or patches either: "todo desactivado" means the output
+            // only carries the maps and the generated MAPINFO.
+            Assert.Null(wad.FindFirst("PNAMES"));
+            Assert.Null(wad.FindFirst("TEXTURE1"));
+            Assert.Null(wad.FindFirst("FLAT1"));
+            Assert.Null(wad.FindFirst("PATCHA"));
+
+            // The map and the generated MAPINFO are still there.
+            Assert.NotNull(wad.FindFirst("MAP05"));
+            var mapInfo = wad.FindFirst("MAPINFO");
+            Assert.NotNull(mapInfo);
+            Assert.Contains("MAP05", Encoding.UTF8.GetString(mapInfo!.ReadAll()));
         }
         finally
         {

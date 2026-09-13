@@ -42,9 +42,9 @@ var request = new MergeRequest
             string text = Encoding.UTF8.GetString(mapinfo!.ReadAll());
 
             Assert.Contains("map MAP01 \"Hangar de la Arena\"", text);
-            Assert.Contains("music = \"CITY1\"", text);
+            Assert.Contains("music = \"D_MAP01\"", text);
             Assert.Contains("map MAP02 \"Las Torres Gemelas\"", text);
-            Assert.Contains("music = \"MUSW1\"", text);
+            Assert.Contains("music = \"D_MAP02\"", text);
 
             // ZDoom/Odamex brace blocks must open AND close with } on their own line.
             Assert.Matches(@"map MAP01 ""Hangar de la Arena""\r?\n\{[\s\S]*?\}\r?\n", text);
@@ -185,10 +185,12 @@ var request = new MergeRequest
             Assert.True(result.Success, string.Join("; ", result.Errors));
 
             using var wad = WadFile.Open(output);
-            Assert.NotNull(wad.FindFirst("CITY1"));
+            Assert.Null(wad.FindFirst("CITY1")); // renamed to the slot music name
+            Assert.NotNull(wad.FindFirst("D_MAP01"));
+            Assert.Equal(FakeMusData(), wad.FindFirst("D_MAP01")!.ReadAll());
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
             Assert.Contains("map MAP01 \"\"", text);
-            Assert.Contains("music = \"CITY1\"", text);
+            Assert.Contains("music = \"D_MAP01\"", text);
         }
         finally
         {
@@ -219,11 +221,11 @@ var request = new MergeRequest
             Assert.True(result.Success, string.Join("; ", result.Errors));
 
             using var wad = WadFile.Open(output);
-            Assert.NotNull(wad.FindFirst("RSCMUS")); // copied despite resource filtering
+            Assert.NotNull(wad.FindFirst("D_MAP01")); // copied despite resource filtering, renamed to the slot music name
             Assert.Equal(1, result.MusicCopied);
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
             Assert.Contains("map MAP01 \"El Nido\"", text);
-            Assert.Contains("music = \"RSCMUS\"", text);
+            Assert.Contains("music = \"D_MAP01\"", text);
         }
         finally
         {
@@ -253,7 +255,7 @@ var request = new MergeRequest
             Assert.Contains(result.Warnings, w => w.Contains("D_FAKE"));
             using var wad = WadFile.Open(output);
             string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
-            Assert.Contains("music = \"D_FAKE\"", text);
+            Assert.Contains("music = \"D_MAP01\"", text);
         }
         finally
         {
@@ -701,15 +703,17 @@ var request = new MergeRequest
 
             using var wad = WadFile.Open(output);
 
-            // Lump "EXT01" should exist with the external file bytes.
-            Lump? extLump = wad.FindFirst("EXT01");
+            // Lump "D_MAP01" should exist with the external file bytes (renamed to the slot music name).
+            Lump? extLump = wad.FindFirst("D_MAP01");
             Assert.NotNull(extLump);
             Assert.Equal(itData, extLump!.ReadAll());
 
-            // MAPINFO should reference EXT01.
+            // MAPINFO should reference D_MAP01.
             string mapInfo = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
-            Assert.Contains("music = \"EXT01\"", mapInfo);
+            Assert.Contains("music = \"D_MAP01\"", mapInfo);
 
+            // The external lump name is only a source key; it does not survive compilation.
+            Assert.Null(wad.FindFirst("EXT01"));
             // The original D_ORIG was NOT copied (it's assigned as EXT01, not D_ORIG).
             Assert.Null(wad.FindFirst("D_ORIG"));
         }
@@ -920,7 +924,7 @@ var request = new MergeRequest
             {
                 string text = Encoding.UTF8.GetString(wad.FindFirst("MAPINFO")!.ReadAll());
                 Assert.Contains("map MAP01 \"Arena\"", text);
-                Assert.Contains("music = \"CITY1\"", text);
+                Assert.Contains("music = \"D_MAP01\"", text);
                 Assert.Contains("sky1 = \"SKY1\"", text);
                 Assert.DoesNotContain("//", text);
             }

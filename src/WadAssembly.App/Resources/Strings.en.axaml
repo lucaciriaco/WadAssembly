@@ -115,6 +115,11 @@
   <sys:String x:Key="ProjectSettings.AnimatedPrefixesHint">Only runs whose prefixes are listed (e.g. SHAWN, WATR) are declared as animations. Static variants such as SKY1/SKY2 or BIGDOOR1..7 stay static.</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Collaborators (map authors)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Add collaborator</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.General">General</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Files">Files</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Options">Options</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Animation">Animation</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Collaborators">Collaborators</sys:String>
 
   <!-- ===== Source Ports window ===== -->
   <sys:String x:Key="SourcePorts.Title">Source ports</sys:String>

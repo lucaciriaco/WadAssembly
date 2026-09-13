@@ -20,6 +20,7 @@ namespace WadAssembly.Core.Merge;
 ///   - optional resource WADs (texture/flat packs) with filter-to-used support
 ///   - generic lump deduplication (first occurrence wins)
 ///   - base WAD (IWAD) resource skipping
+///   - music lumps renamed per map slot (D_MAP01, D_MAP02, ...)
 ///
 /// Known limitations (tracked as TODOs upstream):
 ///   - ZDoom TEXTURES lump merging is NOT implemented yet
@@ -242,8 +243,16 @@ public sealed class WadMerger
             }
 
             Report(CoreMessages.Get("Merge.MergeTextures"));
-            IReadOnlyList<WadFile> textureSources = resources.Count > 0 ? resources : inputs;
-            var textures = MergeTextures(baseWad, textureSources, request.Options);
+            // When every resource-inclusion option is off ("todo desactivado" in the project
+            // settings), the output must only contain the maps, their music and the generated
+            // MAPINFO: no textures, flats, patches, sprites, palettes or animation tables are
+            // imported from the input/resource WADs (and the base WAD is not used as a seed).
+            bool importResources = request.Options.FilterToUsedResources
+                || request.Options.IncludePaletteLumps
+                || request.Options.IncludeSpriteLumps;
+            var textures = importResources
+                ? MergeTextures(baseWad, resources.Count > 0 ? resources : inputs, request.Options)
+                : new TextureMerger();
             string? generatedAnimdefs = null;
             byte[]? generatedAnimated = null;
             byte[]? generatedSwitches = null;
@@ -275,7 +284,7 @@ public sealed class WadMerger
             Report(CoreMessages.Get("Merge.Assemble"));
             string outputPath = BuildOutput(
                 request, inputs, resources, assignments, textures, usage, musicByName, baseWad,
-                generatedAnimdefs, generatedAnimated, generatedSwitches, Report, Warn);
+                generatedAnimdefs, generatedAnimated, generatedSwitches, importResources, Report, Warn);
 
             _result.OutputPath = outputPath;
             _result.OutputBytes = new FileInfo(outputPath).Length;
@@ -882,6 +891,7 @@ public sealed class WadMerger
         string? generatedAnimdefs,
         byte[]? generatedAnimated,
         byte[]? generatedSwitches,
+        bool importResources,
         Action<string> report,
         Action<string> warn)
     {
@@ -935,7 +945,7 @@ public sealed class WadMerger
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, null, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: false,
+                baseSpriteNames, importResources, copyMusic: false, neededSkyNames, isResourceWad: false,
                 baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources,
                 generatedAnimdefs, generatedAnimated, generatedSwitches);
 
@@ -943,7 +953,7 @@ public sealed class WadMerger
             CopyGenericLumps(wad, builder, outputNames, skipFromBase, usage, textures,
                 ref zdoomTexturesSeen, mapInfoText is not null, ref mapInfoSeen, warn,
                 request.Options.IncludePaletteLumps, request.Options.IncludeSpriteLumps,
-                baseSpriteNames, copyMusic: false, neededSkyNames, isResourceWad: true,
+                baseSpriteNames, importResources, copyMusic: false, neededSkyNames, isResourceWad: true,
                 baseTexturesOverrideResources: request.Options.BaseTexturesOverrideResources,
                 generatedAnimdefs, generatedAnimated, generatedSwitches);
 
@@ -990,7 +1000,8 @@ public sealed class WadMerger
             _result.MapsAdded++;
         }
 
-        // 3.5. Music lumps selected for each map (deduplicated; first existing wins).
+        // 3.5. Music lumps selected for each map, renamed to the classic
+        // "D_" + slot name (D_MAP01, D_MAP02, ...) so the lump matches the map.
         var wadsByPath = new Dictionary<string, WadFile>(StringComparer.OrdinalIgnoreCase);
         foreach (var wad in inputs.Concat(resources))
             if (wad.SourcePath is not null)
@@ -1000,19 +1011,22 @@ public sealed class WadMerger
         foreach (var a in assignments)
         {
             string m = (a.MusicName ?? "").Trim();
-            if (m.Length == 0 || outputNames.Contains(m))
+            if (m.Length == 0)
+                continue;
+            string target = MusicLumpForSlot(a.FinalName);
+            if (outputNames.Contains(target))
                 continue;
 
             if (musicByName.TryGetValue(m, out var src)
                 && wadsByPath.TryGetValue(src.WadPath, out WadFile? srcWad)
                 && srcWad.FindFirst(src.OriginalName) is Lump musicLump)
             {
-                builder.AddLump(m, musicLump.ReadAll());
-                outputNames.Add(m);
+                builder.AddLump(target, musicLump.ReadAll());
+                outputNames.Add(target);
                 _result.MusicCopied++;
-                if (!string.Equals(m, src.OriginalName, StringComparison.Ordinal))
+                if (!string.Equals(target, src.OriginalName, StringComparison.Ordinal))
                 {
-                    _result.Info.Add(CoreMessages.Get("Merge.MusicRenamed", src.OriginalName, Path.GetFileName(src.WadPath), m));
+                    _result.Info.Add(CoreMessages.Get("Merge.MusicRenamed", src.OriginalName, Path.GetFileName(src.WadPath), target));
                 }
             }
             else if (warnedMusic.Add(m))
@@ -1044,6 +1058,8 @@ public sealed class WadMerger
         }
 
         // 3.5b. External music files: copy files chosen by the user into the output WAD.
+        // Per-map files follow the same "D_" + slot naming; intermission external
+        // music (not tied to a slot row) keeps its chosen lump name.
         if (request.ExternalMusicFiles is { Count: > 0 } externalMusic)
         {
             var validExts = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -1051,9 +1067,18 @@ public sealed class WadMerger
                 ".mid", ".mod", ".it", ".xm", ".s3m",
             };
 
+            var externalTarget = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var a in assignments)
+            {
+                string m = (a.MusicName ?? "").Trim();
+                if (m.Length > 0 && externalMusic.ContainsKey(m) && !externalTarget.ContainsKey(m))
+                    externalTarget[m] = MusicLumpForSlot(a.FinalName);
+            }
+
             foreach (var (lumpName, filePath) in externalMusic)
             {
-                if (outputNames.Contains(lumpName))
+                string target = externalTarget.TryGetValue(lumpName, out string? t) ? t : lumpName;
+                if (outputNames.Contains(target))
                     continue;
 
                 if (!File.Exists(filePath))
@@ -1070,10 +1095,10 @@ public sealed class WadMerger
                 }
 
                 byte[] data = File.ReadAllBytes(filePath);
-                builder.AddLump(lumpName, data);
-                outputNames.Add(lumpName);
+                builder.AddLump(target, data);
+                outputNames.Add(target);
                 _result.MusicCopied++;
-                _result.Info.Add(CoreMessages.Get("Merge.ExternalMusicAdded", lumpName, Path.GetFileName(filePath)));
+                _result.Info.Add(CoreMessages.Get("Merge.ExternalMusicAdded", target, Path.GetFileName(filePath)));
             }
         }
 
@@ -1149,6 +1174,7 @@ public sealed class WadMerger
         bool includePaletteLumps,
         bool includeSpriteLumps,
         HashSet<string> baseSpriteNames,
+        bool importResources,
         bool copyMusic,
         HashSet<string>? neededSkyNames,
         bool isResourceWad,
@@ -1170,6 +1196,7 @@ public sealed class WadMerger
         // together with the graphics so editors/engines classify them as flats/patches.
         // Without filtering (usage null) the markers are copied as plain lumps as before.
         string? groupStart = null;
+        string? spriteGroupEnd = null;
         var groupBuffer = new List<(string Name, byte[] Data)>();
 
         void FlushGroup()
@@ -1208,6 +1235,35 @@ public sealed class WadMerger
             var lump = wad.Lumps[i];
             if (mapRanges.Any(r => i >= r.Item1 && i < r.Item2))
                 continue;
+
+            // All resource content is off ("todo desactivado"): nothing but the maps, their
+            // music (section 3.5) and the generated MAPINFO (section 0) reach the output.
+            if (!importResources)
+                continue;
+
+            // Palette and sprite/status-bar/font lumps are only implemented when the
+            // project settings enable them. This must hold even when filtering to used
+            // resources is off: the "copy everything" baseline would otherwise bypass
+            // the IncludePaletteLumps / IncludeSpriteLumps checkboxes.
+            if (!includePaletteLumps && PaletteLumpNames.Contains(lump.Name))
+                continue;
+
+            if (!includeSpriteLumps)
+            {
+                if (spriteGroupEnd is not null)
+                {
+                    if (lump.Name == spriteGroupEnd)
+                        spriteGroupEnd = null;
+                    continue;
+                }
+                if (SpriteStartNames.Contains(lump.Name))
+                {
+                    spriteGroupEnd = MarkerEnds[lump.Name];
+                    continue;
+                }
+                if (SpriteMarkerNames.Contains(lump.Name))
+                    continue;
+            }
 
             if (TextureLumpNames.Contains(lump.Name))
             {
@@ -1475,7 +1531,7 @@ bool included = usage is null
             sb.AppendLine($"map {a.FinalName} \"{SanitizeMapInfoString(name)}\"");
             sb.AppendLine("{");
             if (music.Length > 0)
-                sb.AppendLine($"    music = \"{SanitizeMapInfoString(music).Replace(" ", "")}\"");
+                sb.AppendLine($"    music = \"{SanitizeMapInfoString(MusicLumpForSlot(a.FinalName)).Replace(" ", "")}\"");
             if (sky.Length > 0)
                 sb.AppendLine($"    sky1 = \"{SanitizeMapInfoString(sky).Replace(" ", "")}\"{SkySpeedSuffix(a.SkyScroll)}");
             if (sky2.Length > 0)
@@ -1495,6 +1551,15 @@ bool included = usage is null
 
     private static string SanitizeMapInfoString(string value)
         => value.Replace("\"", "'").Replace("\r", " ").Replace("\n", " ");
+
+    /// <summary>Returns the output lump name for a map's music: the classic Doom
+    /// "D_" prefix plus the map slot (e.g. D_MAP01, D_MAP02), respecting the
+    /// 8-character WAD lump-name limit.</summary>
+    private static string MusicLumpForSlot(string finalName)
+    {
+        string name = WadNames.Normalize("D_" + (finalName ?? ""));
+        return name.Length > 8 ? name[..8] : name;
+    }
 
     /// <summary>Detects if a lump contains MUS, MIDI, IT or MOD music data by checking its header.</summary>
     private static bool IsMusicLump(Lump lump) => MusicLumpDetector.IsMusicData(lump);

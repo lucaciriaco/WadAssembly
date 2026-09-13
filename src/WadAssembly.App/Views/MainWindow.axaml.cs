@@ -367,7 +367,13 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
 
     private void OnWindowDragOver(object? sender, DragEventArgs e)
-        => e.DragEffects = DropHasWadFiles(e) ? DragDropEffects.Copy : DragDropEffects.None;
+    {
+        // The DragOver event bubbles from the sheet/header handlers up to the window.
+        // Leave the drop effect to them for internal drags; only handle file drops here.
+        if (e.Data.Contains(SlotRowFormat) || e.Data.Contains(MapSourceFormat) || e.Data.Contains(ColumnHeaderFormat))
+            return;
+        e.DragEffects = DropHasWadFiles(e) ? DragDropEffects.Copy : DragDropEffects.None;
+    }
 
     private void OnWindowDrop(object? sender, DragEventArgs e)
     {

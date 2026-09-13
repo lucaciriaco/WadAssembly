@@ -115,6 +115,11 @@
   <sys:String x:Key="ProjectSettings.AnimatedPrefixesHint">Solo las corridas cuyos prefijos figuren aquí (p. ej. SHAWN, WATR) se declaran como animaciones. Las variantes estáticas como SKY1/SKY2 o BIGDOOR1..7 permanecen estáticas.</sys:String>
   <sys:String x:Key="ProjectSettings.Collaborators">Colaboradores (autores de los mapas)</sys:String>
   <sys:String x:Key="ProjectSettings.AddCollaborator">Agregar colaborador</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.General">General</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Files">Archivos</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Options">Opciones</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Animation">Animación</sys:String>
+  <sys:String x:Key="ProjectSettings.Tab.Collaborators">Colaboradores</sys:String>
 
   <!-- ===== Ventana Source Ports ===== -->
   <sys:String x:Key="SourcePorts.Title">Source ports (puertos de juego)</sys:String>
